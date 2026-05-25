@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/OperationMaps.Application/OperationMaps.Application.csproj" />
+    <Project Path="src/OperationMaps.Domain/OperationMaps.Domain.csproj" />
+    <Project Path="src/OperationMaps.Infrastructure/OperationMaps.Infrastructure.csproj" />
+    <Project Path="src/OperationMaps.Wpf/OperationMaps.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/OperationMaps.Tests/OperationMaps.Tests.csproj" />
+  </Folder>
+</Solution>

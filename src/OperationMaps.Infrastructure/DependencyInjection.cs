@@ -16,8 +16,9 @@ public static class DependencyInjection
     // при миграции на SQL Server: options.UseSqlServer(connectionString)
 
     services.AddSingleton<IComponentListImporter, Pe3XmlImporter>();
-
+    services.AddScoped<IComponentNameParser, ComponentNameParser>();
     services.AddScoped<IComponentMatcher, ComponentMatcher>();
+
     return services;
   }
 }

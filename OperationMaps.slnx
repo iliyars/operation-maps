@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/OperationMaps.Application/OperationMaps.Application.csproj" />
+    <Project Path="src/OperationMaps.Console/OperationMaps.Console.csproj" />
     <Project Path="src/OperationMaps.Domain/OperationMaps.Domain.csproj" />
     <Project Path="src/OperationMaps.Infrastructure/OperationMaps.Infrastructure.csproj" />
     <Project Path="src/OperationMaps.Wpf/OperationMaps.Wpf.csproj" />

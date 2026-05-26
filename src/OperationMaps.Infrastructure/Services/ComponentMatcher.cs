@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
 using OperationMaps.Domain.Entities.Catalog;
@@ -9,17 +8,34 @@ namespace OperationMaps.Infrastructure.Services;
 public sealed class ComponentMatcher : IComponentMatcher
 {
   private readonly OperationMapsDbContext _context;
+  private readonly IComponentNameParser _nameParser;
 
-  public ComponentMatcher(OperationMapsDbContext context)
+  public ComponentMatcher(OperationMapsDbContext context, IComponentNameParser nameParser)
   {
     _context = context;
+    _nameParser = nameParser;
   }
 
   public async Task<MatchResult> MatchAsync(ImportedComponent imported, CancellationToken ct = default)
   {
-    // 1. Ищем тип компонента по DetectedCategory
+    // 1. Парсим имя компонента
+    var parsed = _nameParser.Parse(imported.RawName);
+
+    if (string.IsNullOrEmpty(parsed.Type))
+    {
+      return new MatchResult
+      {
+        IsMatched = false,
+        MatchedType = null,
+        MatchedFamily = null,
+        MatchedComponent = null,
+        Warning = $"Не удалось распарсить тип компонента: {imported.RawName}"
+      };
+    }
+
+    // 2. Ищем тип компонента в БД
     var type = await _context.ComponentTypes
-        .FirstOrDefaultAsync(t => t.Name == imported.DetectedCategory, ct);
+        .FirstOrDefaultAsync(t => t.Name == parsed.Type, ct);
 
     if (type is null)
     {
@@ -29,30 +45,21 @@ public sealed class ComponentMatcher : IComponentMatcher
         MatchedType = null,
         MatchedFamily = null,
         MatchedComponent = null,
-        Warning = $"Неизвестный тип компонента: {imported.DetectedCategory}"
+        Warning = $"Неизвестный тип компонента: {parsed.Type}"
       };
     }
 
-    // 2. Для резисторов и конденсаторов пытаемся определить семейство
+    // 3. Ищем семейство (только для RLC типов)
     Family? family = null;
-    if (type.Name is "Резистор" or "Конденсатор")
+    if (!string.IsNullOrEmpty(parsed.Family) && parsed.Family != parsed.Name)
     {
-      family = await ParseFamilyAsync(imported.RawName, type.Id, ct);
+      family = await _context.Families
+          .FirstOrDefaultAsync(f => f.ComponentTypeId == type.Id && f.Name == parsed.Family, ct);
     }
 
-    // 3. Ищем компонент по очищенному имени
-    Component? component = null;
-
-    if (family is not null)
-    {
-      component = await _context.Components
-          .FirstOrDefaultAsync(c => c.FamilyId == family.Id && c.FullName == imported.RawName, ct);
-    }
-    else if (type.Name is not ("Резистор" or "Конденсатор"))
-    {
-      component = await _context.Components
-          .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
-    }
+    // 4. Ищем компонент по полному имени (очищенному от ТУ)
+    var component = await _context.Components
+        .FirstOrDefaultAsync(c => c.FullName == parsed.Name, ct);
 
     return new MatchResult
     {
@@ -60,31 +67,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       MatchedType = type,
       MatchedFamily = family,
       MatchedComponent = component,
-      Warning = component is null ? $"Компонент не найден в справочнике: {imported.RawName}" : null
+      Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null
     };
-  }
-
-  private async Task<Family?> ParseFamilyAsync(string componentName, int typeId, CancellationToken ct)
-  {
-    var rules = await _context.FamilyParsingRules
-        .Where(r => r.ComponentTypeId == typeId)
-        .OrderBy(r => r.Priority)
-        .ToListAsync(ct);
-
-    foreach (var rule in rules)
-    {
-      var match = Regex.Match(componentName, rule.Pattern, RegexOptions.IgnoreCase);
-      if (match.Success)
-      {
-        var familyName = match.Groups["family"].Value;
-        if (!string.IsNullOrEmpty(familyName))
-        {
-          return await _context.Families
-              .FirstOrDefaultAsync(f => f.ComponentTypeId == typeId && f.Name == familyName, ct);
-        }
-      }
-    }
-
-    return null;
   }
 }

@@ -24,4 +24,13 @@
     <ProjectReference Include="..\..\src\OperationMaps.Infrastructure\OperationMaps.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+  <None Update="TestData/sample_pe3.xml">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+    <None Update="TestData/sample_pe3_1.xml">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
+</ItemGroup>
+
 </Project>

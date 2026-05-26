@@ -21,6 +21,7 @@ public class ProjectComponentConfiguration : IEntityTypeConfiguration<ProjectCom
   {
     b.Property(x => x.Designation).HasMaxLength(100).IsRequired();
     b.Property(x => x.RawName).HasMaxLength(500);
+    b.Property(x => x.DetectedCategory).HasMaxLength(100);
     b.HasOne(x => x.Project).WithMany(p => p.Components)
      .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
     // Component опционален (может быть не распознан) — при удалении компонента просто null.

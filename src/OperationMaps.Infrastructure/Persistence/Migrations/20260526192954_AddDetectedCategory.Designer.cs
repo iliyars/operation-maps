@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OperationMaps.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using OperationMaps.Infrastructure.Persistence;
 namespace OperationMaps.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(OperationMapsDbContext))]
-    partial class OperationMapsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260526192954_AddDetectedCategory")]
+    partial class AddDetectedCategory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");

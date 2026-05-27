@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿// App.xaml.cs — изменения относительно текущей версии помечены // ★
+
+using System.IO;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -6,14 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OperationMaps.Infrastructure;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Wpf.ViewModels; // ★
+using OperationMaps.Wpf.Views;      // ★
 using Serilog;
-using Application = System.Windows.Application;
 
 namespace OperationMaps.Wpf;
 
-/// <summary>
-/// Interaction logic for App.xaml
-/// </summary>
 public partial class App : System.Windows.Application
 {
   private readonly IHost _host;
@@ -21,55 +21,60 @@ public partial class App : System.Windows.Application
   public App()
   {
     _host = Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration((context, config) =>
-            {
-              config.SetBasePath(AppContext.BaseDirectory);
-              config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            })
-            .ConfigureServices((context, services) =>
-            {
-              ConfigureServices(context.Configuration, services);
-            })
-            .UseSerilog((context, loggerConfig) =>
-            {
-              var logFile = context.Configuration["Serilog:LogFile"]
+        .ConfigureAppConfiguration((context, config) =>
+        {
+          config.SetBasePath(AppContext.BaseDirectory);
+          config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        })
+        .ConfigureServices((context, services) =>
+        {
+          ConfigureServices(context.Configuration, services);
+        })
+        .UseSerilog((context, loggerConfig) =>
+        {
+          var logFile = context.Configuration["Serilog:LogFile"]
                             ?? "logs/operationmaps-.log";
-              loggerConfig
+          loggerConfig
                   .MinimumLevel.Information()
                   .WriteTo.File(
                       Path.Combine(AppContext.BaseDirectory, logFile),
                       rollingInterval: RollingInterval.Day,
                       retainedFileCountLimit: 14);
-            })
-            .Build();
+        })
+        .Build();
   }
 
   private static void ConfigureServices(IConfiguration configuration, IServiceCollection services)
   {
-    // строка подключения из appsettings.json
     var connectionString = configuration.GetConnectionString("OperationMaps")
         ?? throw new InvalidOperationException(
             "Connection string 'OperationMaps' not found in appsettings.json");
 
-    // регистрируем слой Infrastructure (DbContext + провайдер SQLite)
     services.AddInfrastructure(connectionString);
 
-    // главное окно — резолвится из DI (не через StartupUri)
-    services.AddSingleton<MainWindow>();
+    // ★ IDbContextFactory нужен CatalogViewModel (создаёт короткие scoped-контексты)
+    services.AddDbContextFactory<OperationMapsDbContext>(options =>
+        options.UseSqlite(connectionString));
 
-    // сюда позже: ViewModels, прикладные сервисы
-    // services.AddTransient<MainViewModel>();
+    // ★ ViewModels
+    services.AddTransient<CatalogViewModel>();
+
+    // ★ Views
+    services.AddTransient<CatalogView>();
+
+    // Главное окно
+    services.AddSingleton<MainWindow>();
   }
 
   private async void OnStartup(object sender, StartupEventArgs e)
   {
     await _host.StartAsync();
 
-    using (var scope = _host.Services.CreateScope())
-    {
-      var db = scope.ServiceProvider.GetRequiredService<OperationMapsDbContext>();
-      await db.Database.MigrateAsync();
-    }
+    // Сидер
+    await using var scope = _host.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider.GetRequiredService<OperationMapsDbContext>();
+    await db.Database.MigrateAsync();
+    await DatabaseSeeder.SeedAsync(db);     // ★ подключаем сидер здесь
 
     var mainWindow = _host.Services.GetRequiredService<MainWindow>();
     mainWindow.Show();
@@ -81,6 +86,4 @@ public partial class App : System.Windows.Application
     _host.Dispose();
     Log.CloseAndFlush();
   }
-
 }
-

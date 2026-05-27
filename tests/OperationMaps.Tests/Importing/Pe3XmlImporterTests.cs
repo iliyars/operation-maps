@@ -1,6 +1,8 @@
 using System.Text;
 using OperationMaps.Application.Importing;
 using OperationMaps.Infrastructure.Importing;
+using Moq;
+using OperationMaps.Infrastructure.Services;
 using Xunit;
 
 namespace OperationMaps.Tests.Importing;
@@ -12,9 +14,24 @@ public class Pe3XmlImporterTests
 
   private static ImportResult Import()
   {
-    var importer = new Pe3XmlImporter();
+    var mockParser = new Mock<IComponentNameParser>();
+
+    // Настраиваем мок: при любом вызове Parse возвращаем пустой результат?
+    // Или реальный, но это сложнее
+    mockParser.Setup(x => x.Parse(It.IsAny<string>()))
+        .Returns((string raw) => new ParsedComponentName
+        {
+          Raw = raw,
+          Type = "",
+          Family = "",
+          Name = raw
+        });
+
+    var importer = new Pe3XmlImporter(mockParser.Object);
     using var fs = File.OpenRead(SamplePath);
     return importer.Import(fs);
+
+
   }
 
   [Fact]

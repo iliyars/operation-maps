@@ -24,7 +24,7 @@ class Program
       // Если консоль не поддерживает изменение размеров
     }
 
-    var xmlPath = @"D:\dev\csharp\OperationMaps\tests\OperationMaps.Tests\TestData\sample_pe3_1.XML";
+    var xmlPath = @"C:\Ilya\dev\CSharp\operation-maps\tests\OperationMaps.Tests\TestData\sample_pe3_1.XML";
 
     if (!File.Exists(xmlPath))
     {
@@ -42,6 +42,11 @@ class Program
         })
         .Build();
 
+
+    using var scope = host.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<OperationMapsDbContext>();
+    await db.Database.MigrateAsync();
+    await DatabaseSeeder.SeedAsync(db);
     var importer = host.Services.GetRequiredService<IComponentListImporter>();
 
     await using var stream = File.OpenRead(xmlPath);
@@ -92,10 +97,7 @@ class Program
     System.Console.WriteLine(separator);
     System.Console.WriteLine($"\n✅ Импорт завершён. Всего строк: {result.ComponentCount}");
 
-    if (args.Contains("--match"))
-    {
-      await ShowMatching(host.Services, result);
-    }
+    await ShowMatching(host.Services, result);
 
     System.Console.WriteLine("\n\nНажмите любую клавишу для выхода...");
     System.Console.ReadKey();
@@ -118,6 +120,11 @@ class Program
       System.Console.WriteLine("   Сначала заполните справочники (ComponentType, Family, Component)");
       return;
     }
+
+    var familiesCount = await db.Families.CountAsync();
+    var paramsCount = await db.FormParameters.CountAsync();
+    System.Console.WriteLine($"  Семейств в БД: {familiesCount}");
+    System.Console.WriteLine($"  Параметров форм: {paramsCount}");
 
     System.Console.WriteLine($"\n{"Категория",-15} {"Статус",-10} {"Семейство",-20} {"Наименование"}");
     System.Console.WriteLine(new string('-', 85));

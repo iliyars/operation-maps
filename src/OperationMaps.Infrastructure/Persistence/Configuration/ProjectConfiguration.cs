@@ -10,8 +10,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
   {
     b.Property(x => x.Name).HasMaxLength(300).IsRequired();
     b.Property(x => x.SourceFileName).HasMaxLength(500);
-    b.HasOne(x => x.CreatedBy).WithMany()
-     .HasForeignKey(x => x.CreatedById).OnDelete(DeleteBehavior.NoAction);
   }
 }
 
@@ -19,14 +17,14 @@ public class ProjectComponentConfiguration : IEntityTypeConfiguration<ProjectCom
 {
   public void Configure(EntityTypeBuilder<ProjectComponent> b)
   {
-    b.Property(x => x.Designation).HasMaxLength(100).IsRequired();
+    b.Property(x => x.Designation).HasMaxLength(200).IsRequired();
     b.Property(x => x.RawName).HasMaxLength(500);
-    b.Property(x => x.DetectedCategory).HasMaxLength(100);
-    b.HasOne(x => x.Project).WithMany(p => p.Components)
-     .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
-    // Component опционален (может быть не распознан) — при удалении компонента просто null.
-    b.HasOne(x => x.Component).WithMany()
-     .HasForeignKey(x => x.ComponentId).OnDelete(DeleteBehavior.SetNull);
+    b.Property(x => x.DetectedCategory).HasMaxLength(200);
+
+    b.HasOne(x => x.Project)
+     .WithMany(p => p.Components)
+     .HasForeignKey(x => x.ProjectId)
+     .OnDelete(DeleteBehavior.Cascade);
   }
 }
 
@@ -34,15 +32,18 @@ public class RegimeGroupConfiguration : IEntityTypeConfiguration<RegimeGroup>
 {
   public void Configure(EntityTypeBuilder<RegimeGroup> b)
   {
-    b.Property(x => x.Label).HasMaxLength(2000);
-    b.Property(x => x.LoadFactorMin).HasMaxLength(100);
+    b.Property(x => x.Label).HasMaxLength(200).IsRequired();
+    b.Property(x => x.LoadFactorMin).HasMaxLength(50);
 
-    b.HasOne(x => x.Project).WithMany(p => p.RegimeGroups)
-     .HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Cascade);
-    b.HasOne(x => x.Form).WithMany()
-     .HasForeignKey(x => x.FormId).OnDelete(DeleteBehavior.NoAction);
-    b.HasOne(x => x.LoadFactorParameter).WithMany()
-     .HasForeignKey(x => x.LoadFactorParameterId).OnDelete(DeleteBehavior.NoAction);
+    b.HasOne(x => x.Project)
+     .WithMany(p => p.RegimeGroups)
+     .HasForeignKey(x => x.ProjectId)
+     .OnDelete(DeleteBehavior.Cascade);
+
+    b.HasOne(x => x.LoadFactorParameter)
+     .WithMany()
+     .HasForeignKey(x => x.LoadFactorParameterId)
+     .OnDelete(DeleteBehavior.NoAction);
   }
 }
 
@@ -51,12 +52,11 @@ public class RegimeGroupMemberConfiguration : IEntityTypeConfiguration<RegimeGro
   public void Configure(EntityTypeBuilder<RegimeGroupMember> b)
   {
     b.HasKey(x => new { x.RegimeGroupId, x.ProjectComponentId });
-    b.HasOne(x => x.RegimeGroup).WithMany(g => g.Members)
-     .HasForeignKey(x => x.RegimeGroupId).OnDelete(DeleteBehavior.Cascade);
-    // NoAction со стороны ProjectComponent, чтобы избежать множественных каскадных путей
-    // (Project уже каскадит и группы, и компоненты).
-    b.HasOne(x => x.ProjectComponent).WithMany()
-     .HasForeignKey(x => x.ProjectComponentId).OnDelete(DeleteBehavior.NoAction);
+
+    b.HasOne(x => x.RegimeGroup)
+     .WithMany(g => g.Members)
+     .HasForeignKey(x => x.RegimeGroupId)
+     .OnDelete(DeleteBehavior.Cascade);
   }
 }
 
@@ -64,15 +64,43 @@ public class ParameterCellValueConfiguration : IEntityTypeConfiguration<Paramete
 {
   public void Configure(EntityTypeBuilder<ParameterCellValue> b)
   {
-    b.Property(x => x.Value).HasMaxLength(2000); // допускает многострочный текст
-    b.HasOne(x => x.RegimeGroup).WithMany(g => g.CellValues)
-     .HasForeignKey(x => x.RegimeGroupId).OnDelete(DeleteBehavior.Cascade);
-    b.HasOne(x => x.FormParameter).WithMany()
-     .HasForeignKey(x => x.FormParameterId).OnDelete(DeleteBehavior.NoAction);
-    b.HasOne(x => x.FormValueColumn).WithMany()
-     .HasForeignKey(x => x.FormValueColumnId).OnDelete(DeleteBehavior.NoAction);
+    b.Property(x => x.Value).HasMaxLength(500).IsRequired();
 
-    // одна ячейка = одна (группа × строка × колонка)
+    b.HasOne(x => x.RegimeGroup)
+     .WithMany(g => g.CellValues)
+     .HasForeignKey(x => x.RegimeGroupId)
+     .OnDelete(DeleteBehavior.Cascade);
+
+    b.HasOne(x => x.FormParameter)
+     .WithMany()
+     .HasForeignKey(x => x.FormParameterId)
+     .OnDelete(DeleteBehavior.NoAction);
+
+    b.HasOne(x => x.FormValueColumn)
+     .WithMany()
+     .HasForeignKey(x => x.FormValueColumnId)
+     .OnDelete(DeleteBehavior.NoAction);
+
+    // уникальность: в одной группе на одну ячейку (параметр × колонка) — одно значение
     b.HasIndex(x => new { x.RegimeGroupId, x.FormParameterId, x.FormValueColumnId }).IsUnique();
+  }
+}
+
+public class ParameterCellNoteConfiguration : IEntityTypeConfiguration<ParameterCellNote>
+{
+  public void Configure(EntityTypeBuilder<ParameterCellNote> b)
+  {
+    b.HasOne(x => x.ParameterCellValue)
+     .WithMany(c => c.Notes)
+     .HasForeignKey(x => x.ParameterCellValueId)
+     .OnDelete(DeleteBehavior.Cascade);
+
+    b.HasOne(x => x.Note)
+     .WithMany()
+     .HasForeignKey(x => x.NoteId)
+     .OnDelete(DeleteBehavior.Restrict); // не удаляем Note если она используется в карте
+
+    // в одной ячейке порядковый номер уникален
+    b.HasIndex(x => new { x.ParameterCellValueId, x.Order }).IsUnique();
   }
 }

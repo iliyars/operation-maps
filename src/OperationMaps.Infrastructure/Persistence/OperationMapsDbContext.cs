@@ -10,13 +10,13 @@ public class OperationMapsDbContext : DbContext
 {
   public OperationMapsDbContext(DbContextOptions<OperationMapsDbContext> options) : base(options) { }
 
-  // Слой 1
+  // Слой 1 — Формы
   public DbSet<Form> Froms => Set<Form>();
   public DbSet<FormSection> FormSections => Set<FormSection>();
   public DbSet<FormParameter> FormParameters => Set<FormParameter>();
   public DbSet<FormValueColumn> FormValueColumns => Set<FormValueColumn>();
 
-  // Слой 2
+  // Слой 2 — Каталог
   public DbSet<ComponentType> ComponentTypes => Set<ComponentType>();
   public DbSet<TypeForm> TypeForms => Set<TypeForm>();
   public DbSet<Family> Families => Set<Family>();
@@ -25,19 +25,22 @@ public class OperationMapsDbContext : DbContext
   public DbSet<FamilyNtdValue> FamilyNtdValues => Set<FamilyNtdValue>();
   public DbSet<ComponentNtdValue> ComponentNtdValues => Set<ComponentNtdValue>();
   public DbSet<ComponentPinValue> ComponentPinValues => Set<ComponentPinValue>();
+  public DbSet<Note> Notes => Set<Note>();
+  public DbSet<FamilyNote> FamilyNotes => Set<FamilyNote>();
+  public DbSet<ComponentNote> ComponentNotes => Set<ComponentNote>();
 
-  // Слой 3
+  // Слой 3 — Проекты
   public DbSet<Project> Projects => Set<Project>();
   public DbSet<ProjectComponent> ProjectComponents => Set<ProjectComponent>();
   public DbSet<RegimeGroup> RegimeGroups => Set<RegimeGroup>();
   public DbSet<RegimeGroupMember> RegimeGroupMembers => Set<RegimeGroupMember>();
   public DbSet<ParameterCellValue> ParameterCellValues => Set<ParameterCellValue>();
+  public DbSet<ParameterCellNote> ParameterCellNotes => Set<ParameterCellNote>(); // ★
 
   public DbSet<AppUser> Users => Set<AppUser>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
-    // подхватывает все IEntityTypeConfiguration из этой сборки
     modelBuilder.ApplyConfigurationsFromAssembly(typeof(OperationMapsDbContext).Assembly);
   }
 }

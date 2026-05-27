@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OperationMaps.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using OperationMaps.Infrastructure.Persistence;
 namespace OperationMaps.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(OperationMapsDbContext))]
-    partial class OperationMapsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527120620_AddNotes")]
+    partial class AddNotes
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -50,12 +53,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.Property<int>("NoteId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("FormParameterId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("ComponentId", "NoteId");
-
-                    b.HasIndex("FormParameterId");
 
                     b.HasIndex("NoteId");
 
@@ -165,12 +163,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.Property<int>("NoteId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("FormParameterId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("FamilyId", "NoteId");
-
-                    b.HasIndex("FormParameterId");
 
                     b.HasIndex("NoteId");
 
@@ -398,31 +391,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.ToTable("FormValueColumns");
                 });
 
-            modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellNote", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("NoteId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ParameterCellValueId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NoteId");
-
-                    b.HasIndex("ParameterCellValueId", "Order")
-                        .IsUnique();
-
-                    b.ToTable("ParameterCellNotes");
-                });
-
             modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellValue", b =>
                 {
                     b.Property<int>("Id")
@@ -440,7 +408,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(500)
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -494,11 +462,11 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Designation")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DetectedCategory")
-                        .HasMaxLength(200)
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("MatchStatus")
@@ -534,11 +502,11 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Label")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LoadFactorMin")
-                        .HasMaxLength(50)
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("LoadFactorParameterId")
@@ -624,12 +592,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "FormParameter")
-                        .WithMany()
-                        .HasForeignKey("FormParameterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OperationMaps.Domain.Entities.Catalog.Note", "Note")
                         .WithMany("ComponentNotes")
                         .HasForeignKey("NoteId")
@@ -637,8 +599,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Component");
-
-                    b.Navigation("FormParameter");
 
                     b.Navigation("Note");
                 });
@@ -700,12 +660,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "FormParameter")
-                        .WithMany()
-                        .HasForeignKey("FormParameterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("OperationMaps.Domain.Entities.Catalog.Note", "Note")
                         .WithMany("FamilyNotes")
                         .HasForeignKey("NoteId")
@@ -713,8 +667,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Family");
-
-                    b.Navigation("FormParameter");
 
                     b.Navigation("Note");
                 });
@@ -818,25 +770,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.Navigation("Form");
                 });
 
-            modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellNote", b =>
-                {
-                    b.HasOne("OperationMaps.Domain.Entities.Catalog.Note", "Note")
-                        .WithMany()
-                        .HasForeignKey("NoteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("OperationMaps.Domain.Entities.Projects.ParameterCellValue", "ParameterCellValue")
-                        .WithMany("Notes")
-                        .HasForeignKey("ParameterCellValueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Note");
-
-                    b.Navigation("ParameterCellValue");
-                });
-
             modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellValue", b =>
                 {
                     b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "FormParameter")
@@ -869,7 +802,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.HasOne("OperationMaps.Domain.Entities.Users.AppUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
@@ -879,7 +812,8 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("OperationMaps.Domain.Entities.Catalog.Component", "Component")
                         .WithMany()
-                        .HasForeignKey("ComponentId");
+                        .HasForeignKey("ComponentId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("OperationMaps.Domain.Entities.Projects.Project", "Project")
                         .WithMany("Components")
@@ -897,7 +831,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.HasOne("OperationMaps.Domain.Entities.Forms.Form", "Form")
                         .WithMany()
                         .HasForeignKey("FormId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "LoadFactorParameter")
@@ -923,7 +857,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
                     b.HasOne("OperationMaps.Domain.Entities.Projects.ProjectComponent", "ProjectComponent")
                         .WithMany()
                         .HasForeignKey("ProjectComponentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("OperationMaps.Domain.Entities.Projects.RegimeGroup", "RegimeGroup")
@@ -983,11 +917,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("OperationMaps.Domain.Entities.Forms.FormSection", b =>
                 {
                     b.Navigation("Parameters");
-                });
-
-            modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellValue", b =>
-                {
-                    b.Navigation("Notes");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.Project", b =>

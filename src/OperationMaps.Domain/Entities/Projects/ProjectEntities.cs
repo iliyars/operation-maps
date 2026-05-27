@@ -72,4 +72,24 @@ public class ParameterCellValue
   public FormValueColumn FormValueColumn { get; set; } = null!;
 
   public string Value { get; set; } = "";
+
+  public List<ParameterCellNote> Notes { get; set; } = new();
+}
+
+/// <summary>
+/// Примечание, выбранное пользователем для конкретной ячейки карты.
+/// Order определяет порядок: 1 = *, 2 = **, и т.д.
+/// </summary>
+public class ParameterCellNote
+{
+  public int Id { get; set; }
+
+  public int ParameterCellValueId { get; set; }
+  public ParameterCellValue ParameterCellValue { get; set; } = null!;
+
+  public int NoteId { get; set; }
+  public Note Note { get; set; } = null!;
+
+  /// <summary>Порядковый номер примечания в ячейке: 1 = *, 2 = **, ...</summary>
+  public int Order { get; set; }
 }

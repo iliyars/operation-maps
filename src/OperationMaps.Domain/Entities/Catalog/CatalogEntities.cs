@@ -29,6 +29,7 @@ public class Family
 
   public List<Component> Components { get; set; } = new();
   public List<FamilyNtdValue> NtdValues { get; set; } = new();
+  public List<FamilyNote> FamilyNotes { get; set; } = new();
 }
 
 public class FamilyParsingRule
@@ -51,6 +52,7 @@ public class Component
 
   public List<ComponentNtdValue> NtdValues { get; set; } = new();
   public List<ComponentPinValue> PinValues { get; set; } = new();
+  public List<ComponentNote> ComponentNotes { get; set; } = new();
 }
 
 public class FamilyNtdValue
@@ -81,4 +83,48 @@ public class ComponentPinValue
   public int FormParameterId { get; set; }
   public FormParameter FormParameter { get; set; } = null!;
   public string Pins { get; set; } = "";
+}
+
+// ── Примечания ───────────────────────────────────────────────────────────────
+
+/// <summary>Справочник переиспользуемых примечаний.</summary>
+public class Note
+{
+  public int Id { get; set; }
+  public string Text { get; set; } = "";
+
+  public List<FamilyNote> FamilyNotes { get; set; } = new();
+  public List<ComponentNote> ComponentNotes { get; set; } = new();
+}
+
+/// <summary>
+/// Привязка примечания к конкретному параметру семейства.
+/// PK: (FamilyId, FormParameterId, NoteId).
+/// </summary>
+public class FamilyNote
+{
+  public int FamilyId { get; set; }
+  public Family Family { get; set; } = null!;
+
+  public int FormParameterId { get; set; }          // ★ к какому параметру
+  public FormParameter FormParameter { get; set; } = null!;
+
+  public int NoteId { get; set; }
+  public Note Note { get; set; } = null!;
+}
+
+/// <summary>
+/// Привязка примечания к конкретному параметру компонента.
+/// PK: (ComponentId, FormParameterId, NoteId).
+/// </summary>
+public class ComponentNote
+{
+  public int ComponentId { get; set; }
+  public Component Component { get; set; } = null!;
+
+  public int FormParameterId { get; set; }          // ★ к какому параметру
+  public FormParameter FormParameter { get; set; } = null!;
+
+  public int NoteId { get; set; }
+  public Note Note { get; set; } = null!;
 }

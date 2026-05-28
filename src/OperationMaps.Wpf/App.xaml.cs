@@ -1,6 +1,5 @@
-﻿// App.xaml.cs — изменения относительно текущей версии помечены // ★
-
-using System.IO;
+﻿using System.IO;
+using System.Reflection;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -8,82 +7,75 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OperationMaps.Infrastructure;
 using OperationMaps.Infrastructure.Persistence;
-using OperationMaps.Wpf.ViewModels; // ★
-using OperationMaps.Wpf.Views;      // ★
+using OperationMaps.Wpf.Infrastructure.Navigation;
+using OperationMaps.Wpf.Infrastructure.ViewLoacation;
+using OperationMaps.Wpf.Main;
+using OperationMaps.Wpf.Shell.Features.Welcome;
+using OperationMaps.Wpf.ViewModels;
 using Serilog;
 
 namespace OperationMaps.Wpf;
 
 public partial class App : System.Windows.Application
 {
-  private readonly IHost _host;
+  private IHost _host;
 
-  public App()
-  {
-    _host = Host.CreateDefaultBuilder()
-        .ConfigureAppConfiguration((context, config) =>
-        {
-          config.SetBasePath(AppContext.BaseDirectory);
-          config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-        })
-        .ConfigureServices((context, services) =>
-        {
-          ConfigureServices(context.Configuration, services);
-        })
-        .UseSerilog((context, loggerConfig) =>
-        {
-          var logFile = context.Configuration["Serilog:LogFile"]
-                            ?? "logs/operationmaps-.log";
-          loggerConfig
-                  .MinimumLevel.Information()
-                  .WriteTo.File(
-                      Path.Combine(AppContext.BaseDirectory, logFile),
-                      rollingInterval: RollingInterval.Day,
-                      retainedFileCountLimit: 14);
-        })
-        .Build();
-  }
+  private static IHost BuildHost() =>
+    Host.CreateDefaultBuilder()
+      .UseSerilog((ctx, cfg) => cfg
+                .MinimumLevel.Information()
+                .WriteTo.File(
+                    path: "logs/operationmaps-.log",
+                    rollingInterval: RollingInterval.Day,
+                    retainedFileCountLimit: 14))
+                   .ConfigureServices((ctx, services) =>
+            {
+              var connectionString = ctx.Configuration.GetConnectionString("OperationMaps")
+                  ?? throw new InvalidOperationException(
+                      "Connection string 'OperationMaps' not found.");
 
-  private static void ConfigureServices(IConfiguration configuration, IServiceCollection services)
-  {
-    var connectionString = configuration.GetConnectionString("OperationMaps")
-        ?? throw new InvalidOperationException(
-            "Connection string 'OperationMaps' not found in appsettings.json");
+              services.AddInfrastructure(connectionString);
+              services.AddPresentation();
+            })
+            .Build();
 
-    services.AddInfrastructure(connectionString);
+    private async void OnStartup(object sender, StartupEventArgs e)
+    {
+        _host = BuildHost();
+        await _host.StartAsync();
 
-    // ★ IDbContextFactory нужен CatalogViewModel (создаёт короткие scoped-контексты)
-    services.AddDbContextFactory<OperationMapsDbContext>(options =>
-        options.UseSqlite(connectionString));
+        // Register View DataTemplates by convention (ViewModel → View)
+        ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
 
-    // ★ ViewModels
-    services.AddTransient<CatalogViewModel>();
+        // Seed the database
+        await InitializeDatabaseAsync();
 
-    // ★ Views
-    services.AddTransient<CatalogView>();
+        // Navigate to the initial screen
+        var navigation = _host.Services.GetRequiredService<INavigationService>();
+        await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
 
-    // Главное окно
-    services.AddSingleton<MainWindow>();
-  }
+        //Show the window
+        var vm = _host.Services.GetRequiredService<MainViewModel>();
+        var window = new MainWindow { DataContext = vm };
+        window.Show();
 
-  private async void OnStartup(object sender, StartupEventArgs e)
-  {
-    await _host.StartAsync();
+        // Navigate to the initial screen
+        await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
+    }
 
-    // Сидер
-    await using var scope = _host.Services.CreateAsyncScope();
-    var db = scope.ServiceProvider.GetRequiredService<OperationMapsDbContext>();
-    await db.Database.MigrateAsync();
-    await DatabaseSeeder.SeedAsync(db);     // ★ подключаем сидер здесь
-
-    var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-    mainWindow.Show();
-  }
-
-  private async void OnExit(object sender, ExitEventArgs e)
+    private async void OnExit(object sender, ExitEventArgs e)
   {
     await _host.StopAsync();
     _host.Dispose();
     Log.CloseAndFlush();
+  }
+
+  private async Task InitializeDatabaseAsync()
+  {
+    using var scope = _host.Services.CreateAsyncScope();
+    var db = scope.ServiceProvider
+        .GetRequiredService<OperationMapsDbContext>();
+    await db.Database.MigrateAsync();
+    await DatabaseSeeder.SeedAsync(db);
   }
 }

@@ -1,0 +1,27 @@
+﻿<Window x:Class="OperationMaps.Wpf.Main.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:shell="clr-namespace:OperationMaps.Wpf.Shell"
+        xmlns:local="clr-namespace:OperationMaps.Wpf.Main"
+        mc:Ignorable="d"
+        Title="{Binding Title}"
+        Height="700"
+        Width="1100"
+        WindowStartupLocation="CenterScreen">
+  <!--
+        ShellViewModel is exposed by MainViewModel.Shell.
+        ShellView is resolved automatically via DataTemplate registered
+        by ViewTemplateRegistrar — but ShellView is not a ScreenViewModel,
+        so we bind it explicitly here.
+    -->
+  <ContentControl Content="{Binding Shell}">
+    <ContentControl.Resources>
+      <DataTemplate DataType="{x:Type shell:ShellViewModel}">
+        <shell:ShellView/>
+      </DataTemplate>
+    </ContentControl.Resources>
+  </ContentControl>
+
+</Window>

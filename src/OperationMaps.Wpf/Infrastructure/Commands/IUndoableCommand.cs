@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace OperationMaps.Wpf.Infrastructure.Commands
 {
-    public interface IUndoableCommands
-    {
-        
-    }
+  public interface IUndoableCommand
+  {
+    string Description { get; }
+
+    void Execute();
+    void Undo();
+  }
 }

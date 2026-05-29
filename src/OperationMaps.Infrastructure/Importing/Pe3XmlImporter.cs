@@ -19,14 +19,17 @@ public sealed class Pe3XmlImporter : IComponentListImporter
   public bool CanImport(string filePath)
       => filePath.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
 
-  public ImportResult Import(Stream stream)
+  public async Task<ImportResult> ImportAsync(Stream stream, CancellationToken cancellationToken = default)
   {
+    ArgumentNullException.ThrowIfNull(stream);
     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
     XDocument doc;
-    using (var reader = new StreamReader(stream, Encoding.GetEncoding(1251)))
+    using (var reader = new StreamReader(stream, Encoding.GetEncoding(1251),
+                                        detectEncodingFromByteOrderMarks: false,
+                                        leaveOpen: true))
     {
-      doc = XDocument.Load(reader);
+      doc = await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
     }
 
     var components = new List<ImportedComponent>();
@@ -34,7 +37,9 @@ public sealed class Pe3XmlImporter : IComponentListImporter
 
     // Паспортные данные
     string? docTitle = null, docNumber = null, developedBy = null, checkedBy = null, approvedBy = null;
-    var passportData = doc.Descendants("PassportData").Elements("Record").FirstOrDefault();
+    var passportData = doc.Descendants("PassportData")
+                          .Elements("Record")
+                          .FirstOrDefault();
     if (passportData != null)
     {
       docTitle = (string?)passportData.Attribute("field_2");
@@ -48,27 +53,19 @@ public sealed class Pe3XmlImporter : IComponentListImporter
     if (recordsData is null)
     {
       warnings.Add("Не найден узел <RecordsData> — файл не похож на перечень ПЭ3.");
-      return new ImportResult
-      {
-        Components = components,
-        Warnings = warnings,
-        DocumentTitle = docTitle,
-        DocumentNumber = docNumber,
-        DevelopedBy = developedBy,
-        CheckedBy = checkedBy,
-        ApprovedBy = approvedBy
-      };
+      return BuildResult(components, warnings,
+                           docTitle, docNumber, developedBy, checkedBy, approvedBy);
     }
 
     foreach (var rec in recordsData.Elements("Record"))
     {
-      // Пропускаем групповые заголовки
-      if (string.Equals((string?)rec.Attribute("type_rec"), "X", StringComparison.OrdinalIgnoreCase))
-        continue;
+      cancellationToken.ThrowIfCancellationRequested();
 
-      // Пропускаем примечания
-      if (string.Equals((string?)rec.Attribute("type_rec"), "R", StringComparison.OrdinalIgnoreCase))
-        continue;
+      var typeRec = (string?)rec.Attribute("type_rec");
+
+      // Skip section headings and footnotes
+      if (string.Equals(typeRec, "X", StringComparison.OrdinalIgnoreCase)) continue;
+      if (string.Equals(typeRec, "R", StringComparison.OrdinalIgnoreCase)) continue;
 
       var rawName = ((string?)rec.Attribute(NameField))?.Trim() ?? "";
 
@@ -85,9 +82,9 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       {
         parsed = _nameParser.Parse(rawName);
       }
-      catch (Exception)
+      catch (Exception ex)
       {
-        warnings.Add($"Ошибка парсинга: «{rawName}».");
+        warnings.Add($"Ошибка парсинга: «{rawName}» - {ex.Message}.");
         continue;
       }
 
@@ -113,15 +110,25 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       });
     }
 
-    return new ImportResult
-    {
-      Components = components,
-      Warnings = warnings,
-      DocumentTitle = docTitle,
-      DocumentNumber = docNumber,
-      DevelopedBy = developedBy,
-      CheckedBy = checkedBy,
-      ApprovedBy = approvedBy
-    };
+    return BuildResult(components, warnings,
+                           docTitle, docNumber, developedBy, checkedBy, approvedBy);
   }
+
+  private static ImportResult BuildResult(
+        List<ImportedComponent> components,
+        List<string> warnings,
+        string? docTitle,
+        string? docNumber,
+        string? developedBy,
+        string? checkedBy,
+        string? approvedBy) => new()
+        {
+          Components = components,
+          Warnings = warnings,
+          DocumentTitle = docTitle,
+          DocumentNumber = docNumber,
+          DevelopedBy = developedBy,
+          CheckedBy = checkedBy,
+          ApprovedBy = approvedBy,
+        };
 }

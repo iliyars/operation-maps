@@ -12,42 +12,23 @@ public sealed class ComponentMatcher : IComponentMatcher
 
   public ComponentMatcher(OperationMapsDbContext context, IComponentNameParser nameParser)
   {
-    _context = context;
-    _nameParser = nameParser;
+    _context = context ?? throw new ArgumentNullException(nameof(context));
+    _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
   }
 
   public async Task<MatchResult> MatchAsync(ImportedComponent imported, CancellationToken ct = default)
   {
-    // 1. Парсим имя компонента
     var parsed = _nameParser.Parse(imported.RawName);
 
     if (string.IsNullOrEmpty(parsed.Type))
-    {
-      return new MatchResult
-      {
-        IsMatched = false,
-        MatchedType = null,
-        MatchedFamily = null,
-        MatchedComponent = null,
-        Warning = $"Не удалось распарсить тип компонента: {imported.RawName}"
-      };
-    }
+      return Unmatched($"Не удалось распарсить тип компонента: {imported.RawName}");
 
     // 2. Ищем тип компонента в БД
     var type = await _context.ComponentTypes
         .FirstOrDefaultAsync(t => t.Name == parsed.Type, ct);
 
     if (type is null)
-    {
-      return new MatchResult
-      {
-        IsMatched = false,
-        MatchedType = null,
-        MatchedFamily = null,
-        MatchedComponent = null,
-        Warning = $"Неизвестный тип компонента: {parsed.Type}"
-      };
-    }
+      return Unmatched($"Неизвестный тип компонента: {parsed.Type}");
 
     // 3. Ищем семейство (только для RLC типов)
     Family? family = null;
@@ -70,4 +51,52 @@ public sealed class ComponentMatcher : IComponentMatcher
       Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null
     };
   }
+
+  public async Task<ProjectMatchResult> MatchAllAsync(
+    IReadOnlyList<ImportedComponent> components,
+    CancellationToken ct = default)
+  {
+    ArgumentNullException.ThrowIfNull(components);
+
+    var matched = new List<ComponentMatchEntry>(components.Count);
+    var unresolved = new List<ComponentMatchEntry>();
+    var warnings = new List<string>();
+
+    foreach (var imported in components)
+    {
+      ct.ThrowIfCancellationRequested();
+
+      var result = await MatchAsync(imported, ct);
+
+      var entry = new ComponentMatchEntry
+      {
+        Imported = imported,
+        MatchResult = result,
+      };
+
+      if (result.IsMatched)
+        matched.Add(entry);
+      else
+        unresolved.Add(entry);
+
+      if (result.Warning is not null)
+        warnings.Add(result.Warning);
+    }
+
+    return new ProjectMatchResult
+    {
+      Matched = matched,
+      Unresolved = unresolved,
+      Warnings = warnings,
+    };
+  }
+
+  private static MatchResult Unmatched(string warning) => new()
+  {
+    IsMatched = false,
+    MatchedType = null,
+    MatchedFamily = null,
+    MatchedComponent = null,
+    Warning = warning,
+  };
 }

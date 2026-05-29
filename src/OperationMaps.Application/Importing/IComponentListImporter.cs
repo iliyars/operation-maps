@@ -6,5 +6,5 @@ public interface IComponentListImporter
   bool CanImport(string filePath);
 
   /// <summary>Импорт из потока (поток — чтобы не зависеть от файловой системы в тестах).</summary>
-  ImportResult Import(Stream stream);
+  Task<ImportResult> ImportAsync(Stream stream, CancellationToken cancellationToken);
 }

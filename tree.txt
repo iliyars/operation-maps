@@ -1,0 +1,1368 @@
+Folder PATH listing
+Volume serial number is D65C-0794
+C:.
+¦   .gitignore
+¦   OperationMaps.slnx
+¦   tree.txt
+¦   
++---src
+¦   +---OperationMaps.Application
+¦   ¦   ¦   OperationMaps.Application.csproj
+¦   ¦   ¦   
+¦   ¦   +---bin
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦               OperationMaps.Application.deps.json
+¦   ¦   ¦               OperationMaps.Application.dll
+¦   ¦   ¦               OperationMaps.Application.pdb
+¦   ¦   ¦               OperationMaps.Domain.dll
+¦   ¦   ¦               OperationMaps.Domain.pdb
+¦   ¦   ¦               
+¦   ¦   +---Importing
+¦   ¦   ¦       IComponentListImporter.cs
+¦   ¦   ¦       IComponentMatcher.cs
+¦   ¦   ¦       IComponentNameParser.cs
+¦   ¦   ¦       ImportedComponent.cs
+¦   ¦   ¦       ImportResult.cs
+¦   ¦   ¦       MatchResult.cs
+¦   ¦   ¦       ProjectMatchResult.cs
+¦   ¦   ¦       
+¦   ¦   +---obj
+¦   ¦   ¦   ¦   OperationMaps.Application.csproj.nuget.dgspec.json
+¦   ¦   ¦   ¦   OperationMaps.Application.csproj.nuget.g.props
+¦   ¦   ¦   ¦   OperationMaps.Application.csproj.nuget.g.targets
+¦   ¦   ¦   ¦   project.assets.json
+¦   ¦   ¦   ¦   project.nuget.cache
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦   ¦   ¦           ¦   Operatio.D360E45F.Up2Date
+¦   ¦   ¦           ¦   OperationMaps.Application.AssemblyInfo.cs
+¦   ¦   ¦           ¦   OperationMaps.Application.AssemblyInfoInputs.cache
+¦   ¦   ¦           ¦   OperationMaps.Application.assets.cache
+¦   ¦   ¦           ¦   OperationMaps.Application.csproj.AssemblyReference.cache
+¦   ¦   ¦           ¦   OperationMaps.Application.csproj.BuildWithSkipAnalyzers
+¦   ¦   ¦           ¦   OperationMaps.Application.csproj.CoreCompileInputs.cache
+¦   ¦   ¦           ¦   OperationMaps.Application.csproj.FileListAbsolute.txt
+¦   ¦   ¦           ¦   OperationMaps.Application.dll
+¦   ¦   ¦           ¦   OperationMaps.Application.GeneratedMSBuildEditorConfig.editorconfig
+¦   ¦   ¦           ¦   OperationMaps.Application.GlobalUsings.g.cs
+¦   ¦   ¦           ¦   OperationMaps.Application.pdb
+¦   ¦   ¦           ¦   OperationMaps.Application.sourcelink.json
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           +---ref
+¦   ¦   ¦           ¦       OperationMaps.Application.dll
+¦   ¦   ¦           ¦       
+¦   ¦   ¦           L---refint
+¦   ¦   ¦                   OperationMaps.Application.dll
+¦   ¦   ¦                   
+¦   ¦   L---Services
+¦   ¦           IFilePicker.cs
+¦   ¦           
+¦   +---OperationMaps.Console
+¦   ¦   ¦   OperationMaps.Console.csproj
+¦   ¦   ¦   Program.cs
+¦   ¦   ¦   
+¦   ¦   +---bin
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦           ¦   ClosedXML.dll
+¦   ¦   ¦           ¦   ClosedXML.Parser.dll
+¦   ¦   ¦           ¦   DocumentFormat.OpenXml.dll
+¦   ¦   ¦           ¦   DocumentFormat.OpenXml.Framework.dll
+¦   ¦   ¦           ¦   ExcelNumberFormat.dll
+¦   ¦   ¦           ¦   Microsoft.Data.Sqlite.dll
+¦   ¦   ¦           ¦   Microsoft.EntityFrameworkCore.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.EntityFrameworkCore.dll
+¦   ¦   ¦           ¦   Microsoft.EntityFrameworkCore.Relational.dll
+¦   ¦   ¦           ¦   Microsoft.EntityFrameworkCore.Sqlite.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Caching.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Caching.Memory.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.Binder.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.CommandLine.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.FileExtensions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.Json.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Configuration.UserSecrets.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.DependencyInjection.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.DependencyModel.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Diagnostics.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Diagnostics.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.FileProviders.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.FileProviders.Physical.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.FileSystemGlobbing.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Hosting.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Hosting.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.Abstractions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.Configuration.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.Console.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.Debug.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.EventLog.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Logging.EventSource.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Options.ConfigurationExtensions.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Options.dll
+¦   ¦   ¦           ¦   Microsoft.Extensions.Primitives.dll
+¦   ¦   ¦           ¦   OperationMaps.Application.dll
+¦   ¦   ¦           ¦   OperationMaps.Application.pdb
+¦   ¦   ¦           ¦   OperationMaps.Console.deps.json
+¦   ¦   ¦           ¦   OperationMaps.Console.dll
+¦   ¦   ¦           ¦   OperationMaps.Console.exe
+¦   ¦   ¦           ¦   OperationMaps.Console.pdb
+¦   ¦   ¦           ¦   OperationMaps.Console.runtimeconfig.json
+¦   ¦   ¦           ¦   OperationMaps.Domain.dll
+¦   ¦   ¦           ¦   OperationMaps.Domain.pdb
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.dll
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.pdb
+¦   ¦   ¦           ¦   operationmaps_test.db
+¦   ¦   ¦           ¦   RBush.dll
+¦   ¦   ¦           ¦   SixLabors.Fonts.dll
+¦   ¦   ¦           ¦   SQLitePCLRaw.batteries_v2.dll
+¦   ¦   ¦           ¦   SQLitePCLRaw.core.dll
+¦   ¦   ¦           ¦   SQLitePCLRaw.provider.e_sqlite3.dll
+¦   ¦   ¦           ¦   System.Diagnostics.EventLog.dll
+¦   ¦   ¦           ¦   System.IO.Packaging.dll
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           L---runtimes
+¦   ¦   ¦               +---browser-wasm
+¦   ¦   ¦               ¦   L---nativeassets
+¦   ¦   ¦               ¦       L---net9.0
+¦   ¦   ¦               ¦               e_sqlite3.a
+¦   ¦   ¦               ¦               
+¦   ¦   ¦               +---linux-arm
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-arm64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-armel
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-mips64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-musl-arm
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-musl-arm64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-musl-riscv64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-musl-s390x
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-musl-x64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-ppc64le
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-riscv64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-s390x
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-x64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---linux-x86
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.so
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---maccatalyst-arm64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.dylib
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---maccatalyst-x64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.dylib
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---osx-arm64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.dylib
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---osx-x64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           libe_sqlite3.dylib
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---win
+¦   ¦   ¦               ¦   L---lib
+¦   ¦   ¦               ¦       L---net10.0
+¦   ¦   ¦               ¦               System.Diagnostics.EventLog.dll
+¦   ¦   ¦               ¦               System.Diagnostics.EventLog.Messages.dll
+¦   ¦   ¦               ¦               
+¦   ¦   ¦               +---win-arm
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           e_sqlite3.dll
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---win-arm64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           e_sqlite3.dll
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               +---win-x64
+¦   ¦   ¦               ¦   L---native
+¦   ¦   ¦               ¦           e_sqlite3.dll
+¦   ¦   ¦               ¦           
+¦   ¦   ¦               L---win-x86
+¦   ¦   ¦                   L---native
+¦   ¦   ¦                           e_sqlite3.dll
+¦   ¦   ¦                           
+¦   ¦   L---obj
+¦   ¦       ¦   OperationMaps.Console.csproj.nuget.dgspec.json
+¦   ¦       ¦   OperationMaps.Console.csproj.nuget.g.props
+¦   ¦       ¦   OperationMaps.Console.csproj.nuget.g.targets
+¦   ¦       ¦   project.assets.json
+¦   ¦       ¦   project.nuget.cache
+¦   ¦       ¦   
+¦   ¦       L---Debug
+¦   ¦           L---net10.0
+¦   ¦               ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦   ¦               ¦   apphost.exe
+¦   ¦               ¦   Operatio.9CFD1185.Up2Date
+¦   ¦               ¦   OperationMaps.Console.AssemblyInfo.cs
+¦   ¦               ¦   OperationMaps.Console.AssemblyInfoInputs.cache
+¦   ¦               ¦   OperationMaps.Console.assets.cache
+¦   ¦               ¦   OperationMaps.Console.csproj.AssemblyReference.cache
+¦   ¦               ¦   OperationMaps.Console.csproj.CoreCompileInputs.cache
+¦   ¦               ¦   OperationMaps.Console.csproj.FileListAbsolute.txt
+¦   ¦               ¦   OperationMaps.Console.dll
+¦   ¦               ¦   OperationMaps.Console.GeneratedMSBuildEditorConfig.editorconfig
+¦   ¦               ¦   OperationMaps.Console.genruntimeconfig.cache
+¦   ¦               ¦   OperationMaps.Console.GlobalUsings.g.cs
+¦   ¦               ¦   OperationMaps.Console.pdb
+¦   ¦               ¦   OperationMaps.Console.sourcelink.json
+¦   ¦               ¦   
+¦   ¦               +---ref
+¦   ¦               ¦       OperationMaps.Console.dll
+¦   ¦               ¦       
+¦   ¦               L---refint
+¦   ¦                       OperationMaps.Console.dll
+¦   ¦                       
+¦   +---OperationMaps.Domain
+¦   ¦   ¦   OperationMaps.Domain.csproj
+¦   ¦   ¦   
+¦   ¦   +---bin
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦               OperationMaps.Domain.deps.json
+¦   ¦   ¦               OperationMaps.Domain.dll
+¦   ¦   ¦               OperationMaps.Domain.pdb
+¦   ¦   ¦               
+¦   ¦   +---Entities
+¦   ¦   ¦   +---Catalog
+¦   ¦   ¦   ¦       CatalogEntities.cs
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---Forms
+¦   ¦   ¦   ¦       FormEntities.cs
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   +---Projects
+¦   ¦   ¦   ¦       ProjectEntities.cs
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   L---Users
+¦   ¦   ¦           AppUser.cs
+¦   ¦   ¦           
+¦   ¦   +---Enums
+¦   ¦   ¦       Enums.cs
+¦   ¦   ¦       
+¦   ¦   L---obj
+¦   ¦       ¦   OperationMaps.Domain.csproj.nuget.dgspec.json
+¦   ¦       ¦   OperationMaps.Domain.csproj.nuget.g.props
+¦   ¦       ¦   OperationMaps.Domain.csproj.nuget.g.targets
+¦   ¦       ¦   project.assets.json
+¦   ¦       ¦   project.nuget.cache
+¦   ¦       ¦   
+¦   ¦       L---Debug
+¦   ¦           L---net10.0
+¦   ¦               ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦   ¦               ¦   OperationMaps.Domain.AssemblyInfo.cs
+¦   ¦               ¦   OperationMaps.Domain.AssemblyInfoInputs.cache
+¦   ¦               ¦   OperationMaps.Domain.assets.cache
+¦   ¦               ¦   OperationMaps.Domain.csproj.BuildWithSkipAnalyzers
+¦   ¦               ¦   OperationMaps.Domain.csproj.CoreCompileInputs.cache
+¦   ¦               ¦   OperationMaps.Domain.csproj.FileListAbsolute.txt
+¦   ¦               ¦   OperationMaps.Domain.dll
+¦   ¦               ¦   OperationMaps.Domain.GeneratedMSBuildEditorConfig.editorconfig
+¦   ¦               ¦   OperationMaps.Domain.GlobalUsings.g.cs
+¦   ¦               ¦   OperationMaps.Domain.pdb
+¦   ¦               ¦   OperationMaps.Domain.sourcelink.json
+¦   ¦               ¦   
+¦   ¦               +---ref
+¦   ¦               ¦       OperationMaps.Domain.dll
+¦   ¦               ¦       
+¦   ¦               L---refint
+¦   ¦                       OperationMaps.Domain.dll
+¦   ¦                       
+¦   +---OperationMaps.Infrastructure
+¦   ¦   ¦   DependencyInjection.cs
+¦   ¦   ¦   OperationMaps.Infrastructure.csproj
+¦   ¦   ¦   
+¦   ¦   +---bin
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦           ¦   OperationMaps.Application.dll
+¦   ¦   ¦           ¦   OperationMaps.Application.pdb
+¦   ¦   ¦           ¦   OperationMaps.Domain.dll
+¦   ¦   ¦           ¦   OperationMaps.Domain.pdb
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.deps.json
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.dll
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.pdb
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.runtimeconfig.json
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           +---BuildHost-net472
+¦   ¦   ¦           ¦   ¦   Microsoft.Build.Locator.dll
+¦   ¦   ¦           ¦   ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe
+¦   ¦   ¦           ¦   ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe.config
+¦   ¦   ¦           ¦   ¦   Microsoft.IO.Redist.dll
+¦   ¦   ¦           ¦   ¦   Newtonsoft.Json.dll
+¦   ¦   ¦           ¦   ¦   System.Buffers.dll
+¦   ¦   ¦           ¦   ¦   System.Collections.Immutable.dll
+¦   ¦   ¦           ¦   ¦   System.CommandLine.dll
+¦   ¦   ¦           ¦   ¦   System.Memory.dll
+¦   ¦   ¦           ¦   ¦   System.Numerics.Vectors.dll
+¦   ¦   ¦           ¦   ¦   System.Runtime.CompilerServices.Unsafe.dll
+¦   ¦   ¦           ¦   ¦   System.Threading.Tasks.Extensions.dll
+¦   ¦   ¦           ¦   ¦   
+¦   ¦   ¦           ¦   +---cs
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---de
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---es
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---fr
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---it
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---ja
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---ko
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---pl
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---pt-BR
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---ru
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---tr
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   +---zh-Hans
+¦   ¦   ¦           ¦   ¦       System.CommandLine.resources.dll
+¦   ¦   ¦           ¦   ¦       
+¦   ¦   ¦           ¦   L---zh-Hant
+¦   ¦   ¦           ¦           System.CommandLine.resources.dll
+¦   ¦   ¦           ¦           
+¦   ¦   ¦           L---BuildHost-netcore
+¦   ¦   ¦               ¦   Microsoft.Build.Locator.dll
+¦   ¦   ¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.deps.json
+¦   ¦   ¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+¦   ¦   ¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.runtimeconfig.json
+¦   ¦   ¦               ¦   Newtonsoft.Json.dll
+¦   ¦   ¦               ¦   System.Collections.Immutable.dll
+¦   ¦   ¦               ¦   System.CommandLine.dll
+¦   ¦   ¦               ¦   
+¦   ¦   ¦               +---cs
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---de
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---es
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---fr
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---it
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---ja
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---ko
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---pl
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---pt-BR
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---ru
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---tr
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---zh-Hans
+¦   ¦   ¦               ¦       System.CommandLine.resources.dll
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               L---zh-Hant
+¦   ¦   ¦                       System.CommandLine.resources.dll
+¦   ¦   ¦                       
+¦   ¦   +---Importing
+¦   ¦   ¦       Pe3XmlImporter.cs
+¦   ¦   ¦       PositionExpander.cs
+¦   ¦   ¦       
+¦   ¦   +---obj
+¦   ¦   ¦   ¦   OperationMaps.Infrastructure.csproj.nuget.dgspec.json
+¦   ¦   ¦   ¦   OperationMaps.Infrastructure.csproj.nuget.g.props
+¦   ¦   ¦   ¦   OperationMaps.Infrastructure.csproj.nuget.g.targets
+¦   ¦   ¦   ¦   project.assets.json
+¦   ¦   ¦   ¦   project.nuget.cache
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   L---Debug
+¦   ¦   ¦       L---net10.0
+¦   ¦   ¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦   ¦   ¦           ¦   Operatio.2F30F70D.Up2Date
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.AssemblyInfo.cs
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.AssemblyInfoInputs.cache
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.assets.cache
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.csproj.AssemblyReference.cache
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.csproj.BuildWithSkipAnalyzers
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.csproj.CoreCompileInputs.cache
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.csproj.FileListAbsolute.txt
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.dll
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.genruntimeconfig.cache
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.GlobalUsings.g.cs
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.pdb
+¦   ¦   ¦           ¦   OperationMaps.Infrastructure.sourcelink.json
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           +---ref
+¦   ¦   ¦           ¦       OperationMaps.Infrastructure.dll
+¦   ¦   ¦           ¦       
+¦   ¦   ¦           L---refint
+¦   ¦   ¦                   OperationMaps.Infrastructure.dll
+¦   ¦   ¦                   
+¦   ¦   +---Persistence
+¦   ¦   ¦   ¦   DatabaseSeeder.cs
+¦   ¦   ¦   ¦   OperationMapsDbContext.cs
+¦   ¦   ¦   ¦   OperationMapsDbContextFactory.cs
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---Configuration
+¦   ¦   ¦   ¦       CatalogConfiguration.cs
+¦   ¦   ¦   ¦       FormConfiguration.cs
+¦   ¦   ¦   ¦       ProjectConfiguration.cs
+¦   ¦   ¦   ¦       UserConfiguration.cs
+¦   ¦   ¦   ¦       
+¦   ¦   ¦   L---Migrations
+¦   ¦   ¦           20260525215600_InitialCreate.cs
+¦   ¦   ¦           20260525215600_InitialCreate.Designer.cs
+¦   ¦   ¦           20260526192954_AddDetectedCategory.cs
+¦   ¦   ¦           20260526192954_AddDetectedCategory.Designer.cs
+¦   ¦   ¦           20260527120620_AddNotes.cs
+¦   ¦   ¦           20260527120620_AddNotes.Designer.cs
+¦   ¦   ¦           20260527125958_AddNotesAndCellNotes.cs
+¦   ¦   ¦           20260527125958_AddNotesAndCellNotes.Designer.cs
+¦   ¦   ¦           OperationMapsDbContextModelSnapshot.cs
+¦   ¦   ¦           
+¦   ¦   L---Services
+¦   ¦           ComponentMatcher.cs
+¦   ¦           ComponentNameParser.cs
+¦   ¦           
+¦   L---OperationMaps.Wpf
+¦       ¦   App.xaml
+¦       ¦   App.xaml.cs
+¦       ¦   appsettings.json
+¦       ¦   AssemblyInfo.cs
+¦       ¦   OperationMaps.Wpf.csproj
+¦       ¦   OperationMaps.Wpf.csproj.user
+¦       ¦   ServiceCollectionExtention.cs
+¦       ¦   
+¦       +---bin
+¦       ¦   L---Debug
+¦       ¦       L---net10.0-windows
+¦       ¦           ¦   appsettings.json
+¦       ¦           ¦   ClosedXML.dll
+¦       ¦           ¦   ClosedXML.Parser.dll
+¦       ¦           ¦   CommunityToolkit.Mvvm.dll
+¦       ¦           ¦   DocumentFormat.OpenXml.dll
+¦       ¦           ¦   DocumentFormat.OpenXml.Framework.dll
+¦       ¦           ¦   ExcelNumberFormat.dll
+¦       ¦           ¦   Microsoft.Data.Sqlite.dll
+¦       ¦           ¦   Microsoft.EntityFrameworkCore.Abstractions.dll
+¦       ¦           ¦   Microsoft.EntityFrameworkCore.dll
+¦       ¦           ¦   Microsoft.EntityFrameworkCore.Relational.dll
+¦       ¦           ¦   Microsoft.EntityFrameworkCore.Sqlite.dll
+¦       ¦           ¦   Microsoft.Extensions.Caching.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.Caching.Memory.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.Binder.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.CommandLine.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.FileExtensions.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.Json.dll
+¦       ¦           ¦   Microsoft.Extensions.Configuration.UserSecrets.dll
+¦       ¦           ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.DependencyInjection.dll
+¦       ¦           ¦   Microsoft.Extensions.DependencyModel.dll
+¦       ¦           ¦   Microsoft.Extensions.Diagnostics.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.Diagnostics.dll
+¦       ¦           ¦   Microsoft.Extensions.FileProviders.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.FileProviders.Physical.dll
+¦       ¦           ¦   Microsoft.Extensions.FileSystemGlobbing.dll
+¦       ¦           ¦   Microsoft.Extensions.Hosting.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.Hosting.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.Abstractions.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.Configuration.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.Console.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.Debug.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.EventLog.dll
+¦       ¦           ¦   Microsoft.Extensions.Logging.EventSource.dll
+¦       ¦           ¦   Microsoft.Extensions.Options.ConfigurationExtensions.dll
+¦       ¦           ¦   Microsoft.Extensions.Options.dll
+¦       ¦           ¦   Microsoft.Extensions.Primitives.dll
+¦       ¦           ¦   OperationMaps.Application.dll
+¦       ¦           ¦   OperationMaps.Application.pdb
+¦       ¦           ¦   operationmaps.db
+¦       ¦           ¦   OperationMaps.Domain.dll
+¦       ¦           ¦   OperationMaps.Domain.pdb
+¦       ¦           ¦   OperationMaps.Infrastructure.dll
+¦       ¦           ¦   OperationMaps.Infrastructure.pdb
+¦       ¦           ¦   OperationMaps.Wpf.deps.json
+¦       ¦           ¦   OperationMaps.Wpf.dll
+¦       ¦           ¦   OperationMaps.Wpf.exe
+¦       ¦           ¦   OperationMaps.Wpf.pdb
+¦       ¦           ¦   OperationMaps.Wpf.runtimeconfig.json
+¦       ¦           ¦   RBush.dll
+¦       ¦           ¦   Serilog.dll
+¦       ¦           ¦   Serilog.Extensions.Hosting.dll
+¦       ¦           ¦   Serilog.Extensions.Logging.dll
+¦       ¦           ¦   Serilog.Sinks.File.dll
+¦       ¦           ¦   SixLabors.Fonts.dll
+¦       ¦           ¦   SQLitePCLRaw.batteries_v2.dll
+¦       ¦           ¦   SQLitePCLRaw.core.dll
+¦       ¦           ¦   SQLitePCLRaw.provider.e_sqlite3.dll
+¦       ¦           ¦   
+¦       ¦           +---logs
+¦       ¦           ¦       operationmaps-20260527.log
+¦       ¦           ¦       operationmaps-20260528.log
+¦       ¦           ¦       operationmaps-20260529.log
+¦       ¦           ¦       
+¦       ¦           L---runtimes
+¦       ¦               +---browser-wasm
+¦       ¦               ¦   L---nativeassets
+¦       ¦               ¦       L---net9.0
+¦       ¦               ¦               e_sqlite3.a
+¦       ¦               ¦               
+¦       ¦               +---linux-arm
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-arm64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-armel
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-mips64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-musl-arm
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-musl-arm64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-musl-riscv64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-musl-s390x
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-musl-x64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-ppc64le
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-riscv64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-s390x
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-x64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---linux-x86
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.so
+¦       ¦               ¦           
+¦       ¦               +---maccatalyst-arm64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.dylib
+¦       ¦               ¦           
+¦       ¦               +---maccatalyst-x64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.dylib
+¦       ¦               ¦           
+¦       ¦               +---osx-arm64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.dylib
+¦       ¦               ¦           
+¦       ¦               +---osx-x64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           libe_sqlite3.dylib
+¦       ¦               ¦           
+¦       ¦               +---win-arm
+¦       ¦               ¦   L---native
+¦       ¦               ¦           e_sqlite3.dll
+¦       ¦               ¦           
+¦       ¦               +---win-arm64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           e_sqlite3.dll
+¦       ¦               ¦           
+¦       ¦               +---win-x64
+¦       ¦               ¦   L---native
+¦       ¦               ¦           e_sqlite3.dll
+¦       ¦               ¦           
+¦       ¦               L---win-x86
+¦       ¦                   L---native
+¦       ¦                           e_sqlite3.dll
+¦       ¦                           
+¦       +---Infrastructure
+¦       ¦   +---Navigation
+¦       ¦   ¦       INavigationService.cs
+¦       ¦   ¦       IScreen.cs
+¦       ¦   ¦       NavigationChangedEventArgs.cs
+¦       ¦   ¦       NavigationLifecycle.cs
+¦       ¦   ¦       NavigationService.cs
+¦       ¦   ¦       
+¦       ¦   +---ViewLoacation
+¦       ¦   ¦       ViewTemplateRegistrar.cs
+¦       ¦   ¦       
+¦       ¦   L---ViewModels
+¦       ¦           ScreenViewModelBase.cs
+¦       ¦           
+¦       +---Main
+¦       ¦       MainViewModel.cs
+¦       ¦       MainWindow.xaml
+¦       ¦       MainWindow.xaml.cs
+¦       ¦       
+¦       +---obj
+¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   project.assets.json
+¦       ¦   ¦   project.nuget.cache
+¦       ¦   ¦   
+¦       ¦   L---Debug
+¦       ¦       L---net10.0-windows
+¦       ¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦       ¦           ¦   App.baml
+¦       ¦           ¦   App.g.cs
+¦       ¦           ¦   App.g.i.cs
+¦       ¦           ¦   apphost.exe
+¦       ¦           ¦   GeneratedInternalTypeHelper.g.cs
+¦       ¦           ¦   GeneratedInternalTypeHelper.g.i.cs
+¦       ¦           ¦   MainWindow.g.i.cs
+¦       ¦           ¦   Operatio.87AD5D6C.Up2Date
+¦       ¦           ¦   OperationMaps.Wpf.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf.csproj.AssemblyReference.cache
+¦       ¦           ¦   OperationMaps.Wpf.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf.csproj.CoreCompileInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf.csproj.FileListAbsolute.txt
+¦       ¦           ¦   OperationMaps.Wpf.designer.deps.json
+¦       ¦           ¦   OperationMaps.Wpf.designer.runtimeconfig.json
+¦       ¦           ¦   OperationMaps.Wpf.dll
+¦       ¦           ¦   OperationMaps.Wpf.g.resources
+¦       ¦           ¦   OperationMaps.Wpf.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf.genruntimeconfig.cache
+¦       ¦           ¦   OperationMaps.Wpf.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf.pdb
+¦       ¦           ¦   OperationMaps.Wpf.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_3wf14qla_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_3xtivroc_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_3ydfnf0i_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_51romwwk_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_da24ikbo_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_hbbafccu_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.cache
+¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.i.cache
+¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.lref
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_uyqvnmrl_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_vsbqxxem_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_y55o0zab_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.sourcelink.json
+¦       ¦           ¦   
+¦       ¦           +---Infrastructure
+¦       ¦           ¦       MainWindow.g.cs
+¦       ¦           ¦       MainWindow.g.i.cs
+¦       ¦           ¦       
+¦       ¦           +---Main
+¦       ¦           ¦       MainWindow.baml
+¦       ¦           ¦       MainWindow.g.cs
+¦       ¦           ¦       MainWindow.g.i.cs
+¦       ¦           ¦       
+¦       ¦           +---ref
+¦       ¦           ¦       OperationMaps.Wpf.dll
+¦       ¦           ¦       
+¦       ¦           +---refint
+¦       ¦           ¦       OperationMaps.Wpf.dll
+¦       ¦           ¦       
+¦       ¦           +---Shared
+¦       ¦           ¦   L---Converters
+¦       ¦           ¦           Converters.baml
+¦       ¦           ¦           
+¦       ¦           +---Shell
+¦       ¦           ¦   ¦   ShellView.baml
+¦       ¦           ¦   ¦   ShellView.g.cs
+¦       ¦           ¦   ¦   ShellView.g.i.cs
+¦       ¦           ¦   ¦   
+¦       ¦           ¦   L---Features
+¦       ¦           ¦       +---Components
+¦       ¦           ¦       ¦       ComponentsView.baml
+¦       ¦           ¦       ¦       ComponentsView.g.cs
+¦       ¦           ¦       ¦       ComponentsView.g.i.cs
+¦       ¦           ¦       ¦       
+¦       ¦           ¦       +---Unresolved
+¦       ¦           ¦       ¦       UnresolvedView.baml
+¦       ¦           ¦       ¦       UnresolvedView.g.cs
+¦       ¦           ¦       ¦       UnresolvedView.g.i.cs
+¦       ¦           ¦       ¦       
+¦       ¦           ¦       L---Welcome
+¦       ¦           ¦               WelcomeView.baml
+¦       ¦           ¦               WelcomeView.g.cs
+¦       ¦           ¦               WelcomeView.g.i.cs
+¦       ¦           ¦               
+¦       ¦           L---Views
+¦       ¦                   AdminPasswordDialog.g.i.cs
+¦       ¦                   CatalogView.g.i.cs
+¦       ¦                   ShellView.g.i.cs
+¦       ¦                   WelcomeView.g.i.cs
+¦       ¦                   
+¦       +---Service
+¦       ¦       FilePicker.cs
+¦       ¦       
+¦       +---Shared
+¦       ¦   L---Converters
+¦       ¦           BoolToNavFgConverter.cs
+¦       ¦           Converters.xaml
+¦       ¦           
+¦       +---Shell
+¦       ¦   ¦   NavItemTemplateSelector.cs
+¦       ¦   ¦   NavItemViewModel.cs
+¦       ¦   ¦   ShellView.xaml
+¦       ¦   ¦   ShellView.xaml.cs
+¦       ¦   ¦   ShellViewModel.cs
+¦       ¦   ¦   
+¦       ¦   L---Features
+¦       ¦       +---Catalog
+¦       ¦       ¦       CatalogViewModel.cs
+¦       ¦       ¦       
+¦       ¦       +---Components
+¦       ¦       ¦       ComponentsView.xaml
+¦       ¦       ¦       ComponentsView.xaml.cs
+¦       ¦       ¦       ComponentsViewModel.cs
+¦       ¦       ¦       
+¦       ¦       +---Unresolved
+¦       ¦       ¦       UnresolvedView.xaml
+¦       ¦       ¦       UnresolvedView.xaml.cs
+¦       ¦       ¦       UnresolvedViewModel.cs
+¦       ¦       ¦       
+¦       ¦       L---Welcome
+¦       ¦               WelcomeView.xaml
+¦       ¦               WelcomeView.xaml.cs
+¦       ¦               WelcomeViewModel.cs
+¦       ¦               
+¦       L---ViewModels
+¦               ComponentTypeVm.cs
+¦               FamilyNoteVm.cs
+¦               FamilyVm.cs
+¦               NtdRowVm.cs
+¦               
+L---tests
+    L---OperationMaps.Tests
+        ¦   OperationMaps.Tests.csproj
+        ¦   
+        +---bin
+        ¦   L---Debug
+        ¦       L---net10.0
+        ¦           ¦   .msCoverageSourceRootsMapping_OperationMaps.Tests
+        ¦           ¦   Castle.Core.dll
+        ¦           ¦   ClosedXML.dll
+        ¦           ¦   ClosedXML.Parser.dll
+        ¦           ¦   CoverletSourceRootsMapping_OperationMaps.Tests
+        ¦           ¦   DocumentFormat.OpenXml.dll
+        ¦           ¦   DocumentFormat.OpenXml.Framework.dll
+        ¦           ¦   ExcelNumberFormat.dll
+        ¦           ¦   Microsoft.Data.Sqlite.dll
+        ¦           ¦   Microsoft.EntityFrameworkCore.Abstractions.dll
+        ¦           ¦   Microsoft.EntityFrameworkCore.dll
+        ¦           ¦   Microsoft.EntityFrameworkCore.Relational.dll
+        ¦           ¦   Microsoft.EntityFrameworkCore.Sqlite.dll
+        ¦           ¦   Microsoft.Extensions.Caching.Abstractions.dll
+        ¦           ¦   Microsoft.Extensions.Caching.Memory.dll
+        ¦           ¦   Microsoft.Extensions.Configuration.Abstractions.dll
+        ¦           ¦   Microsoft.Extensions.DependencyInjection.Abstractions.dll
+        ¦           ¦   Microsoft.Extensions.DependencyInjection.dll
+        ¦           ¦   Microsoft.Extensions.DependencyModel.dll
+        ¦           ¦   Microsoft.Extensions.Logging.Abstractions.dll
+        ¦           ¦   Microsoft.Extensions.Logging.dll
+        ¦           ¦   Microsoft.Extensions.Options.dll
+        ¦           ¦   Microsoft.Extensions.Primitives.dll
+        ¦           ¦   Microsoft.TestPlatform.CommunicationUtilities.dll
+        ¦           ¦   Microsoft.TestPlatform.CoreUtilities.dll
+        ¦           ¦   Microsoft.TestPlatform.CrossPlatEngine.dll
+        ¦           ¦   Microsoft.TestPlatform.PlatformAbstractions.dll
+        ¦           ¦   Microsoft.TestPlatform.Utilities.dll
+        ¦           ¦   Microsoft.VisualStudio.CodeCoverage.Shim.dll
+        ¦           ¦   Microsoft.VisualStudio.TestPlatform.Common.dll
+        ¦           ¦   Microsoft.VisualStudio.TestPlatform.ObjectModel.dll
+        ¦           ¦   Moq.dll
+        ¦           ¦   Newtonsoft.Json.dll
+        ¦           ¦   OperationMaps.Application.dll
+        ¦           ¦   OperationMaps.Application.pdb
+        ¦           ¦   OperationMaps.Domain.dll
+        ¦           ¦   OperationMaps.Domain.pdb
+        ¦           ¦   OperationMaps.Infrastructure.dll
+        ¦           ¦   OperationMaps.Infrastructure.pdb
+        ¦           ¦   OperationMaps.Tests.deps.json
+        ¦           ¦   OperationMaps.Tests.dll
+        ¦           ¦   OperationMaps.Tests.pdb
+        ¦           ¦   OperationMaps.Tests.runtimeconfig.json
+        ¦           ¦   RBush.dll
+        ¦           ¦   SixLabors.Fonts.dll
+        ¦           ¦   SQLitePCLRaw.batteries_v2.dll
+        ¦           ¦   SQLitePCLRaw.core.dll
+        ¦           ¦   SQLitePCLRaw.provider.e_sqlite3.dll
+        ¦           ¦   System.Diagnostics.EventLog.dll
+        ¦           ¦   System.IO.Packaging.dll
+        ¦           ¦   testhost.dll
+        ¦           ¦   testhost.exe
+        ¦           ¦   xunit.abstractions.dll
+        ¦           ¦   xunit.assert.dll
+        ¦           ¦   xunit.core.dll
+        ¦           ¦   xunit.execution.dotnet.dll
+        ¦           ¦   xunit.runner.visualstudio.testadapter.dll
+        ¦           ¦   
+        ¦           +---cs
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---de
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---es
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---fr
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---it
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---ja
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---ko
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---pl
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---pt-BR
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---ru
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---runtimes
+        ¦           ¦   +---browser-wasm
+        ¦           ¦   ¦   L---nativeassets
+        ¦           ¦   ¦       L---net9.0
+        ¦           ¦   ¦               e_sqlite3.a
+        ¦           ¦   ¦               
+        ¦           ¦   +---linux-arm
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-arm64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-armel
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-mips64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-musl-arm
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-musl-arm64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-musl-riscv64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-musl-s390x
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-musl-x64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-ppc64le
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-riscv64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-s390x
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-x64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---linux-x86
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.so
+        ¦           ¦   ¦           
+        ¦           ¦   +---maccatalyst-arm64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.dylib
+        ¦           ¦   ¦           
+        ¦           ¦   +---maccatalyst-x64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.dylib
+        ¦           ¦   ¦           
+        ¦           ¦   +---osx-arm64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.dylib
+        ¦           ¦   ¦           
+        ¦           ¦   +---osx-x64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           libe_sqlite3.dylib
+        ¦           ¦   ¦           
+        ¦           ¦   +---win
+        ¦           ¦   ¦   L---lib
+        ¦           ¦   ¦       L---net6.0
+        ¦           ¦   ¦               System.Diagnostics.EventLog.dll
+        ¦           ¦   ¦               System.Diagnostics.EventLog.Messages.dll
+        ¦           ¦   ¦               
+        ¦           ¦   +---win-arm
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           e_sqlite3.dll
+        ¦           ¦   ¦           
+        ¦           ¦   +---win-arm64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           e_sqlite3.dll
+        ¦           ¦   ¦           
+        ¦           ¦   +---win-x64
+        ¦           ¦   ¦   L---native
+        ¦           ¦   ¦           e_sqlite3.dll
+        ¦           ¦   ¦           
+        ¦           ¦   L---win-x86
+        ¦           ¦       L---native
+        ¦           ¦               e_sqlite3.dll
+        ¦           ¦               
+        ¦           +---TestData
+        ¦           ¦       sample_pe3.XML
+        ¦           ¦       sample_pe3_1.XML
+        ¦           ¦       
+        ¦           +---tr
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           +---zh-Hans
+        ¦           ¦       Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦           ¦       Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦           ¦       Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦           ¦       
+        ¦           L---zh-Hant
+        ¦                   Microsoft.TestPlatform.CommunicationUtilities.resources.dll
+        ¦                   Microsoft.TestPlatform.CoreUtilities.resources.dll
+        ¦                   Microsoft.TestPlatform.CrossPlatEngine.resources.dll
+        ¦                   Microsoft.VisualStudio.TestPlatform.Common.resources.dll
+        ¦                   Microsoft.VisualStudio.TestPlatform.ObjectModel.resources.dll
+        ¦                   
+        +---Importing
+        ¦       Pe3XmlImporterTests.cs
+        ¦       PositionExpanderTests.cs
+        ¦       
+        +---obj
+        ¦   ¦   OperationMaps.Tests.csproj.nuget.dgspec.json
+        ¦   ¦   OperationMaps.Tests.csproj.nuget.g.props
+        ¦   ¦   OperationMaps.Tests.csproj.nuget.g.targets
+        ¦   ¦   project.assets.json
+        ¦   ¦   project.nuget.cache
+        ¦   ¦   
+        ¦   L---Debug
+        ¦       L---net10.0
+        ¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+        ¦           ¦   Operatio.E92A96B0.Up2Date
+        ¦           ¦   OperationMaps.Tests.AssemblyInfo.cs
+        ¦           ¦   OperationMaps.Tests.AssemblyInfoInputs.cache
+        ¦           ¦   OperationMaps.Tests.assets.cache
+        ¦           ¦   OperationMaps.Tests.csproj.AssemblyReference.cache
+        ¦           ¦   OperationMaps.Tests.csproj.CoreCompileInputs.cache
+        ¦           ¦   OperationMaps.Tests.csproj.FileListAbsolute.txt
+        ¦           ¦   OperationMaps.Tests.dll
+        ¦           ¦   OperationMaps.Tests.GeneratedMSBuildEditorConfig.editorconfig
+        ¦           ¦   OperationMaps.Tests.genruntimeconfig.cache
+        ¦           ¦   OperationMaps.Tests.GlobalUsings.g.cs
+        ¦           ¦   OperationMaps.Tests.pdb
+        ¦           ¦   OperationMaps.Tests.sourcelink.json
+        ¦           ¦   
+        ¦           +---ref
+        ¦           ¦       OperationMaps.Tests.dll
+        ¦           ¦       
+        ¦           L---refint
+        ¦                   OperationMaps.Tests.dll
+        ¦                   
+        L---TestData
+                sample_pe3.XML
+                sample_pe3_1.XML
+                

@@ -11,16 +11,16 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace OperationMaps.Wpf.Shell.Features.Unresolved
+namespace OperationMaps.Wpf.Features.Unresolved
 {
-    /// <summary>
-    /// Interaction logic for UnresolvedView.xaml
-    /// </summary>
-    public partial class UnresolvedView : UserControl
+  /// <summary>
+  /// Interaction logic for UnresolvedView.xaml
+  /// </summary>
+  public partial class UnresolvedView : UserControl
+  {
+    public UnresolvedView()
     {
-        public UnresolvedView()
-        {
-            InitializeComponent();
-        }
+      InitializeComponent();
     }
+  }
 }

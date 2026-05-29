@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace OperationMaps.Wpf.Shell.Features.Components
+namespace OperationMaps.Wpf.Features.Components
 {
     /// <summary>
     /// Interaction logic for ComponentsView.xaml

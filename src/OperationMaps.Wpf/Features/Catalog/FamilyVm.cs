@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace OperationMaps.Wpf.ViewModels;
+namespace OperationMaps.Wpf.Features.Catalog;
 
 public partial class FamilyVm : ObservableObject
 {

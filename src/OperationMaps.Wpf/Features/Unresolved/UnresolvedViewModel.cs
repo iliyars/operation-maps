@@ -6,7 +6,7 @@ using OperationMaps.Application.Importing;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 
-namespace OperationMaps.Wpf.Shell.Features.Unresolved
+namespace OperationMaps.Wpf.Features.Unresolved
 {
   public sealed partial class UnresolvedViewModel : ScreenViewModelBase, INavigatedTo
   {

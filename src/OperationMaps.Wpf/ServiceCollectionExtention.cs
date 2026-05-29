@@ -9,10 +9,10 @@ using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Main;
 using OperationMaps.Wpf.Services;
 using OperationMaps.Wpf.Shell;
-using OperationMaps.Wpf.Shell.Features.Catalog;
-using OperationMaps.Wpf.Shell.Features.Components;
-using OperationMaps.Wpf.Shell.Features.Unresolved;
-using OperationMaps.Wpf.Shell.Features.Welcome;
+using OperationMaps.Wpf.Features.Catalog;
+using OperationMaps.Wpf.Features.Components;
+using OperationMaps.Wpf.Features.Unresolved;
+using OperationMaps.Wpf.Features.Welcome;
 
 namespace OperationMaps.Wpf
 {

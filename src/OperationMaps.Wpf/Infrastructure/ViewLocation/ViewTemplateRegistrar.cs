@@ -7,7 +7,7 @@ using OperationMaps.Wpf.Infrastructure.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace OperationMaps.Wpf.Infrastructure.ViewLoacation
+namespace OperationMaps.Wpf.Infrastructure.ViewLocation
 {
   public class ViewTemplateRegistrar
   {

@@ -7,7 +7,7 @@ using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 
-namespace OperationMaps.Wpf.Shell.Features.Catalog;
+namespace OperationMaps.Wpf.Features.Catalog;
 
 public partial class CatalogViewModel : ScreenViewModelBase
 {

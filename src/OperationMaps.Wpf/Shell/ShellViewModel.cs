@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Text;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OperationMaps.Application.Importing;
 using OperationMaps.Wpf.Infrastructure.Navigation;
-using OperationMaps.Wpf.Shell.Features.Catalog;
-using OperationMaps.Wpf.Shell.Features.Components;
-using OperationMaps.Wpf.Shell.Features.Unresolved;
-using OperationMaps.Wpf.Shell.Features.Welcome;
+using OperationMaps.Wpf.Features.Catalog;
+using OperationMaps.Wpf.Features.Components;
+using OperationMaps.Wpf.Features.Unresolved;
+using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.ViewModels;
 
 namespace OperationMaps.Wpf.Shell

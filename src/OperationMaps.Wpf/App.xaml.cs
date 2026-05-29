@@ -8,9 +8,9 @@ using Microsoft.Extensions.Hosting;
 using OperationMaps.Infrastructure;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Infrastructure.Navigation;
-using OperationMaps.Wpf.Infrastructure.ViewLoacation;
+using OperationMaps.Wpf.Infrastructure.ViewLocation;
 using OperationMaps.Wpf.Main;
-using OperationMaps.Wpf.Shell.Features.Welcome;
+using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.ViewModels;
 using Serilog;
 

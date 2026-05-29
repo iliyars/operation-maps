@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 using OperationMaps.Application.Importing;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 
-namespace OperationMaps.Wpf.Shell.Features.Components
+namespace OperationMaps.Wpf.Features.Components
 {
   public sealed partial class ComponentsViewModel : ScreenViewModelBase, INavigatedTo
   {

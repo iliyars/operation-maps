@@ -9,9 +9,10 @@ using OperationMaps.Application.Services;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 using OperationMaps.Wpf.Services;
-using OperationMaps.Wpf.Shell.Features.Components;
+using OperationMaps.Wpf.Features.Components;
+using OperationMaps.Wpf.Shell;
 
-namespace OperationMaps.Wpf.Shell.Features.Welcome
+namespace OperationMaps.Wpf.Features.Welcome
 {
   public sealed partial class WelcomeViewModel : ScreenViewModelBase
   {

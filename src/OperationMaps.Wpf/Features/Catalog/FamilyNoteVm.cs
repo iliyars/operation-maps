@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OperationMaps.Domain.Entities.Forms;
 
-namespace OperationMaps.Wpf.ViewModels;
+namespace OperationMaps.Wpf.Features.Catalog;
 
 /// <summary>
 /// Одна строка в секции «Примечания семейства».

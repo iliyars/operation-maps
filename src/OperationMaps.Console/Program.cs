@@ -50,7 +50,7 @@ class Program
     var importer = host.Services.GetRequiredService<IComponentListImporter>();
 
     await using var stream = File.OpenRead(xmlPath);
-    var result = importer.Import(stream);
+    var result = await importer.ImportAsync(stream, cancellationToken: default);
 
     System.Console.WriteLine("\n📋 ПАСПОРТНЫЕ ДАННЫЕ");
     System.Console.WriteLine($"  Наименование: {result.DocumentTitle}");

@@ -4,8 +4,11 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using OperationMaps.Application.Importing;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Shell.Features.Catalog;
+using OperationMaps.Wpf.Shell.Features.Components;
+using OperationMaps.Wpf.Shell.Features.Unresolved;
 using OperationMaps.Wpf.Shell.Features.Welcome;
 using OperationMaps.Wpf.ViewModels;
 
@@ -52,6 +55,46 @@ namespace OperationMaps.Wpf.Shell
               () => _navigation.NavigateAsync<WelcomeViewModel>()),
       });
 
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Компоненты",
+        Icon = "\uE9D5",
+        IsVisible = false,
+        ScreenType = typeof(ComponentsViewModel),
+        Command = new AsyncRelayCommand(
+              () => _navigation.NavigateAsync<ComponentsViewModel>()),
+      });
+
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Не найдены",
+        Icon = "\uE7BA",
+        IsVisible = false,
+        ScreenType = typeof(UnresolvedViewModel),
+        Command = new AsyncRelayCommand(
+              () => _navigation.NavigateAsync<UnresolvedViewModel>()),
+      });
+
+      NavItems.Add(NavItemViewModel.Separator("ЭКСПОРТ"));
+
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Сохранить .omaps",
+        Icon = "\uE74E",
+        IsVisible = false,
+        ScreenType = null,
+        Command = new AsyncRelayCommand(() => Task.CompletedTask), // TODO
+      });
+
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Экспорт Word",
+        Icon = "\uE8A5",
+        IsVisible = false,
+        ScreenType = null,
+        Command = new AsyncRelayCommand(() => Task.CompletedTask), // TODO
+      });
+
       NavItems.Add(NavItemViewModel.Separator("СИСТЕМА"));
 
       NavItems.Add(new NavItemViewModel
@@ -78,9 +121,30 @@ namespace OperationMaps.Wpf.Shell
 
     // ── Project loaded (called after XML import on Step В) ───────────────────
 
-    public void OnProjectLoaded(string projectName)
+    public void OnProjectLoaded(string projectName, ProjectMatchResult matchResult)
     {
-      // TODO: reveal Components / Unresolved / Export items
+      foreach (var item in NavItems)
+      {
+        switch (item.ScreenType?.Name)
+        {
+          case nameof(ComponentsViewModel):
+            item.IsVisible = true;
+            break;
+
+          case nameof(UnresolvedViewModel):
+            item.IsVisible = matchResult.Unresolved.Count > 0;
+            break;
+
+          case "SaveProject":
+          case "ExportWord":
+            item.IsVisible = true;
+            break;
+
+          case null when item.Label is "Сохранить .omaps" or "Экспорт Word":
+            item.IsVisible = true;
+            break;
+        }
+      }
     }
 
   }

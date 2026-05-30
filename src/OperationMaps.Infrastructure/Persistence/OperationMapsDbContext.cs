@@ -18,8 +18,8 @@ public class OperationMapsDbContext : DbContext
 
   // Слой 2 — Каталог
   public DbSet<ComponentType> ComponentTypes => Set<ComponentType>();
-  public DbSet<TypeForm> TypeForms => Set<TypeForm>();
   public DbSet<Family> Families => Set<Family>();
+  public DbSet<FamilyForm> FamilyForms => Set<FamilyForm>();
   public DbSet<FamilyParsingRule> FamilyParsingRules => Set<FamilyParsingRule>();
   public DbSet<Component> Components => Set<Component>();
   public DbSet<FamilyNtdValue> FamilyNtdValues => Set<FamilyNtdValue>();

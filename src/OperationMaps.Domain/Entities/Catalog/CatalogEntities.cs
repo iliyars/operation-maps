@@ -7,30 +7,33 @@ public class ComponentType
   public int Id { get; set; }
   public string Name { get; set; } = "";
 
-  public List<TypeForm> TypeForms { get; set; } = new();
   public List<Family> Families { get; set; } = new();
   public List<FamilyParsingRule> ParsingRules { get; set; } = new();
 }
 
-public class TypeForm
-{
-  public int ComponentTypeId { get; set; }
-  public ComponentType ComponentType { get; set; } = null!;
-  public int FormId { get; set; }
-  public Form Form { get; set; } = null!;
-}
-
 public class Family
 {
-  public int Id { get; set; }
-  public string Name { get; set; } = "";
-  public int ComponentTypeId { get; set; }
-  public ComponentType ComponentType { get; set; } = null!;
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public int ComponentTypeId { get; set; }
+    public ComponentType ComponentType { get; set; } = null!;
 
-  public List<Component> Components { get; set; } = new();
-  public List<FamilyNtdValue> NtdValues { get; set; } = new();
-  public List<FamilyNote> FamilyNotes { get; set; } = new();
+    public List<Component> Components { get; set; } = new();
+    public List<FamilyForm> FamilyForms { get; set; } = new();
+    public List<FamilyNtdValue> NtdValues { get; set; } = new();
+    public List<FamilyNote> FamilyNotes { get; set; } = new();
 }
+
+public class FamilyForm
+{
+    public int FamilyId { get; set; }
+    public Family Family { get; set; } = null!;
+
+    public int FormId { get; set; }
+    public Form Form { get; set; } = null!;
+}
+
+
 
 public class FamilyParsingRule
 {

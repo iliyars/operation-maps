@@ -28,25 +28,6 @@ public class ProjectComponentConfiguration : IEntityTypeConfiguration<ProjectCom
   }
 }
 
-public class RegimeGroupConfiguration : IEntityTypeConfiguration<RegimeGroup>
-{
-  public void Configure(EntityTypeBuilder<RegimeGroup> b)
-  {
-    b.Property(x => x.Label).HasMaxLength(200).IsRequired();
-    b.Property(x => x.LoadFactorMin).HasMaxLength(50);
-
-    b.HasOne(x => x.Project)
-     .WithMany(p => p.RegimeGroups)
-     .HasForeignKey(x => x.ProjectId)
-     .OnDelete(DeleteBehavior.Cascade);
-
-    b.HasOne(x => x.LoadFactorParameter)
-     .WithMany()
-     .HasForeignKey(x => x.LoadFactorParameterId)
-     .OnDelete(DeleteBehavior.NoAction);
-  }
-}
-
 public class RegimeGroupMemberConfiguration : IEntityTypeConfiguration<RegimeGroupMember>
 {
   public void Configure(EntityTypeBuilder<RegimeGroupMember> b)

@@ -7,8 +7,8 @@ namespace OperationMaps.Infrastructure.Persistence;
 
 public static class DatabaseSeeder
 {
-  public static async Task SeedAsync(OperationMapsDbContext db)
-  {
+    public static async Task SeedAsync(CatalogDbContext db)
+    {
         if (await db.Froms.AnyAsync(f => f.Number == "4"))
             return;
 

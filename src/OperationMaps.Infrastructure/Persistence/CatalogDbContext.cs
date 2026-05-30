@@ -1,22 +1,26 @@
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
-using OperationMaps.Domain.Entities.Projects;
 using OperationMaps.Domain.Entities.Users;
 
 namespace OperationMaps.Infrastructure.Persistence;
 
-public class OperationMapsDbContext : DbContext
+/// <summary>
+/// Shared catalog database (catalog.db).
+/// Contains forms, component types, families, NTD values.
+/// Managed by Admin, shared across all projects.
+/// </summary>
+public class CatalogDbContext : DbContext
 {
-  public OperationMapsDbContext(DbContextOptions<OperationMapsDbContext> options) : base(options) { }
+  public CatalogDbContext(DbContextOptions<CatalogDbContext> options) : base(options) { }
 
-  // Слой 1 — Формы
+  // ── Forms ─────────────────────────────────────────────────────────────────
   public DbSet<Form> Froms => Set<Form>();
   public DbSet<FormSection> FormSections => Set<FormSection>();
   public DbSet<FormParameter> FormParameters => Set<FormParameter>();
   public DbSet<FormValueColumn> FormValueColumns => Set<FormValueColumn>();
 
-  // Слой 2 — Каталог
+  // ── Catalog ───────────────────────────────────────────────────────────────
   public DbSet<ComponentType> ComponentTypes => Set<ComponentType>();
   public DbSet<Family> Families => Set<Family>();
   public DbSet<FamilyForm> FamilyForms => Set<FamilyForm>();
@@ -29,18 +33,11 @@ public class OperationMapsDbContext : DbContext
   public DbSet<FamilyNote> FamilyNotes => Set<FamilyNote>();
   public DbSet<ComponentNote> ComponentNotes => Set<ComponentNote>();
 
-  // Слой 3 — Проекты
-  public DbSet<Project> Projects => Set<Project>();
-  public DbSet<ProjectComponent> ProjectComponents => Set<ProjectComponent>();
-  public DbSet<RegimeGroup> RegimeGroups => Set<RegimeGroup>();
-  public DbSet<RegimeGroupMember> RegimeGroupMembers => Set<RegimeGroupMember>();
-  public DbSet<ParameterCellValue> ParameterCellValues => Set<ParameterCellValue>();
-  public DbSet<ParameterCellNote> ParameterCellNotes => Set<ParameterCellNote>(); // ★
-
+  // ── Users ─────────────────────────────────────────────────────────────────
   public DbSet<AppUser> Users => Set<AppUser>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {
-    modelBuilder.ApplyConfigurationsFromAssembly(typeof(OperationMapsDbContext).Assembly);
+    modelBuilder.ApplyConfigurationsFromAssembly(typeof(CatalogDbContext).Assembly);
   }
 }

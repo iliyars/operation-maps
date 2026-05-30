@@ -2,6 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="clr-namespace:OperationMaps.Wpf.Shared.Converters">
 
-    <converters:BoolToNavFgConverter             x:Key="BoolToNavFg" />
-    <BooleanToVisibilityConverter                x:Key="BoolToVis" />
+    <converters:BoolToNavFgConverter             x:Key="BoolToNavFg"/>
+    <converters:NullToVisibilityConverter        x:Key="NullToVis"/>
+    <converters:NotNullToVisibilityConverter     x:Key="NotNullToVis"/>
+    <BooleanToVisibilityConverter                x:Key="BoolToVis"/>
 </ResourceDictionary>

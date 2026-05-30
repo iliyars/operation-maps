@@ -9,9 +9,9 @@ using OperationMaps.Wpf.Infrastructure.Commands;
 
 namespace OperationMaps.Wpf.Features.Components.Commands
 {
-  public class SplitComponentCommand : IUndoableCommand
+  public sealed class SplitComponentCommand : IUndoableCommand
   {
-    private readonly ObservableObject<ProjectComponentVm> _list;
+    private readonly ObservableCollection<ProjectComponentVm> _list;
     private readonly ProjectComponentVm _original;
     private readonly IReadOnlyList<string> _leftPositions;
     private readonly IReadOnlyList<string> _rightPositions;
@@ -61,9 +61,9 @@ namespace OperationMaps.Wpf.Features.Components.Commands
       _original.SetPositions(_leftPositions.Concat(_rightPositions).ToList());
     }
 
-    private static ProjectComponentVm CloneWithPosition(
+    private static ProjectComponentVm CloneWithPositions(
       ProjectComponentVm source,
-      IReadOnlyList<string> position)
+      IReadOnlyList<string> positions)
     {
       // Deep-clone the ImportedComponent with new positions
       var clonedImported = new ImportedComponent

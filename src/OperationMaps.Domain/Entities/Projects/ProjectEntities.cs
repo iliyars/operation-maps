@@ -16,7 +16,6 @@ public class Project
   public string? SourceFileName { get; set; }
 
   public List<ProjectComponent> Components { get; set; } = new();
-  public List<RegimeGroup> RegimeGroups { get; set; } = new();
 }
 
 public class ProjectComponent

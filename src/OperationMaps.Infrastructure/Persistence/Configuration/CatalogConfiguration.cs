@@ -8,23 +8,34 @@ public class ComponentTypeConfiguration : IEntityTypeConfiguration<ComponentType
 {
   public void Configure(EntityTypeBuilder<ComponentType> b)
   {
+        b.HasKey(t => t.Id);
     b.Property(x => x.Name).HasMaxLength(200).IsRequired();
     b.HasIndex(x => x.Name).IsUnique();
   }
 }
 
-public class TypeFormConfiguration : IEntityTypeConfiguration<TypeForm>
+public class FamilyFormConfiguration : IEntityTypeConfiguration<FamilyForm>
 {
-  public void Configure(EntityTypeBuilder<TypeForm> b)
-  {
-    b.HasKey(x => new { x.ComponentTypeId, x.FormId });
-  }
+    public void Configure(EntityTypeBuilder<FamilyForm> builder)
+    {
+        builder.HasKey(ff => new { ff.FamilyId, ff.FormId });
+
+        builder.HasOne(ff => ff.Family)
+               .WithMany(f => f.FamilyForms)
+               .HasForeignKey(ff => ff.FamilyId);
+
+        builder.HasOne(ff => ff.Form)
+               .WithMany()
+               .HasForeignKey(ff => ff.FormId);
+    }
 }
+
 
 public class FamilyConfiguration : IEntityTypeConfiguration<Family>
 {
   public void Configure(EntityTypeBuilder<Family> b)
   {
+        b.HasKey(t => t.Id);
     b.Property(x => x.Name).HasMaxLength(200).IsRequired();
     b.HasIndex(x => new { x.ComponentTypeId, x.Name }).IsUnique();
 
@@ -37,101 +48,137 @@ public class FamilyConfiguration : IEntityTypeConfiguration<Family>
 
 public class FamilyParsingRuleConfiguration : IEntityTypeConfiguration<FamilyParsingRule>
 {
-  public void Configure(EntityTypeBuilder<FamilyParsingRule> b)
-  {
-    b.Property(x => x.Pattern).HasMaxLength(500).IsRequired();
-    b.Property(x => x.Example).HasMaxLength(200);
-  }
+    public void Configure(EntityTypeBuilder<FamilyParsingRule> builder)
+    {
+        builder.HasKey(r => r.Id);
+        builder.Property(r => r.Pattern).IsRequired();
+
+        builder.HasOne(r => r.ComponentType)
+               .WithMany(t => t.ParsingRules)
+               .HasForeignKey(r => r.ComponentTypeId);
+    }
 }
+
 
 public class ComponentConfiguration : IEntityTypeConfiguration<Component>
 {
-  public void Configure(EntityTypeBuilder<Component> b)
-  {
-    b.Property(x => x.FullName).HasMaxLength(500).IsRequired();
-    b.Property(x => x.Designation).HasMaxLength(200);
+    public void Configure(EntityTypeBuilder<Component> builder)
+    {
+        builder.HasKey(c => c.Id);
+        builder.Property(c => c.FullName).IsRequired().HasMaxLength(500);
+        builder.HasIndex(c => c.FullName).IsUnique();
 
-    b.HasOne(x => x.Family)
-     .WithMany(f => f.Components)
-     .HasForeignKey(x => x.FamilyId)
-     .OnDelete(DeleteBehavior.Cascade);
-  }
+        builder.HasOne(c => c.Family)
+               .WithMany(f => f.Components)
+               .HasForeignKey(c => c.FamilyId);
+    }
 }
+
 
 public class FamilyNtdValueConfiguration : IEntityTypeConfiguration<FamilyNtdValue>
 {
-  public void Configure(EntityTypeBuilder<FamilyNtdValue> b)
-  {
-    b.Property(x => x.Value).HasMaxLength(500).IsRequired();
+    public void Configure(EntityTypeBuilder<FamilyNtdValue> builder)
+    {
+        builder.HasKey(v => v.Id);
+        builder.Property(v => v.Value).IsRequired();
 
-    b.HasIndex(x => new { x.FamilyId, x.FormParameterId }).IsUnique();
-  }
+        builder.HasOne(v => v.Family)
+               .WithMany(f => f.NtdValues)
+               .HasForeignKey(v => v.FamilyId);
+
+        builder.HasOne(v => v.FormParameter)
+               .WithMany()
+               .HasForeignKey(v => v.FormParameterId);
+    }
 }
+
 
 public class ComponentNtdValueConfiguration : IEntityTypeConfiguration<ComponentNtdValue>
 {
-  public void Configure(EntityTypeBuilder<ComponentNtdValue> b)
-  {
-    b.Property(x => x.Value).HasMaxLength(500).IsRequired();
+    public void Configure(EntityTypeBuilder<ComponentNtdValue> builder)
+    {
+        builder.HasKey(v => v.Id);
+        builder.Property(v => v.Value).IsRequired();
 
-    b.HasIndex(x => new { x.ComponentId, x.FormParameterId }).IsUnique();
-  }
+        builder.HasOne(v => v.Component)
+               .WithMany(c => c.NtdValues)
+               .HasForeignKey(v => v.ComponentId);
+
+        builder.HasOne(v => v.FormParameter)
+               .WithMany()
+               .HasForeignKey(v => v.FormParameterId);
+    }
 }
+
 
 public class ComponentPinValueConfiguration : IEntityTypeConfiguration<ComponentPinValue>
 {
-  public void Configure(EntityTypeBuilder<ComponentPinValue> b)
-  {
-    b.Property(x => x.Pins).HasMaxLength(200).IsRequired();
+    public void Configure(EntityTypeBuilder<ComponentPinValue> builder)
+    {
+        builder.HasKey(v => v.Id);
+        builder.Property(v => v.Pins).IsRequired();
 
-    b.HasIndex(x => new { x.ComponentId, x.FormParameterId }).IsUnique();
-  }
+        builder.HasOne(v => v.Component)
+               .WithMany(c => c.PinValues)
+               .HasForeignKey(v => v.ComponentId);
+
+        builder.HasOne(v => v.FormParameter)
+               .WithMany()
+               .HasForeignKey(v => v.FormParameterId);
+    }
 }
+
 
 // ── Примечания ───────────────────────────────────────────────────────────────
 
 public class NoteConfiguration : IEntityTypeConfiguration<Note>
 {
-  public void Configure(EntityTypeBuilder<Note> b)
-  {
-    b.Property(x => x.Text).HasMaxLength(2000).IsRequired();
-    // Уникальность по тексту: один и тот же текст не дублируется в справочнике
-    b.HasIndex(x => x.Text).IsUnique();
-  }
+    public void Configure(EntityTypeBuilder<Note> builder)
+    {
+        builder.HasKey(n => n.Id);
+        builder.Property(n => n.Text).IsRequired();
+    }
 }
+
 
 public class FamilyNoteConfiguration : IEntityTypeConfiguration<FamilyNote>
 {
-  public void Configure(EntityTypeBuilder<FamilyNote> b)
-  {
-    b.HasKey(x => new { x.FamilyId, x.NoteId });
+    public void Configure(EntityTypeBuilder<FamilyNote> builder)
+    {
+        builder.HasKey(fn => new { fn.FamilyId, fn.FormParameterId, fn.NoteId });
 
-    b.HasOne(x => x.Family)
-     .WithMany(f => f.FamilyNotes)
-     .HasForeignKey(x => x.FamilyId)
-     .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(fn => fn.Family)
+               .WithMany(f => f.FamilyNotes)
+               .HasForeignKey(fn => fn.FamilyId);
 
-    b.HasOne(x => x.Note)
-     .WithMany(n => n.FamilyNotes)
-     .HasForeignKey(x => x.NoteId)
-     .OnDelete(DeleteBehavior.Cascade);
-  }
+        builder.HasOne(fn => fn.FormParameter)
+               .WithMany()
+               .HasForeignKey(fn => fn.FormParameterId);
+
+        builder.HasOne(fn => fn.Note)
+               .WithMany(n => n.FamilyNotes)
+               .HasForeignKey(fn => fn.NoteId);
+    }
 }
+
 
 public class ComponentNoteConfiguration : IEntityTypeConfiguration<ComponentNote>
 {
-  public void Configure(EntityTypeBuilder<ComponentNote> b)
-  {
-    b.HasKey(x => new { x.ComponentId, x.NoteId });
+    public void Configure(EntityTypeBuilder<ComponentNote> builder)
+    {
+        builder.HasKey(cn => new { cn.ComponentId, cn.FormParameterId, cn.NoteId });
 
-    b.HasOne(x => x.Component)
-     .WithMany(c => c.ComponentNotes)
-     .HasForeignKey(x => x.ComponentId)
-     .OnDelete(DeleteBehavior.Cascade);
+        builder.HasOne(cn => cn.Component)
+               .WithMany(c => c.ComponentNotes)
+               .HasForeignKey(cn => cn.ComponentId);
 
-    b.HasOne(x => x.Note)
-     .WithMany(n => n.ComponentNotes)
-     .HasForeignKey(x => x.NoteId)
-     .OnDelete(DeleteBehavior.Cascade);
-  }
+        builder.HasOne(cn => cn.FormParameter)
+               .WithMany()
+               .HasForeignKey(cn => cn.FormParameterId);
+
+        builder.HasOne(cn => cn.Note)
+               .WithMany(n => n.ComponentNotes)
+               .HasForeignKey(cn => cn.NoteId);
+    }
 }
+

@@ -7,10 +7,10 @@ namespace OperationMaps.Infrastructure.Services;
 
 public sealed class ComponentMatcher : IComponentMatcher
 {
-  private readonly OperationMapsDbContext _context;
+  private readonly CatalogDbContext _context;
   private readonly IComponentNameParser _nameParser;
 
-  public ComponentMatcher(OperationMapsDbContext context, IComponentNameParser nameParser)
+  public ComponentMatcher(CatalogDbContext context, IComponentNameParser nameParser)
   {
     _context = context ?? throw new ArgumentNullException(nameof(context));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
@@ -30,38 +30,38 @@ public sealed class ComponentMatcher : IComponentMatcher
     if (type is null)
       return Unmatched($"Неизвестный тип компонента: {typeName}");
 
-        // 2. Парсим семейство — передаём полное имя с типом чтобы парсер работал корректно
-        var parsed = _nameParser.Parse($"{typeName} {imported.RawName}");
+    // 2. Парсим семейство — передаём полное имя с типом чтобы парсер работал корректно
+    var parsed = _nameParser.Parse($"{typeName} {imported.RawName}");
 
 
-        Family? family = null;
-        if (!string.IsNullOrEmpty(parsed.Family) && parsed.Family != parsed.Name)
-        {
-            family = await _context.Families
-                .Include(f => f.FamilyForms)
-                    .ThenInclude(ff => ff.Form)
-                .FirstOrDefaultAsync(
-                    f => f.ComponentTypeId == type.Id
-                      && f.Name == parsed.Family, ct);
-        }
+    Family? family = null;
+    if (!string.IsNullOrEmpty(parsed.Family) && parsed.Family != parsed.Name)
+    {
+      family = await _context.Families
+          .Include(f => f.FamilyForms)
+              .ThenInclude(ff => ff.Form)
+          .FirstOrDefaultAsync(
+              f => f.ComponentTypeId == type.Id
+                && f.Name == parsed.Family, ct);
+    }
 
 
-        // 4. Ищем компонент по полному имени 
-        var component = await _context.Components
-        .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
+    // 4. Ищем компонент по полному имени
+    var component = await _context.Components
+    .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
 
-        // 4. Определяем требуемые формы
-        var requiredForms = family?.FamilyForms.Select(ff => ff.Form).ToList()
-                         ?? [];
+    // 4. Определяем требуемые формы
+    var requiredForms = family?.FamilyForms.Select(ff => ff.Form).ToList()
+                     ?? [];
 
 
-        return new MatchResult
+    return new MatchResult
     {
       IsMatched = component is not null,
       MatchedType = type,
       MatchedFamily = family,
       MatchedComponent = component,
-      RequiredForm  = requiredForms,
+      RequiredForm = requiredForms,
       Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null
     };
   }

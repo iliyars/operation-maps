@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OperationMaps.Application.Importing;
 using OperationMaps.Infrastructure.Importing;
+using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Services;
 
 namespace OperationMaps.Infrastructure;
@@ -9,16 +10,25 @@ namespace OperationMaps.Infrastructure;
 public static class DependencyInjection
 {
   public static IServiceCollection AddInfrastructure(
-      this IServiceCollection services, string connectionString)
+      this IServiceCollection services, string catalogConnectionString)
   {
-    services.AddDbContext<Persistence.OperationMapsDbContext>(options =>
-        options.UseSqlite(connectionString));
-    // при миграции на SQL Server: options.UseSqlServer(connectionString)
+    // ── Catalog DB (shared, permanent) ────────────────────────────────────
+    services.AddDbContext<CatalogDbContext>(options =>
+        options.UseSqlite(catalogConnectionString));
 
+    services.AddDbContextFactory<CatalogDbContext>(options =>
+        options.UseSqlite(catalogConnectionString));
+
+    // ── Project DB (per-file, opened on demand) ───────────────────────────
+    // ProjectDbContext is NOT registered in DI — it's created by factory
+    services.AddSingleton<ProjectDbContextFactory>();
+
+    // ── Application services ──────────────────────────────────────────────
     services.AddSingleton<IComponentListImporter, Pe3XmlImporter>();
     services.AddScoped<IComponentNameParser, ComponentNameParser>();
     services.AddScoped<IComponentMatcher, ComponentMatcher>();
 
     return services;
+
   }
 }

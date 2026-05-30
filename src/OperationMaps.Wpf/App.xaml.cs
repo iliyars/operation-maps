@@ -17,7 +17,7 @@ namespace OperationMaps.Wpf;
 
 public partial class App : System.Windows.Application
 {
-  private IHost _host;
+  private IHost _host = null!;
 
   private static IHost BuildHost() =>
     Host.CreateDefaultBuilder()
@@ -29,40 +29,40 @@ public partial class App : System.Windows.Application
                     retainedFileCountLimit: 14))
                    .ConfigureServices((ctx, services) =>
             {
-              var connectionString = ctx.Configuration.GetConnectionString("OperationMaps")
+              var connectionString = ctx.Configuration.GetConnectionString("Catalog")
                   ?? throw new InvalidOperationException(
-                      "Connection string 'OperationMaps' not found.");
+                      "Connection string 'Catalog' not found.");
 
               services.AddInfrastructure(connectionString);
               services.AddPresentation();
             })
             .Build();
 
-    private async void OnStartup(object sender, StartupEventArgs e)
-    {
-        _host = BuildHost();
-        await _host.StartAsync();
+  private async void OnStartup(object sender, StartupEventArgs e)
+  {
+    _host = BuildHost();
+    await _host.StartAsync();
 
-        // Register View DataTemplates by convention (ViewModel → View)
-        ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
+    // Register View DataTemplates by convention (ViewModel → View)
+    ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
 
-        // Seed the database
-        await InitializeDatabaseAsync();
+    // Seed the database
+    await InitializeDatabaseAsync();
 
-        // Navigate to the initial screen
-        var navigation = _host.Services.GetRequiredService<INavigationService>();
-        await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
+    // Navigate to the initial screen
+    var navigation = _host.Services.GetRequiredService<INavigationService>();
+    await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
 
-        //Show the window
-        var vm = _host.Services.GetRequiredService<MainViewModel>();
-        var window = new MainWindow { DataContext = vm };
-        window.Show();
+    //Show the window
+    var vm = _host.Services.GetRequiredService<MainViewModel>();
+    var window = new MainWindow { DataContext = vm };
+    window.Show();
 
-        // Navigate to the initial screen
-        await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
-    }
+    // Navigate to the initial screen
+    await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
+  }
 
-    private async void OnExit(object sender, ExitEventArgs e)
+  private async void OnExit(object sender, ExitEventArgs e)
   {
     await _host.StopAsync();
     _host.Dispose();
@@ -73,7 +73,7 @@ public partial class App : System.Windows.Application
   {
     using var scope = _host.Services.CreateAsyncScope();
     var db = scope.ServiceProvider
-        .GetRequiredService<OperationMapsDbContext>();
+        .GetRequiredService<CatalogDbContext>();
     await db.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(db);
   }

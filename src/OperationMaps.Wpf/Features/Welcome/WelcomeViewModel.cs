@@ -59,7 +59,11 @@ namespace OperationMaps.Wpf.Features.Welcome
       var matchResult = await _matcher.MatchAllAsync(
             importResult.Components, cancellationToken);
 
-      var projectName = Path.GetFileNameWithoutExtension(path);
+            foreach (var c in importResult.Components.Take(5))
+                System.Diagnostics.Debug.WriteLine(
+                    $"RawName={c.RawName} | DetectedCategory={c.DetectedCategory}");
+
+            var projectName = Path.GetFileNameWithoutExtension(path);
 
       _shell.OnProjectLoaded(projectName, matchResult);
 

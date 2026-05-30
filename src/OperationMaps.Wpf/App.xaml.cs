@@ -11,7 +11,6 @@ using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewLocation;
 using OperationMaps.Wpf.Main;
 using OperationMaps.Wpf.Features.Welcome;
-using OperationMaps.Wpf.ViewModels;
 using Serilog;
 
 namespace OperationMaps.Wpf;

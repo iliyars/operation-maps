@@ -7,7 +7,6 @@ using OperationMaps.Wpf.Features.Catalog;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
-using OperationMaps.Wpf.ViewModels;
 
 namespace OperationMaps.Wpf.Shell
 {

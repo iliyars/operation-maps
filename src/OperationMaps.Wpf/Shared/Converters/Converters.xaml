@@ -5,5 +5,6 @@
     <converters:BoolToNavFgConverter             x:Key="BoolToNavFg"/>
     <converters:NullToVisibilityConverter        x:Key="NullToVis"/>
     <converters:NotNullToVisibilityConverter     x:Key="NotNullToVis"/>
+    <converters:InverseBoolToVisibilityConverter  x:Key="InverseBoolToVis"/>
     <BooleanToVisibilityConverter                x:Key="BoolToVis"/>
 </ResourceDictionary>

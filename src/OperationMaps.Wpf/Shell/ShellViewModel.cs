@@ -7,6 +7,7 @@ using OperationMaps.Wpf.Features.Catalog;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
+using OperationMaps.Wpf.Features.Form4;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -61,14 +62,16 @@ namespace OperationMaps.Wpf.Shell
               () => _navigation.NavigateAsync<ComponentsViewModel>()),
       });
 
+      NavItems.Add(NavItemViewModel.Separator("ФОРМЫ"));
+
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Не найдены",
-        Icon = "\uE7BA",
+        Label = "Форма 4",
+        Icon = "\uE9D9",
         IsVisible = false,
-        ScreenType = typeof(UnresolvedViewModel),
+        ScreenType = typeof(Form4ViewModel),
         Command = new AsyncRelayCommand(
-              () => _navigation.NavigateAsync<UnresolvedViewModel>()),
+              () => _navigation.NavigateAsync<Form4ViewModel>()),
       });
 
       NavItems.Add(NavItemViewModel.Separator("ЭКСПОРТ"));
@@ -79,7 +82,7 @@ namespace OperationMaps.Wpf.Shell
         Icon = "\uE74E",
         IsVisible = false,
         ScreenType = null,
-        Command = new AsyncRelayCommand(() => Task.CompletedTask), // TODO
+        Command = new AsyncRelayCommand(() => Task.CompletedTask),
       });
 
       NavItems.Add(new NavItemViewModel
@@ -88,7 +91,7 @@ namespace OperationMaps.Wpf.Shell
         Icon = "\uE8A5",
         IsVisible = false,
         ScreenType = null,
-        Command = new AsyncRelayCommand(() => Task.CompletedTask), // TODO
+        Command = new AsyncRelayCommand(() => Task.CompletedTask),
       });
 
       NavItems.Add(NavItemViewModel.Separator("СИСТЕМА"));
@@ -103,6 +106,7 @@ namespace OperationMaps.Wpf.Shell
               () => _navigation.NavigateAsync<CatalogViewModel>()),
       });
     }
+
 
     // ── Admin visibility (called from ShellView code-behind) ──────────────────
 
@@ -124,6 +128,10 @@ namespace OperationMaps.Wpf.Shell
         switch (item.ScreenType?.Name)
         {
           case nameof(ComponentsViewModel):
+            item.IsVisible = true;
+            break;
+
+          case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;
 

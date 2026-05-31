@@ -23,7 +23,17 @@ namespace OperationMaps.Wpf.Features.Components
                               ?? Entry.Imported.RawName;
     public string? TypeName => Entry.MatchResult.MatchedType?.Name;
     public string? FamilyName => Entry.MatchResult.MatchedFamily?.Name;
-    public bool IsMatched => Entry.MatchResult.IsMatched;
+
+    public ComponentMatchStatus MatchStatus => Entry.MatchResult switch
+    {
+      { MatchedComponent: not null } => ComponentMatchStatus.Matched,
+      { MatchedFamily: not null } => ComponentMatchStatus.FamilyFound,
+      _ => ComponentMatchStatus.Unresolved,
+    };
+
+    public bool IsMatched => MatchStatus == ComponentMatchStatus.Matched;
+
+    public bool HasFamily => MatchStatus != ComponentMatchStatus.Unresolved;
 
     // ── UI state ──────────────────────────────────────────────────────────────
 

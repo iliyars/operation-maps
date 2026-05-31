@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OperationMaps.Application.Importing;
+using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Features.Components.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using OperationMaps.Wpf.Infrastructure.Navigation;
@@ -13,12 +14,13 @@ namespace OperationMaps.Wpf.Features.Components
 {
   public sealed partial class ComponentsViewModel : ScreenViewModelBase
   {
-
     private readonly ProjectStore _store;
+    private readonly CatalogDbContext _db;
 
-    public ComponentsViewModel(ProjectStore store)
+    public ComponentsViewModel(ProjectStore store, CatalogDbContext db)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
+      _db = db ?? throw new ArgumentNullException(nameof(db));
 
       _store.Components.CollectionChanged += (_, _) => RefreshCounts();
     }
@@ -58,7 +60,13 @@ namespace OperationMaps.Wpf.Features.Components
     [NotifyPropertyChangedFor(nameof(CanMerge))]
     private ProjectComponentVm? _selectedComponent;
 
-    public IList<ProjectComponentVm> SelectedComponents { get; } = [];
+    partial void OnSelectedComponentChanged(ProjectComponentVm? value)
+    {
+      if(value is not null)
+        _ = value.LoadNtdValuesAsync(_db);
+    }
+
+    public ObservableCollection<ProjectComponentVm> SelectedComponents { get; } = [];
 
     public bool CanSplit => SelectedComponent?.Entry.Imported.Positions.Count > 1;
     public bool CanMerge => SelectedComponents.Count == 2

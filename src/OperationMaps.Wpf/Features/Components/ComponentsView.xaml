@@ -8,22 +8,32 @@
 
     <UserControl.Resources>
 
-        <!-- ── Status badge ─────────────────────────────────────────────────── -->
-        <Style x:Key="StatusBadge" TargetType="Border">
-            <Setter Property="CornerRadius"  Value="4"/>
-            <Setter Property="Padding"       Value="6,2"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+        <Style x:Key="StatusBadge"
+               TargetType="Border">
+            <Setter Property="CornerRadius"
+                    Value="4"/>
+            <Setter Property="Padding"
+                    Value="6,2"/>
+            <Setter Property="VerticalAlignment"
+                    Value="Center"/>
         </Style>
 
-        <!-- ── Filter tab button ────────────────────────────────────────────── -->
-        <Style x:Key="FilterTab" TargetType="Button">
-            <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0,0,0,2"/>
-            <Setter Property="BorderBrush"     Value="Transparent"/>
-            <Setter Property="Padding"         Value="12,8"/>
-            <Setter Property="FontSize"        Value="13"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Foreground"      Value="#666666"/>
+        <Style x:Key="FilterTab"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="0,0,0,2"/>
+            <Setter Property="BorderBrush"
+                    Value="Transparent"/>
+            <Setter Property="Padding"
+                    Value="12,8"/>
+            <Setter Property="FontSize"
+                    Value="13"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Foreground"
+                    Value="#666666"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -35,8 +45,10 @@
                                               VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#2B579A"/>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter Property="Foreground"
+                                        Value="#2B579A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -44,15 +56,22 @@
             </Setter>
         </Style>
 
-        <!-- ── Toolbar icon button ──────────────────────────────────────────── -->
-        <Style x:Key="ToolbarButton" TargetType="Button">
-            <Setter Property="Background"      Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush"     Value="#DCDCDC"/>
-            <Setter Property="Padding"         Value="10,5"/>
-            <Setter Property="FontSize"        Value="12"/>
-            <Setter Property="Cursor"          Value="Hand"/>
-            <Setter Property="Height"          Value="30"/>
+        <Style x:Key="ToolbarButton"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+            <Setter Property="BorderBrush"
+                    Value="#DCDCDC"/>
+            <Setter Property="Padding"
+                    Value="10,5"/>
+            <Setter Property="FontSize"
+                    Value="12"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="Height"
+                    Value="30"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -66,11 +85,16 @@
                                               VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#F0F0F0"/>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="#F0F0F0"/>
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter Property="Opacity" Value="0.4"/>
+                            <Trigger Property="IsEnabled"
+                                     Value="False">
+                                <Setter Property="Opacity"
+                                        Value="0.4"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -83,16 +107,11 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- toolbar         -->
             <RowDefinition Height="Auto"/>
-            <!-- filter tabs     -->
             <RowDefinition Height="*"/>
-            <!-- list + detail   -->
         </Grid.RowDefinitions>
 
-        <!-- ══════════════════════════════════════════════════════════════════
-             TOOLBAR
-             ══════════════════════════════════════════════════════════════════ -->
+        <!-- TOOLBAR -->
         <Border Grid.Row="0"
                 Background="#FAFAFA"
                 BorderBrush="#EEEEEE"
@@ -104,7 +123,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Search -->
                 <Border Grid.Column="0"
                         Background="White"
                         BorderBrush="#DCDCDC"
@@ -134,36 +152,25 @@
                     </Grid>
                 </Border>
 
-                <!-- Actions -->
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right">
-
-                    <!-- Undo -->
                     <Button Style="{StaticResource ToolbarButton}"
                             Command="{Binding UndoCommand}"
                             ToolTip="{Binding History.UndoDescription}"
                             Margin="0,0,4,0">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE7A7;"
-                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="13"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <TextBlock Text="&#xE7A7;"
+                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                   FontSize="13"/>
                     </Button>
-
-                    <!-- Redo -->
                     <Button Style="{StaticResource ToolbarButton}"
                             Command="{Binding RedoCommand}"
                             ToolTip="{Binding History.RedoDescription}"
                             Margin="0,0,12,0">
                         <TextBlock Text="&#xE7A6;"
                                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                   FontSize="13"
-                                   VerticalAlignment="Center"/>
+                                   FontSize="13"/>
                     </Button>
-
-                    <!-- Split -->
                     <Button Style="{StaticResource ToolbarButton}"
                             Command="{Binding SplitCommand}"
                             IsEnabled="{Binding CanSplit}"
@@ -174,11 +181,10 @@
                                        FontSize="13"
                                        VerticalAlignment="Center"
                                        Margin="0,0,5,0"/>
-                            <TextBlock Text="Разбить" VerticalAlignment="Center"/>
+                            <TextBlock Text="Разбить"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
-                    <!-- Merge -->
                     <Button Style="{StaticResource ToolbarButton}"
                             Command="{Binding MergeCommand}"
                             IsEnabled="{Binding CanMerge}">
@@ -188,77 +194,55 @@
                                        FontSize="13"
                                        VerticalAlignment="Center"
                                        Margin="0,0,5,0"/>
-                            <TextBlock Text="Объединить" VerticalAlignment="Center"/>
+                            <TextBlock Text="Объединить"
+                                       VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════════════
-             FILTER TABS
-             ══════════════════════════════════════════════════════════════════ -->
+        <!-- FILTER TABS -->
         <Border Grid.Row="1"
                 BorderBrush="#EEEEEE"
                 BorderThickness="0,0,0,1">
-            <StackPanel Orientation="Horizontal" Margin="8,0">
-
+            <StackPanel Orientation="Horizontal"
+                        Margin="8,0">
                 <Button Style="{StaticResource FilterTab}"
                         Command="{Binding SetFilterCommand}"
                         CommandParameter="{x:Static local:ComponentFilter.All}">
                     <TextBlock>
-                        <Run Text="Все "/>
-                        <Run Text="(" /><Run Text="{Binding CountAll, Mode=OneWay}"/><Run Text=")"/>
+                        <Run Text="Все "/><Run Text="("/><Run Text="{Binding CountAll, Mode=OneWay}"/><Run Text=")"/>
                     </TextBlock>
                 </Button>
-
                 <Button Style="{StaticResource FilterTab}"
                         Command="{Binding SetFilterCommand}"
                         CommandParameter="{x:Static local:ComponentFilter.Matched}">
                     <TextBlock>
-                        <Run Text="Найдены "/>
-                        <Run Text="("/><Run Text="{Binding CountMatched, Mode=OneWay}"/><Run Text=")"/>
+                        <Run Text="Найдены "/><Run Text="("/><Run Text="{Binding CountMatched, Mode=OneWay}"/><Run Text=")"/>
                     </TextBlock>
                 </Button>
-
                 <Button Style="{StaticResource FilterTab}"
                         Command="{Binding SetFilterCommand}"
                         CommandParameter="{x:Static local:ComponentFilter.Unresolved}">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock>
-                            <Run Text="Не найдены "/>
-                            <Run Text="("/><Run Text="{Binding CountUnresolved, Mode=OneWay}"/><Run Text=")"/>
-                        </TextBlock>
-                        <!-- Warning badge if any unresolved -->
-                        <Border Background="#FFF3CD"
-                                CornerRadius="8"
-                                Padding="5,1"
-                                Margin="6,0,0,0"
-                                Visibility="{Binding CountUnresolved,
-                                    Converter={StaticResource NullToVis}}">
-                            <TextBlock Text="&#xE7BA;"
-                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                       FontSize="10"
-                                       Foreground="#856404"/>
-                        </Border>
-                    </StackPanel>
+                    <TextBlock>
+                        <Run Text="Не найдены "/><Run Text="("/><Run Text="{Binding CountUnresolved, Mode=OneWay}"/><Run Text=")"/>
+                    </TextBlock>
                 </Button>
-
             </StackPanel>
         </Border>
 
-        <!-- ══════════════════════════════════════════════════════════════════
-             LIST + DETAIL PANEL
-             ══════════════════════════════════════════════════════════════════ -->
+        <!-- LIST + DETAIL -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="1"/>
-                <ColumnDefinition Width="320" MinWidth="200" MaxWidth="500"/>
+                <ColumnDefinition Width="320"
+                                  MinWidth="200"
+                                  MaxWidth="500"/>
             </Grid.ColumnDefinitions>
 
-            <!-- ── Components list ────────────────────────────────────────── -->
+            <!-- List -->
             <ListView Grid.Column="0"
                       x:Name="ComponentsList"
                       ItemsSource="{Binding FilteredComponents}"
@@ -267,11 +251,10 @@
                       BorderThickness="0"
                       VirtualizingPanel.IsVirtualizing="True"
                       VirtualizingPanel.VirtualizationMode="Recycling">
-
                 <ListView.View>
                     <GridView>
-
-                        <GridViewColumn Header="Позиции" Width="130">
+                        <GridViewColumn Header="Позиции"
+                                        Width="130">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
                                     <TextBlock Text="{Binding Positions}"
@@ -281,8 +264,8 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
-                        <GridViewColumn Header="Наименование" Width="240">
+                        <GridViewColumn Header="Наименование"
+                                        Width="240">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
                                     <TextBlock Text="{Binding Name}"
@@ -291,8 +274,8 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
-                        <GridViewColumn Header="Тип" Width="110">
+                        <GridViewColumn Header="Тип"
+                                        Width="110">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
                                     <TextBlock Text="{Binding TypeName}"
@@ -300,8 +283,8 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
-                        <GridViewColumn Header="Семейство" Width="130">
+                        <GridViewColumn Header="Семейство"
+                                        Width="130">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
                                     <TextBlock Text="{Binding FamilyName}"
@@ -309,51 +292,68 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
-                        <GridViewColumn Header="Статус" Width="110">
+                        <GridViewColumn Header="Статус"
+                                        Width="110">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
                                     <Border>
                                         <Border.Style>
-                                            <Style TargetType="Border" BasedOn="{StaticResource StatusBadge}">
+                                            <Style TargetType="Border"
+                                                   BasedOn="{StaticResource StatusBadge}">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsMatched}" Value="True">
-                                                        <Setter Property="Background" Value="#E6F4EA"/>
+                                                    <DataTrigger Binding="{Binding IsMatched}"
+                                                                 Value="True">
+                                                        <Setter Property="Background"
+                                                                Value="#E6F4EA"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsMatched}" Value="False">
-                                                        <Setter Property="Background" Value="#FFF3CD"/>
+                                                    <DataTrigger Binding="{Binding IsMatched}"
+                                                                 Value="False">
+                                                        <Setter Property="Background"
+                                                                Value="#FFF3CD"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
                                         <StackPanel Orientation="Horizontal">
-                                            <Ellipse Width="6" Height="6"
+                                            <Ellipse Width="6"
+                                                     Height="6"
                                                      VerticalAlignment="Center"
                                                      Margin="0,0,5,0">
                                                 <Ellipse.Style>
                                                     <Style TargetType="Ellipse">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsMatched}" Value="True">
-                                                                <Setter Property="Fill" Value="#34A853"/>
+                                                            <DataTrigger Binding="{Binding IsMatched}"
+                                                                         Value="True">
+                                                                <Setter Property="Fill"
+                                                                        Value="#34A853"/>
                                                             </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsMatched}" Value="False">
-                                                                <Setter Property="Fill" Value="#F9A825"/>
+                                                            <DataTrigger Binding="{Binding IsMatched}"
+                                                                         Value="False">
+                                                                <Setter Property="Fill"
+                                                                        Value="#F9A825"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Ellipse.Style>
                                             </Ellipse>
-                                            <TextBlock VerticalAlignment="Center" FontSize="12">
+                                            <TextBlock VerticalAlignment="Center"
+                                                       FontSize="12">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsMatched}" Value="True">
-                                                                <Setter Property="Text"       Value="Найден"/>
-                                                                <Setter Property="Foreground" Value="#1E7E34"/>
+                                                            <DataTrigger Binding="{Binding IsMatched}"
+                                                                         Value="True">
+                                                                <Setter Property="Text"
+                                                                        Value="Найден"/>
+                                                                <Setter Property="Foreground"
+                                                                        Value="#1E7E34"/>
                                                             </DataTrigger>
-                                                            <DataTrigger Binding="{Binding IsMatched}" Value="False">
-                                                                <Setter Property="Text"       Value="Не найден"/>
-                                                                <Setter Property="Foreground" Value="#856404"/>
+                                                            <DataTrigger Binding="{Binding IsMatched}"
+                                                                         Value="False">
+                                                                <Setter Property="Text"
+                                                                        Value="Не найден"/>
+                                                                <Setter Property="Foreground"
+                                                                        Value="#856404"/>
                                                             </DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
@@ -364,16 +364,17 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-
                     </GridView>
                 </ListView.View>
             </ListView>
 
-            <!-- ── Divider ────────────────────────────────────────────────── -->
-            <Border Grid.Column="1" Background="#EEEEEE"/>
+            <!-- Divider -->
+            <Border Grid.Column="1"
+                    Background="#EEEEEE"/>
 
-            <!-- ── Detail panel ───────────────────────────────────────────── -->
-            <Grid Grid.Column="2" Background="#FAFAFA">
+            <!-- Detail panel -->
+            <Grid Grid.Column="2"
+                  Background="#FAFAFA">
 
                 <!-- Empty state -->
                 <StackPanel VerticalAlignment="Center"
@@ -395,44 +396,90 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding SelectedComponent,
                                   Converter={StaticResource NullToVis}}">
-                    <StackPanel Margin="16" DataContext="{Binding SelectedComponent}">
+                    <StackPanel Margin="16"
+                                DataContext="{Binding SelectedComponent}">
 
-                        <!-- Name -->
+                        <!-- Name + positions -->
                         <TextBlock Text="{Binding Name}"
-                                   FontSize="14"
+                                   FontSize="13"
                                    FontWeight="SemiBold"
                                    Foreground="#1A1A2E"
                                    TextWrapping="Wrap"
-                                   Margin="0,0,0,4"/>
-
+                                   Margin="0,0,0,2"/>
                         <TextBlock Text="{Binding Positions}"
                                    FontFamily="Consolas"
-                                   FontSize="12"
+                                   FontSize="11"
                                    Foreground="#666666"
+                                   TextWrapping="Wrap"
                                    Margin="0,0,0,16"/>
 
-                        <!-- NTD section -->
+                        <!-- NTD header -->
                         <TextBlock Text="ПАРАМЕТРЫ ПО НТД"
                                    FontSize="10"
                                    FontWeight="SemiBold"
                                    Foreground="#888888"
                                    Margin="0,0,0,8"/>
 
-                        <TextBlock Text="Загрузка параметров НТД..."
-                                   Foreground="#AAAAAA"
+                        <!-- Loading -->
+                        <TextBlock Text="Загрузка..."
                                    FontSize="12"
-                                   Margin="0,0,0,16"/>
-
-                        <!-- In-circuit section -->
-                        <TextBlock Text="ПАРАМЕТРЫ В СХЕМЕ"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
-                                   Foreground="#888888"
-                                   Margin="0,0,0,8"/>
-
-                        <TextBlock Text="TODO: параметры из Формы 4"
                                    Foreground="#AAAAAA"
-                                   FontSize="12"/>
+                                   Visibility="{Binding IsLoadingNtd,
+                                       Converter={StaticResource BoolToVis}}"/>
+
+                        <!-- No family -->
+                        <TextBlock Text="Семейство не найдено в каталоге"
+                                   FontSize="12"
+                                   Foreground="#AAAAAA"
+                                   FontStyle="Italic"
+                                   Margin="0,0,0,8">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility"
+                                            Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsLoadingNtd}"
+                                                           Value="False"/>
+                                                <Condition Binding="{Binding NtdLoaded}"
+                                                           Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility"
+                                                    Value="{Binding NtdValues.Count,
+                                                        Converter={StaticResource NotNullToVis}}"/>
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+
+                        <!-- NTD table -->
+                        <ItemsControl ItemsSource="{Binding NtdValues}"
+                                      Visibility="{Binding NtdLoaded,
+                                          Converter={StaticResource BoolToVis}}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:NtdParameterVm}">
+                                    <Grid Margin="0,3">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="80"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding DisplayName}"
+                                                   FontSize="12"
+                                                   Foreground="#444444"
+                                                   TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Value}"
+                                                   FontSize="12"
+                                                   FontFamily="Consolas"
+                                                   Foreground="#2B579A"
+                                                   HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
 
                     </StackPanel>
                 </ScrollViewer>

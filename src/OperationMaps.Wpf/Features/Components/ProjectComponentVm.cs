@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using OperationMaps.Infrastructure.Persistence;
 
 namespace OperationMaps.Wpf.Features.Components
 {
@@ -11,21 +13,14 @@ namespace OperationMaps.Wpf.Features.Components
   {
     // ── Identity ──────────────────────────────────────────────────────────────
 
-    /// <summary>Unique identifier within the current project session.</summary>
     public Guid Id { get; } = Guid.NewGuid();
-
-    /// <summary>The underlying match data from the import pipeline.</summary>
     public ComponentMatchEntry Entry { get; }
 
     // ── Display properties ────────────────────────────────────────────────────
 
-    /// <summary>Comma-separated position designators, e.g. "R1, R2, R3".</summary>
     public string Positions => string.Join(", ", Entry.Imported.Positions);
-
-    /// <summary>Component name — from catalog if matched, raw name otherwise.</summary>
     public string Name => Entry.MatchResult.MatchedComponent?.FullName
-                       ?? Entry.Imported.RawName;
-
+                              ?? Entry.Imported.RawName;
     public string? TypeName => Entry.MatchResult.MatchedType?.Name;
     public string? FamilyName => Entry.MatchResult.MatchedFamily?.Name;
     public bool IsMatched => Entry.MatchResult.IsMatched;
@@ -34,6 +29,12 @@ namespace OperationMaps.Wpf.Features.Components
 
     [ObservableProperty] private bool _isSelected;
 
+    // ── NTD values (lazy) ─────────────────────────────────────────────────────
+
+    [ObservableProperty] private IReadOnlyList<NtdParameterVm> _ntdValues = [];
+    [ObservableProperty] private bool _isLoadingNtd;
+    [ObservableProperty] private bool _ntdLoaded;
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public ProjectComponentVm(ComponentMatchEntry entry)
@@ -41,16 +42,54 @@ namespace OperationMaps.Wpf.Features.Components
       Entry = entry ?? throw new ArgumentNullException(nameof(entry));
     }
 
-    // ── Mutation (used by undo/redo commands) ─────────────────────────────────
+    // ── NTD loading ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Replaces the position list. Called by Split/Merge commands.
-    /// Raises property-changed for <see cref="Positions"/>.
+    /// Lazily loads NTD values from the catalog DB.
+    /// Safe to call multiple times — loads only once.
     /// </summary>
+    public async Task LoadNtdValuesAsync(
+        CatalogDbContext db,
+        CancellationToken ct = default)
+    {
+      if (NtdLoaded || IsLoadingNtd) return;
+
+      var familyId = Entry.MatchResult.MatchedFamily?.Id;
+      if (familyId is null)
+      {
+        NtdLoaded = true;
+        return;
+      }
+
+      IsLoadingNtd = true;
+
+      try
+      {
+        var values = await db.FamilyNtdValues
+            .Include(v => v.FormParameter)
+            .Where(v => v.FamilyId == familyId)
+            .OrderBy(v => v.FormParameter.RowNumber)
+            .ToListAsync(ct);
+
+        NtdValues = values
+            .Select(v => new NtdParameterVm(v))
+            .ToList();
+
+        NtdLoaded = true;
+      }
+      finally
+      {
+        IsLoadingNtd = false;
+      }
+    }
+
+    // ── Mutation (used by undo/redo commands) ─────────────────────────────────
+
     public void SetPositions(IReadOnlyList<string> positions)
     {
       Entry.Imported.Positions = positions.ToList();
       OnPropertyChanged(nameof(Positions));
     }
+
   }
 }

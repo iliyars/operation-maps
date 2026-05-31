@@ -13,6 +13,7 @@ using OperationMaps.Wpf.Features.Catalog;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
+using OperationMaps.Wpf.Stores;
 
 namespace OperationMaps.Wpf
 {
@@ -25,6 +26,9 @@ namespace OperationMaps.Wpf
 
       //services
       services.AddSingleton<IFilePicker, FilePicker>();
+
+      // Stores
+      services.AddSingleton<ProjectStore>();
 
       // Shell
       services.AddSingleton<ShellViewModel>();

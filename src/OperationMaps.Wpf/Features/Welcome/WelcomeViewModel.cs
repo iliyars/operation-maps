@@ -11,6 +11,8 @@ using OperationMaps.Wpf.Infrastructure.ViewModels;
 using OperationMaps.Wpf.Services;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Shell;
+using OperationMaps.Wpf.Stores;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace OperationMaps.Wpf.Features.Welcome
 {
@@ -19,6 +21,7 @@ namespace OperationMaps.Wpf.Features.Welcome
     private readonly IFilePicker _filePicker;
     private readonly IComponentListImporter _importer;
     private readonly IComponentMatcher _matcher;
+    private readonly ProjectStore _store;
     private readonly ShellViewModel _shell;
     private INavigationService _navigation;
 
@@ -26,12 +29,14 @@ namespace OperationMaps.Wpf.Features.Welcome
       IFilePicker filePicker,
       IComponentListImporter importer,
       IComponentMatcher matcher,
+      ProjectStore store,
       ShellViewModel shell,
       INavigationService navigation)
     {
       _filePicker = filePicker ?? throw new ArgumentNullException(nameof(FilePicker));
       _importer = importer ?? throw new ArgumentNullException(nameof(importer));
       _matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
+      _store = store ?? throw new ArgumentNullException(nameof(store));
       _shell = shell ?? throw new ArgumentNullException(nameof(shell));
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
     }
@@ -59,11 +64,9 @@ namespace OperationMaps.Wpf.Features.Welcome
       var matchResult = await _matcher.MatchAllAsync(
             importResult.Components, cancellationToken);
 
-            foreach (var c in importResult.Components.Take(5))
-                System.Diagnostics.Debug.WriteLine(
-                    $"RawName={c.RawName} | DetectedCategory={c.DetectedCategory}");
+      var projectName = Path.GetFileNameWithoutExtension(path);
 
-            var projectName = Path.GetFileNameWithoutExtension(path);
+      _store.Load(projectName, matchResult);
 
       _shell.OnProjectLoaded(projectName, matchResult);
 

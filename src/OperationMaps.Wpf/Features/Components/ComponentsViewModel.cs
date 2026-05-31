@@ -7,12 +7,24 @@ using OperationMaps.Wpf.Features.Components.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
+using OperationMaps.Wpf.Stores;
 
 namespace OperationMaps.Wpf.Features.Components
 {
-  public sealed partial class ComponentsViewModel : ScreenViewModelBase, INavigatedTo
+  public sealed partial class ComponentsViewModel : ScreenViewModelBase
   {
-    public ObservableCollection<ProjectComponentVm> Components { get; private set; } = [];
+
+    private readonly ProjectStore _store;
+
+    public ComponentsViewModel(ProjectStore store)
+    {
+      _store = store ?? throw new ArgumentNullException(nameof(store));
+
+      _store.Components.CollectionChanged += (_, _) => RefreshCounts();
+    }
+
+    public ObservableCollection<ProjectComponentVm> Components => _store.Components;
+    public UndoRedoStack History => _store.History;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredComponents))]
@@ -23,7 +35,7 @@ namespace OperationMaps.Wpf.Features.Components
     private string _searchText = string.Empty;
 
     public IEnumerable<ProjectComponentVm> FilteredComponents => Components
-        .Where(c => _activeFilter switch
+        .Where(c => ActiveFilter switch
         {
           ComponentFilter.Matched => c.IsMatched,
           ComponentFilter.Unresolved => !c.IsMatched,
@@ -46,35 +58,12 @@ namespace OperationMaps.Wpf.Features.Components
     [NotifyPropertyChangedFor(nameof(CanMerge))]
     private ProjectComponentVm? _selectedComponent;
 
-    public IList<ProjectComponentVm> SelectedComponents { get; } =
-        new ObservableCollection<ProjectComponentVm>();
+    public IList<ProjectComponentVm> SelectedComponents { get; } = [];
 
     public bool CanSplit => SelectedComponent?.Entry.Imported.Positions.Count > 1;
     public bool CanMerge => SelectedComponents.Count == 2
                          && SelectedComponents[0].IsMatched == SelectedComponents[1].IsMatched;
 
-    // ── Undo/Redo ─────────────────────────────────────────────────────────────
-
-    public UndoRedoStack History { get; } = new();
-
-    public bool CanUndo => History.CanUndo;
-    public bool CanRedo => History.CanRedo;
-    public Task OnNavigatedToAsync(
-        object? parameter = null,
-        CancellationToken cancellationToken = default)
-    {
-      if (parameter is not ProjectMatchResult result)
-        return Task.CompletedTask;
-
-      Components.Clear();
-      History.Clear();
-
-      foreach (var entry in result.Matched.Concat(result.Unresolved))
-        Components.Add(new ProjectComponentVm(entry));
-
-      RefreshCounts();
-      return Task.CompletedTask;
-    }
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
@@ -84,12 +73,23 @@ namespace OperationMaps.Wpf.Features.Components
       ActiveFilter = filter;
     }
 
-    [RelayCommand(CanExecute = nameof(History.CanUndo))]
-    private void Undo() => History.Undo();
 
-    [RelayCommand(CanExecute = nameof(History.CanRedo))]
-    private void Redo() => History.Redo();
+    public bool CanUndo => _store.History.CanUndo;
+    public bool CanRedo => _store.History.CanRedo;
 
+
+    [RelayCommand(CanExecute = nameof(CanUndo))]
+    private void Undo()
+    {
+      History.Undo();
+      RefreshCounts();
+    }
+    [RelayCommand(CanExecute = nameof(CanRedo))]
+    private void Redo()
+    {
+      History.Redo();
+      RefreshCounts();
+    }
     [RelayCommand(CanExecute = nameof(CanMerge))]
     private void Merge()
     {
@@ -99,7 +99,6 @@ namespace OperationMaps.Wpf.Features.Components
       // Check for parameter conflicts (placeholder — full dialog in next step)
       var command = new MergeComponentsCommand(Components, first, second);
       History.Execute(command);
-
       RefreshCounts();
     }
 

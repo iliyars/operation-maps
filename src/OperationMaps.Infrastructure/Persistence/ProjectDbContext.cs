@@ -16,6 +16,7 @@ public class ProjectDbContext : DbContext
   public DbSet<ProjectComponent> ProjectComponents => Set<ProjectComponent>();
   public DbSet<ParameterCellValue> ParameterCellValues => Set<ParameterCellValue>();
   public DbSet<ParameterCellNote> ParameterCellNotes => Set<ParameterCellNote>();
+  public DbSet<Form4Note> Form4Notes => Set<Form4Note>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

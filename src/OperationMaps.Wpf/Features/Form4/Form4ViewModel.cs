@@ -95,13 +95,19 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
           .OrderBy(p => p, PositionComparer.Instance)
           .ToList();
 
-      groups.Add(new Form4Group
+      var form4Group = new Form4Group
       {
         DisplayName = group.Key.FamilyName,
         Positions = string.Join(", ", positions),
         NtdValues = first.NtdValues,
         SourceComponents = components,
-      });
+      };
+
+      // Wire up cross-parameter order recalculation
+      foreach (var ntdParam in form4Group.NtdValues)
+        ntdParam.RecalculateGroupOrders = form4Group.RecalculateNoteOrders;
+
+      groups.Add(form4Group);
     }
 
     // Non-RLC components (no family) — group by full name
@@ -118,13 +124,18 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
           .OrderBy(p => p, PositionComparer.Instance)
           .ToList();
 
-      groups.Add(new Form4Group
+      var otherGroup = new Form4Group
       {
         DisplayName = group.Key,
         Positions = string.Join(", ", positions),
-        NtdValues = [], // no NTD for unknown components
+        NtdValues = [],
         SourceComponents = components,
-      });
+      };
+
+      foreach (var ntdParam in otherGroup.NtdValues)
+        ntdParam.RecalculateGroupOrders = otherGroup.RecalculateNoteOrders;
+
+      groups.Add(otherGroup);
     }
 
     Groups = groups;

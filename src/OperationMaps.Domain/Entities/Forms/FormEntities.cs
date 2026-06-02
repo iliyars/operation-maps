@@ -44,6 +44,8 @@ public class FormParameter
   public string? Unit { get; set; }
   public bool CanBeLoadFactorBase { get; set; }
   public int Order { get; set; }
+
+  public string? Formula { get; set; }
 }
 
 public class FormValueColumn

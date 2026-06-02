@@ -88,7 +88,12 @@
       </Setter>
     </Style>
 
-  </UserControl.Resources>
+        <Style TargetType="ItemsControl">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable"        Value="False"/>
+        </Style>
+
+    </UserControl.Resources>
 
   <Grid>
     <Grid.RowDefinitions>
@@ -240,6 +245,7 @@
         <!-- NTD detail -->
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       Padding="24,16,24,24"
+                      Focusable="False"
                       Visibility="{Binding SelectedGroup,
                                   Converter={StaticResource NullToVis}}">
           <StackPanel DataContext="{Binding SelectedGroup}">
@@ -369,6 +375,7 @@
 
                         <!-- Add note input -->
                         <Grid Margin="0,6,0,0"
+                              
                               Visibility="{Binding IsAddingNote,
                                                           Converter={StaticResource BoolToVis}}">
                           <Grid.ColumnDefinitions>
@@ -376,18 +383,27 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                           </Grid.ColumnDefinitions>
-                          <TextBox x:Name="NoteInput"
-                                   Grid.Column="0"
-                                   FontSize="12"
-                                   Padding="6,4"
-                                   BorderBrush="#DCDCDC"
-                                   BorderThickness="1"
-                                   TextWrapping="Wrap"
-                                   AcceptsReturn="False"/>
+                          <TextBox
+                            Grid.Column="0"
+                            Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
+                            FontSize="12"
+                            Padding="6,4"
+                            BorderBrush="#DCDCDC"
+                            BorderThickness="1"
+                            TextWrapping="Wrap"
+                            AcceptsReturn="False"
+                            IsVisibleChanged="NoteInputBox_IsVisibleChanged">
+                            <TextBox.InputBindings>
+                              <KeyBinding Key="Enter"
+                                          Command="{Binding ConfirmAddNoteCommand}"/>
+                              <KeyBinding Key="Escape"
+                                          Command="{Binding CancelAddNoteCommand}"/>
+                            </TextBox.InputBindings>
+                          </TextBox>
                           <Button Grid.Column="1"
                                   Command="{Binding ConfirmAddNoteCommand}"
-                                  CommandParameter="{Binding Text, ElementName=NoteInput}"
                                   Margin="4,0,0,0"
+                                  FocusVisualStyle="{x:Null}"
                                   Padding="8,4"
                                   Background="#2B579A"
                                   Foreground="White"
@@ -399,6 +415,7 @@
                           <Button Grid.Column="2"
                                   Command="{Binding CancelAddNoteCommand}"
                                   Margin="4,0,0,0"
+                                  FocusVisualStyle="{x:Null}"
                                   Padding="8,4"
                                   Background="Transparent"
                                   BorderBrush="#DCDCDC"

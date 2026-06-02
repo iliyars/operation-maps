@@ -66,6 +66,11 @@
               Value="0,8,0,1"/>
     </Style>
 
+        <Style TargetType="ItemsControl">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+
   </UserControl.Resources>
 
   <Grid>
@@ -388,16 +393,26 @@
                           <ColumnDefinition Width="Auto"/>
                           <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox Grid.Column="0"
-                                 Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="12"
-                                 Padding="6,4"
-                                 BorderBrush="#DCDCDC"
-                                 BorderThickness="1"
-                                 TextWrapping="Wrap"
-                                 AcceptsReturn="False"/>
-                        <Button Grid.Column="1"
+                                                <TextBox
+  Grid.Column="0"
+  Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
+  FontSize="12"
+  Padding="6,4"
+  BorderBrush="#DCDCDC"
+  BorderThickness="1"
+  TextWrapping="Wrap"
+  AcceptsReturn="False"
+  IsVisibleChanged="NoteInputBox_IsVisibleChanged">
+                                                    <TextBox.InputBindings>
+                                                        <KeyBinding Key="Enter"
+                Command="{Binding ConfirmAddNoteCommand}"/>
+                                                        <KeyBinding Key="Escape"
+                Command="{Binding CancelAddNoteCommand}"/>
+                                                    </TextBox.InputBindings>
+                                                </TextBox>
+                                                <Button Grid.Column="1"
                                 Command="{Binding ConfirmAddNoteCommand}"
+                                FocusVisualStyle="{x:Null}"
                                 Margin="4,0,0,0"
                                 Padding="8,4"
                                 Background="#2B579A"
@@ -409,6 +424,7 @@
                         </Button>
                         <Button Grid.Column="2"
                                 Command="{Binding CancelAddNoteCommand}"
+                                FocusVisualStyle="{x:Null}"
                                 Margin="4,0,0,0"
                                 Padding="8,4"
                                 Background="Transparent"

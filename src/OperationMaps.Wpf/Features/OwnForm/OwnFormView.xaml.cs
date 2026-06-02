@@ -61,5 +61,20 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     }
 
-  }
+        private void NoteInputBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue is true && sender is TextBox tb)
+            {
+                tb.Dispatcher.BeginInvoke(
+                    () => { tb.Focus(); tb.SelectAll(); },
+                    System.Windows.Threading.DispatcherPriority.Input);
+            }
+            else if (e.NewValue is false)
+            {
+                Keyboard.ClearFocus();
+                Focus();
+            }
+        }
+
+    }
 }

@@ -46,6 +46,12 @@ public class FormParameter
   public int Order { get; set; }
 
   public string? Formula { get; set; }
+
+  /// <summary>
+  /// Whether this parameter must be filled by the user.
+  /// Used to calculate completion status of a form column.
+  /// </summary>
+  public bool IsRequired { get; set; }
 }
 
 public class FormValueColumn

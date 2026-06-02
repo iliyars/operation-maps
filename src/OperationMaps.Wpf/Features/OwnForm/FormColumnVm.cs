@@ -76,6 +76,38 @@ namespace OperationMaps.Wpf.Features.OwnForm
           note.Order = order++;
     }
 
+
+    /// <summary>
+    /// Calculates fill status based on required parameters.
+    /// If no required params — uses all params with NTD ≠ "—".
+    /// </summary>
+    public FillStatus GetFillStatus(IReadOnlyList<FormParameterRowVm> parameters)
+    {
+      var relevant = parameters
+          .Where(p => p.IsRequired || (!p.IsRequired && GetNtdValue(p.FormParameterId) != "—"))
+          .ToList();
+
+      if (relevant.Count == 0) return FillStatus.Empty;
+
+      var filled = relevant
+          .Count(p => !string.IsNullOrWhiteSpace(GetCellValue(p.FormParameterId)));
+
+      if (filled == 0) return FillStatus.Empty;
+      if (filled == relevant.Count) return FillStatus.Complete;
+      return FillStatus.Partial;
+    }
+
+    /// <summary>Count of filled relevant parameters.</summary>
+    public int GetFilledCount(IReadOnlyList<FormParameterRowVm> parameters)
+        => parameters
+            .Where(p => p.IsRequired || GetNtdValue(p.FormParameterId) != "—")
+            .Count(p => !string.IsNullOrWhiteSpace(GetCellValue(p.FormParameterId)));
+
+    /// <summary>Total count of relevant parameters.</summary>
+    public int GetTotalCount(IReadOnlyList<FormParameterRowVm> parameters)
+        => parameters
+            .Count(p => p.IsRequired || GetNtdValue(p.FormParameterId) != "—");
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public FormColumnVm(ProjectComponentVm component)
@@ -101,4 +133,6 @@ namespace OperationMaps.Wpf.Features.OwnForm
       return cloned;
     }
   }
+
+  public enum FillStatus { Empty, Partial, Complete }
 }

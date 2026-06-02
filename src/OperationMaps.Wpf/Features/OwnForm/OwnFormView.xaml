@@ -66,10 +66,17 @@
               Value="0,8,0,1"/>
     </Style>
 
-        <Style TargetType="ItemsControl">
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Focusable" Value="False"/>
-        </Style>
+    <Style TargetType="ItemsControl">
+      <Setter Property="FocusVisualStyle"
+              Value="{x:Null}"/>
+      <Setter Property="Focusable"
+              Value="False"/>
+    </Style>
+
+    <Style TargetType="ScrollViewer">
+      <Setter Property="Focusable"
+              Value="False"/>
+    </Style>
 
   </UserControl.Resources>
 
@@ -136,8 +143,7 @@
           </StackPanel>
         </Button>
         <Button Style="{StaticResource ToolbarButton}"
-                Command="{Binding MergeCommand}"
-                IsEnabled="{Binding CanMerge}">
+                Command="{Binding MergeCommand}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xF546;"
                        FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
@@ -172,14 +178,14 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Left: columns list -->
+      <!-- Left: columns list with fill status -->
       <ScrollViewer Grid.Column="0"
                     Background="#FAFAFA"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl ItemsSource="{Binding Columns}">
+        <ItemsControl ItemsSource="{Binding ColumnItems}">
           <ItemsControl.ItemTemplate>
-            <DataTemplate DataType="{x:Type local:FormColumnVm}">
+            <DataTemplate DataType="{x:Type local:ColumnListItemVm}">
               <Border BorderBrush="#F0F0F0"
                       BorderThickness="0,0,0,1"
                       Cursor="Hand">
@@ -187,7 +193,7 @@
                   <MouseBinding MouseAction="LeftClick"
                                 Command="{Binding DataContext.SelectColumnCommand,
                                     RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                CommandParameter="{Binding}"/>
+                                CommandParameter="{Binding Column}"/>
                 </Border.InputBindings>
                 <Border.Style>
                   <Style TargetType="Border">
@@ -197,7 +203,7 @@
                       <Trigger Property="IsMouseOver"
                                Value="True">
                         <Setter Property="Background"
-                                Value="#F0F4FF"/>
+                                Value="#F5F7FF"/>
                       </Trigger>
                       <DataTrigger Binding="{Binding IsSelected}"
                                    Value="True">
@@ -207,30 +213,145 @@
                     </Style.Triggers>
                   </Style>
                 </Border.Style>
+
                 <Grid Margin="12,10">
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                  </Grid.RowDefinitions>
                   <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="10"/>
+                    <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
-                  <StackPanel Grid.Column="0">
-                    <TextBlock Text="{Binding Name}"
-                               FontSize="13"
-                               FontWeight="Medium"
-                               Foreground="#1A1A2E"
-                               TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding Positions}"
-                               FontFamily="Consolas"
+
+                  <!-- Name -->
+                  <TextBlock Grid.Row="0"
+                             Grid.Column="0"
+                             Text="{Binding Name}"
+                             FontSize="12"
+                             FontWeight="Medium"
+                             Foreground="#1A1A2E"
+                             TextWrapping="Wrap"/>
+
+                  <!-- Status badge -->
+                  <Border Grid.Row="0"
+                          Grid.Column="1"
+                          CornerRadius="10"
+                          Padding="6,2"
+                          VerticalAlignment="Center"
+                          Margin="6,0,0,0">
+                    <Border.Style>
+                      <Style TargetType="Border">
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding FillStatus}"
+                                       Value="Complete">
+                            <Setter Property="Background"
+                                    Value="#E6F4EA"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding FillStatus}"
+                                       Value="Partial">
+                            <Setter Property="Background"
+                                    Value="#FFF8E1"/>
+                          </DataTrigger>
+                          <DataTrigger Binding="{Binding FillStatus}"
+                                       Value="Empty">
+                            <Setter Property="Background"
+                                    Value="#F5F5F5"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding StatusLabel}"
                                FontSize="10"
-                               Foreground="#999999"
-                               TextWrapping="Wrap"
-                               Margin="0,3,0,0"/>
-                  </StackPanel>
-                  <Ellipse Grid.Column="1"
-                           Width="7"
-                           Height="7"
-                           Fill="#34A853"
-                           VerticalAlignment="Top"
-                           Margin="0,3,0,0"/>
+                               FontWeight="Medium">
+                      <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Complete">
+                              <Setter Property="Foreground"
+                                      Value="#1E7E34"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Partial">
+                              <Setter Property="Foreground"
+                                      Value="#B45309"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Empty">
+                              <Setter Property="Foreground"
+                                      Value="#999999"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </TextBlock.Style>
+                    </TextBlock>
+                  </Border>
+
+                  <!-- Positions -->
+                  <TextBlock Grid.Row="1"
+                             Grid.Column="0"
+                             Grid.ColumnSpan="2"
+                             Text="{Binding Positions}"
+                             FontFamily="Consolas"
+                             FontSize="10"
+                             Foreground="#999999"
+                             TextWrapping="Wrap"
+                             Margin="0,2,0,6"/>
+
+                  <!-- Progress bar -->
+                  <Grid Grid.Row="2"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Height="4">
+                    <Border Background="#EEEEEE"
+                            CornerRadius="2"/>
+                    <Border CornerRadius="2"
+                            HorizontalAlignment="Left">
+                      <Border.Style>
+                        <Style TargetType="Border">
+                          <Style.Triggers>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Complete">
+                              <Setter Property="Background"
+                                      Value="#34A853"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Partial">
+                              <Setter Property="Background"
+                                      Value="#F9A825"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding FillStatus}"
+                                         Value="Empty">
+                              <Setter Property="Background"
+                                      Value="#CCCCCC"/>
+                            </DataTrigger>
+                          </Style.Triggers>
+                        </Style>
+                      </Border.Style>
+                      <Border.Width>
+                        <MultiBinding>
+                          <MultiBinding.Converter>
+                            <local:FractionToWidthConverter/>
+                          </MultiBinding.Converter>
+                          <Binding Path="ProgressFraction"/>
+                          <Binding Path="ActualWidth"
+                                   RelativeSource="{RelativeSource AncestorType=Grid}"/>
+                        </MultiBinding>
+                      </Border.Width>
+                    </Border>
+                  </Grid>
+
+                  <!-- Progress text -->
+                  <TextBlock Grid.Row="3"
+                             Grid.Column="0"
+                             Grid.ColumnSpan="2"
+                             Text="{Binding ProgressText}"
+                             FontSize="10"
+                             Foreground="#AAAAAA"
+                             Margin="0,3,0,0"/>
                 </Grid>
               </Border>
             </DataTemplate>
@@ -261,212 +382,274 @@
         </StackPanel>
 
         <!-- Parameters -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                      Padding="24,16,24,24"
-                      Visibility="{Binding SelectedColumn, Converter={StaticResource NullToVis}}">
-          <StackPanel DataContext="{Binding SelectedColumn}">
+        <Grid Visibility="{Binding SelectedColumn, Converter={StaticResource NullToVis}}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
 
-            <TextBlock Text="{Binding Name}"
-                       FontSize="16"
-                       FontWeight="SemiBold"
-                       Foreground="#1A1A2E"
-                       TextWrapping="Wrap"/>
-            <TextBlock Text="{Binding Positions}"
-                       FontFamily="Consolas"
-                       FontSize="11"
-                       Foreground="#999999"
-                       TextWrapping="Wrap"
-                       Margin="0,4,0,16"/>
+          <ScrollViewer Grid.Row="0"
+                        VerticalScrollBarVisibility="Auto"
+                        Padding="24,16,24,8">
+            <StackPanel DataContext="{Binding SelectedColumn}">
 
-            <ItemsControl ItemsSource="{Binding DataContext.ParameterDetails,
-                RelativeSource={RelativeSource AncestorType=UserControl}}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type local:ParameterDetailVm}">
-                  <Border BorderBrush="#F0F0F0"
-                          BorderThickness="0,0,0,1"
-                          Padding="0,10,0,10">
-                    <StackPanel>
+              <TextBlock Text="{Binding Name}"
+                         FontSize="16"
+                         FontWeight="SemiBold"
+                         Foreground="#1A1A2E"
+                         TextWrapping="Wrap"/>
+              <TextBlock Text="{Binding Positions}"
+                         FontFamily="Consolas"
+                         FontSize="11"
+                         Foreground="#999999"
+                         TextWrapping="Wrap"
+                         Margin="0,4,0,16"/>
 
-                      <!-- Parameter name -->
-                      <TextBlock Text="{Binding DisplayName}"
-                                 Style="{StaticResource ParamLabel}"
-                                 Margin="0"/>
+              <ItemsControl ItemsSource="{Binding DataContext.ParameterDetails,
+                  RelativeSource={RelativeSource AncestorType=UserControl}}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="{x:Type local:ParameterDetailVm}">
+                    <Border BorderBrush="#F0F0F0"
+                            BorderThickness="0,0,0,1"
+                            Padding="0,10,0,10">
+                      <StackPanel>
 
-                      <!-- в схеме + по НТД -->
-                      <Grid Margin="0,4,0,0">
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+                        <!-- Parameter name + required marker -->
+                        <StackPanel Orientation="Horizontal"
+                            Margin="0,8,0,1">
+                          <TextBlock Text="{Binding DisplayName}"
+                                     FontSize="12"
+                                     Foreground="#666666"
+                                     TextWrapping="Wrap"/>
+                          <TextBlock Text=" *"
+                                     FontSize="12"
+                                     Foreground="#E53935"
+                                     VerticalAlignment="Top"
+                                     Visibility="{Binding IsRequired,
+                       Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
 
-                        <!-- в схеме -->
-                        <StackPanel Grid.Column="0"
-                                    Margin="0,0,8,0">
-                          <TextBlock Text="в схеме"
-                                     FontSize="10"
-                                     Foreground="#2B579A"
-                                     FontWeight="Medium"
-                                     Margin="0,0,0,3"/>
-                          <TextBox Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
-                                   FontSize="13"
+                        <Grid Margin="0,4,0,0">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                          </Grid.ColumnDefinitions>
+
+                          <!-- в схеме -->
+                          <StackPanel Grid.Column="0"
+                                      Margin="0,0,8,0">
+                            <TextBlock Text="в схеме"
+                                       FontSize="10"
+                                       Foreground="#2B579A"
+                                       FontWeight="Medium"
+                                       Margin="0,0,0,3"/>
+                            <TextBox Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="13"
+                                     Padding="6,4"
+                                     BorderBrush="#DCDCDC"
+                                     BorderThickness="1"
+                                     Background="White"
+                                     Visibility="{Binding IsDerived, Converter={StaticResource InverseBoolToVis}}"/>
+                            <Border Background="#F5F5F5"
+                                    BorderBrush="#DCDCDC"
+                                    BorderThickness="1"
+                                    Padding="6,4"
+                                    Visibility="{Binding IsDerived, Converter={StaticResource BoolToVis}}">
+                              <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding SchemeValue}"
+                                           FontSize="13"
+                                           Foreground="#444444"/>
+                                <TextBlock Text=" (авто)"
+                                           FontSize="10"
+                                           Foreground="#AAAAAA"
+                                           VerticalAlignment="Center"/>
+                              </StackPanel>
+                            </Border>
+                          </StackPanel>
+
+                          <!-- по НТД -->
+                          <StackPanel Grid.Column="1">
+                            <TextBlock Text="по НТД"
+                                       FontSize="10"
+                                       Foreground="#888888"
+                                       FontWeight="Medium"
+                                       Margin="0,0,0,3"/>
+                            <TextBlock Text="{Binding NtdValue}"
+                                       FontSize="13"
+                                       FontFamily="Consolas"
+                                       Foreground="#2B579A"
+                                       Padding="0,4"/>
+                          </StackPanel>
+                        </Grid>
+
+                        <!-- Existing notes -->
+                        <ItemsControl ItemsSource="{Binding Notes}"
+                                      Margin="0,6,0,0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:OwnFormNoteVm}">
+                              <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width="Auto"/>
+                                  <ColumnDefinition Width="*"/>
+                                  <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Marker}"
+                                           FontSize="11"
+                                           Foreground="#2B579A"
+                                           VerticalAlignment="Top"
+                                           Margin="0,0,4,0"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding NoteText}"
+                                           FontSize="11"
+                                           Foreground="#444444"
+                                           TextWrapping="Wrap"/>
+                                <Button Grid.Column="2"
+                                        Command="{Binding DeleteCommand}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        FocusVisualStyle="{x:Null}"
+                                        Cursor="Hand"
+                                        Padding="4,0">
+                                  <TextBlock Text="&#xE711;"
+                                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                             FontSize="10"
+                                             Foreground="#AAAAAA"/>
+                                </Button>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Add note input -->
+                        <Grid Margin="0,6,0,0"
+                              Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
+                          <TextBox Grid.Column="0"
+                                   Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
+                                   FontSize="12"
                                    Padding="6,4"
                                    BorderBrush="#DCDCDC"
                                    BorderThickness="1"
-                                   Background="White"
-                                   Visibility="{Binding IsDerived, Converter={StaticResource InverseBoolToVis}}"/>
-                          <Border Background="#F5F5F5"
+                                   AcceptsReturn="False"
+                                   IsVisibleChanged="NoteInputBox_IsVisibleChanged">
+                            <TextBox.InputBindings>
+                              <KeyBinding Key="Enter"
+                                          Command="{Binding ConfirmAddNoteCommand}"/>
+                              <KeyBinding Key="Escape"
+                                          Command="{Binding CancelAddNoteCommand}"/>
+                            </TextBox.InputBindings>
+                          </TextBox>
+                          <Button Grid.Column="1"
+                                  Command="{Binding ConfirmAddNoteCommand}"
+                                  FocusVisualStyle="{x:Null}"
+                                  Margin="4,0,0,0"
+                                  Padding="8,4"
+                                  Background="#2B579A"
+                                  Foreground="White"
+                                  BorderThickness="0"
+                                  Cursor="Hand"
+                                  FontSize="12">
+                            <TextBlock Text="ОК"/>
+                          </Button>
+                          <Button Grid.Column="2"
+                                  Command="{Binding CancelAddNoteCommand}"
+                                  FocusVisualStyle="{x:Null}"
+                                  Margin="4,0,0,0"
+                                  Padding="8,4"
+                                  Background="Transparent"
                                   BorderBrush="#DCDCDC"
                                   BorderThickness="1"
-                                  Padding="6,4"
-                                  Visibility="{Binding IsDerived, Converter={StaticResource BoolToVis}}">
-                            <StackPanel Orientation="Horizontal">
-                              <TextBlock Text="{Binding SchemeValue}"
-                                         FontSize="13"
-                                         Foreground="#444444"/>
-                              <TextBlock Text=" (авто)"
-                                         FontSize="10"
-                                         Foreground="#AAAAAA"
-                                         VerticalAlignment="Center"/>
-                            </StackPanel>
-                          </Border>
-                        </StackPanel>
+                                  Cursor="Hand"
+                                  FontSize="12">
+                            <TextBlock Text="✕"
+                                       Foreground="#666666"/>
+                          </Button>
+                        </Grid>
 
-                        <!-- по НТД -->
-                        <StackPanel Grid.Column="1">
-                          <TextBlock Text="по НТД"
-                                     FontSize="10"
-                                     Foreground="#888888"
-                                     FontWeight="Medium"
-                                     Margin="0,0,0,3"/>
-                          <TextBlock Text="{Binding NtdValue}"
-                                     FontSize="13"
-                                     FontFamily="Consolas"
-                                     Foreground="#2B579A"
-                                     Padding="0,4"/>
-                        </StackPanel>
-                      </Grid>
-
-                      <!-- Existing notes -->
-                      <ItemsControl ItemsSource="{Binding Notes}"
-                                    Margin="0,6,0,0">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate DataType="{x:Type local:OwnFormNoteVm}">
-                            <Grid Margin="0,2">
-                              <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                              </Grid.ColumnDefinitions>
-                              <TextBlock Grid.Column="0"
-                                         Text="{Binding Marker}"
-                                         FontSize="11"
-                                         Foreground="#2B579A"
-                                         VerticalAlignment="Top"
-                                         Margin="0,0,4,0"/>
-                              <TextBlock Grid.Column="1"
-                                         Text="{Binding NoteText}"
-                                         FontSize="11"
-                                         Foreground="#444444"
-                                         TextWrapping="Wrap"/>
-                              <Button Grid.Column="2"
-                                      Command="{Binding DeleteCommand}"
-                                      Background="Transparent"
-                                      BorderThickness="0"
-                                      Cursor="Hand"
-                                      Padding="4,0"
-                                      ToolTip="Удалить примечание">
-                                <TextBlock Text="&#xE711;"
-                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                           FontSize="10"
-                                           Foreground="#AAAAAA"/>
-                              </Button>
-                            </Grid>
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
-
-                      <!-- Add note input -->
-                      <Grid Margin="0,6,0,0"
-                            Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="*"/>
-                          <ColumnDefinition Width="Auto"/>
-                          <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                                                <TextBox
-  Grid.Column="0"
-  Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
-  FontSize="12"
-  Padding="6,4"
-  BorderBrush="#DCDCDC"
-  BorderThickness="1"
-  TextWrapping="Wrap"
-  AcceptsReturn="False"
-  IsVisibleChanged="NoteInputBox_IsVisibleChanged">
-                                                    <TextBox.InputBindings>
-                                                        <KeyBinding Key="Enter"
-                Command="{Binding ConfirmAddNoteCommand}"/>
-                                                        <KeyBinding Key="Escape"
-                Command="{Binding CancelAddNoteCommand}"/>
-                                                    </TextBox.InputBindings>
-                                                </TextBox>
-                                                <Button Grid.Column="1"
-                                Command="{Binding ConfirmAddNoteCommand}"
-                                FocusVisualStyle="{x:Null}"
-                                Margin="4,0,0,0"
-                                Padding="8,4"
-                                Background="#2B579A"
-                                Foreground="White"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                FontSize="12">
-                          <TextBlock Text="ОК"/>
-                        </Button>
-                        <Button Grid.Column="2"
-                                Command="{Binding CancelAddNoteCommand}"
-                                FocusVisualStyle="{x:Null}"
-                                Margin="4,0,0,0"
-                                Padding="8,4"
+                        <!-- Add note button -->
+                        <Button Command="{Binding StartAddNoteCommand}"
                                 Background="Transparent"
-                                BorderBrush="#DCDCDC"
-                                BorderThickness="1"
+                                BorderThickness="0"
+                                FocusVisualStyle="{x:Null}"
+                                HorizontalAlignment="Left"
                                 Cursor="Hand"
-                                FontSize="12">
-                          <TextBlock Text="✕"
-                                     Foreground="#666666"/>
+                                Padding="0"
+                                Margin="0,4,0,0"
+                                Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
+                          <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="10"
+                                       Foreground="#AAAAAA"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,4,0"/>
+                            <TextBlock Text="Добавить примечание"
+                                       FontSize="11"
+                                       Foreground="#AAAAAA"/>
+                          </StackPanel>
                         </Button>
-                      </Grid>
 
-                      <!-- Add note button -->
-                      <Button Command="{Binding StartAddNoteCommand}"
-                              Background="Transparent"
-                              BorderThickness="0"
-                              HorizontalAlignment="Left"
-                              Cursor="Hand"
-                              Padding="0"
-                              Margin="0,4,0,0"
-                              Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
-                        <StackPanel Orientation="Horizontal">
-                          <TextBlock Text="&#xE710;"
-                                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                     FontSize="10"
-                                     Foreground="#AAAAAA"
-                                     VerticalAlignment="Center"
-                                     Margin="0,0,4,0"/>
-                          <TextBlock Text="Добавить примечание"
-                                     FontSize="11"
-                                     Foreground="#AAAAAA"/>
-                        </StackPanel>
-                      </Button>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
 
-                    </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+
+          <!-- Save button -->
+          <Border Grid.Row="1"
+                  Background="#FAFAFA"
+                  BorderBrush="#EEEEEE"
+                  BorderThickness="0,1,0,0"
+                  Padding="16,10">
+            <Button Command="{Binding SaveColumnCommand}"
+                    HorizontalAlignment="Right"
+                    Height="36"
+                    Padding="20,0"
+                    Background="#2B579A"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    FontSize="13">
+              <Button.Template>
+                <ControlTemplate TargetType="Button">
+                  <Border x:Name="Bd"
+                          Background="{TemplateBinding Background}"
+                          CornerRadius="6"
+                          Padding="{TemplateBinding Padding}">
+                    <ContentPresenter HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"/>
                   </Border>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                  <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver"
+                             Value="True">
+                      <Setter TargetName="Bd"
+                              Property="Background"
+                              Value="#1E4A8A"/>
+                    </Trigger>
+                  </ControlTemplate.Triggers>
+                </ControlTemplate>
+              </Button.Template>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE74E;"
+                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           FontSize="13"
+                           VerticalAlignment="Center"
+                           Margin="0,0,6,0"/>
+                <TextBlock Text="Сохранить"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </Border>
 
-          </StackPanel>
-        </ScrollViewer>
+        </Grid>
       </Grid>
     </Grid>
   </Grid>

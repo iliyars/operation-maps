@@ -17,11 +17,7 @@ using System.Threading.Tasks;
 
 namespace OperationMaps.Wpf.Features.OwnForm
 {
-  // <summary>
-  /// ViewModel for a specific component form (e.g. Form 67 for capacitors).
-  /// Shows one column per ProjectComponent of the relevant family,
-  /// with "в схеме" (editable) and "по НТД" (from catalog) sub-columns.
-  /// </summary>
+
   public partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo
   {
 
@@ -35,6 +31,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     // Table data
     public ObservableCollection<FormColumnVm> Columns { get; } = [];
+    public ObservableCollection<ColumnListItemVm> ColumnItems { get; } = [];
     public ObservableCollection<FormParameterRowVm> Parameters { get; } = [];
 
     // Undo/Redo — per form instance
@@ -55,6 +52,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [NotifyPropertyChangedFor(nameof(CanMerge))]
     private FormColumnVm? _selectedColumn;
 
+    [ObservableProperty]
+    private ColumnListItemVm? _selectedItem;
+
     public ObservableCollection<FormColumnVm> SelectedColumns { get; } = [];
 
     public bool CanSplit => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
@@ -62,6 +62,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     [ObservableProperty] private bool _isLoading;
 
+    [ObservableProperty]
+    private IReadOnlyList<ParameterDetailVm> _parameterDetails = [];
     public OwnFormViewModel(ProjectStore store, CatalogDbContext db)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
@@ -99,6 +101,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       cmd.Undo();
       _redoStack.Push(cmd);
       RefreshHistory();
+      RefreshAllItems();
     }
 
     [RelayCommand(CanExecute = nameof(CanRedo))]
@@ -109,6 +112,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       cmd.Execute();
       _undoStack.Push(cmd);
       RefreshHistory();
+      RefreshAllItems();
     }
 
     [RelayCommand(CanExecute = nameof(CanSplit))]
@@ -124,10 +128,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       var first = SelectedColumns[0];
       var second = SelectedColumns[1];
       ExecuteCommand(new MergeColumnsCommand(Columns, first, second));
+      RebuildColumnItems();
     }
-
-    [ObservableProperty]
-    private IReadOnlyList<ParameterDetailVm> _parameterDetails = [];
 
     [RelayCommand]
     private void SelectColumn(FormColumnVm column)
@@ -136,7 +138,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
         SelectedColumn.IsSelected = false;
 
       SelectedColumn = column;
-      column.IsSelected = true;
+      // Find and select the list item
+      SelectedItem = ColumnItems.FirstOrDefault(i => i.Column == column);
+      if (SelectedItem is not null)
+        SelectedItem.IsSelected = true;
 
       var details = Parameters
         .Select(p => new ParameterDetailVm(
@@ -145,7 +150,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
           rowNumber: p.RowNumber,
           displayName: p.DisplayName,
           ntdValue: column.GetNtdValue(p.FormParameterId),
-          formula: p.Formula))
+          formula: p.Formula,
+          isRequired: p.IsRequired))
         .ToList();
 
       var derivedRows = details.Where(d => d.IsDerived).ToList();
@@ -159,13 +165,30 @@ namespace OperationMaps.Wpf.Features.OwnForm
               foreach (var derived in derivedRows)
                 derived.Recalculate(details);
 
+            // Refresh status in list
+            SelectedItem?.Refresh();
           };
         }
-
+        // Подписываемся и на derived строки
+        foreach (var derived in derivedRows)
+        {
+          derived.PropertyChanged += (_, e) =>
+          {
+            if (e.PropertyName == nameof(ParameterDetailVm.SchemeValue))
+              SelectedItem?.Refresh();
+          };
+        }
         foreach (var derived in derivedRows)
           derived.Recalculate(details);
       }
       ParameterDetails = details;
+    }
+
+    /// <summary>Saves current column state to memory and refreshes status.</summary>
+    [RelayCommand]
+    private void SaveColumn()
+    {
+      SelectedItem?.Refresh();
     }
 
     public void ExecuteSplit(
@@ -175,6 +198,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       ExecuteCommand(new SplitColumnCommand(
           Columns, original, leftPositions, rightPositions));
+      RebuildColumnItems();
     }
 
     partial void OnSelectedColumnChanged(FormColumnVm? value)
@@ -194,9 +218,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (groups.Count < 2) return;
 
       ExecuteCommand(new MultiSplitColumnCommand(Columns, original, groups));
+      RebuildColumnItems();
 
     }
-
 
     public event Action<FormColumnVm>? SplitRequested;
 
@@ -252,6 +276,23 @@ namespace OperationMaps.Wpf.Features.OwnForm
       // Build parameter rows
       foreach (var param in parameters)
         Parameters.Add(new FormParameterRowVm(param, Columns));
+
+      // Build list items after Parameters are ready
+      foreach (var col in Columns)
+        ColumnItems.Add(new ColumnListItemVm(col, Parameters));
+    }
+
+    private void RebuildColumnItems()
+    {
+      ColumnItems.Clear();
+      foreach (var col in Columns)
+        ColumnItems.Add(new ColumnListItemVm(col, Parameters));
+    }
+
+    private void RefreshAllItems()
+    {
+      foreach (var item in ColumnItems)
+        item.Refresh();
     }
 
     private void ExecuteCommand(IUndoableCommand command)

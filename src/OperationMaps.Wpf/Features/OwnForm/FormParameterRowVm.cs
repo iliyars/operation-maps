@@ -15,6 +15,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public string Name { get; }
     public string? Unit { get; }
     public string? Formula { get; }
+    public bool IsRequired { get; }
     public string DisplayName => Unit is not null ? $"{Name}, {Unit}" : Name;
 
     public IReadOnlyList<FormColumnVm> Columns { get; }
@@ -30,6 +31,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       Unit = parameter.Unit;
       Columns = columns;
       Formula = parameter.Formula;
+      IsRequired = parameter.IsRequired;
     }
 
     // ── Per-column note state ─────────────────────────────────────────────────

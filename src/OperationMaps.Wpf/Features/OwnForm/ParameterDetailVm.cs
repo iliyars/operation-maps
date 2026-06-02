@@ -15,6 +15,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public string DisplayName { get; init; } = "";
     public string NtdValue { get; init; } = "—";
     public string? Formula { get; init; }
+    public bool IsRequired { get; init; }
 
     public bool IsDerived => Formula is not null;
 
@@ -35,7 +36,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       int rowNumber,
       string displayName,
       string ntdValue,
-      string? formula = null)
+      string? formula = null,
+      bool isRequired = false)
     {
       _column = column;
       FormParameterId = parameterId;
@@ -44,12 +46,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
       NtdValue = ntdValue;
       Formula = formula;
       _schemeValue = column.GetCellValue(parameterId);
+      IsRequired = isRequired;
     }
 
     partial void OnSchemeValueChanged(string value)
     {
-      if (!IsDerived)
-        _column.SetCellValue(FormParameterId, value);
+      _column.SetCellValue(FormParameterId, value);
     }
     //TODO: Парсер жёстко связан со строкой. Парсит только один тип "row1+row2+row3"
     public void Recalculate(IReadOnlyList<ParameterDetailVm> AllRows)

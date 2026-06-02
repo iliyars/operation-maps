@@ -11,30 +11,6 @@ public class ComponentType
   public List<FamilyParsingRule> ParsingRules { get; set; } = new();
 }
 
-public class Family
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = "";
-    public int ComponentTypeId { get; set; }
-    public ComponentType ComponentType { get; set; } = null!;
-
-    public List<Component> Components { get; set; } = new();
-    public List<FamilyForm> FamilyForms { get; set; } = new();
-    public List<FamilyNtdValue> NtdValues { get; set; } = new();
-    public List<FamilyNote> FamilyNotes { get; set; } = new();
-}
-
-public class FamilyForm
-{
-    public int FamilyId { get; set; }
-    public Family Family { get; set; } = null!;
-
-    public int FormId { get; set; }
-    public Form Form { get; set; } = null!;
-}
-
-
-
 public class FamilyParsingRule
 {
   public int Id { get; set; }
@@ -45,6 +21,28 @@ public class FamilyParsingRule
   public string? Example { get; set; }
 }
 
+public class Family
+{
+  public int Id { get; set; }
+  public string Name { get; set; } = "";
+  public int ComponentTypeId { get; set; }
+  public ComponentType ComponentType { get; set; } = null!;
+
+  public List<Component> Components { get; set; } = new();
+  public List<FamilyForm> FamilyForms { get; set; } = new();
+  public List<FamilyNtdValue> NtdValues { get; set; } = new();
+  public List<FamilyNote> FamilyNotes { get; set; } = new();
+}
+
+public class FamilyForm
+{
+  public int FamilyId { get; set; }
+  public Family Family { get; set; } = null!;
+
+  public int FormId { get; set; }
+  public Form Form { get; set; } = null!;
+}
+
 public class Component
 {
   public int Id { get; set; }
@@ -52,7 +50,9 @@ public class Component
   public string? Designation { get; set; }
   public int FamilyId { get; set; }
   public Family Family { get; set; } = null!;
-
+  public int? OwnFormId { get; set; }
+  public Form? OwnForm { get; set; }
+  public bool NeedsAdminReview { get; set; }
   public List<ComponentNtdValue> NtdValues { get; set; } = new();
   public List<ComponentPinValue> PinValues { get; set; } = new();
   public List<ComponentNote> ComponentNotes { get; set; } = new();
@@ -108,10 +108,8 @@ public class FamilyNote
 {
   public int FamilyId { get; set; }
   public Family Family { get; set; } = null!;
-
   public int FormParameterId { get; set; }          // ★ к какому параметру
   public FormParameter FormParameter { get; set; } = null!;
-
   public int NoteId { get; set; }
   public Note Note { get; set; } = null!;
 }
@@ -124,10 +122,8 @@ public class ComponentNote
 {
   public int ComponentId { get; set; }
   public Component Component { get; set; } = null!;
-
   public int FormParameterId { get; set; }          // ★ к какому параметру
   public FormParameter FormParameter { get; set; } = null!;
-
   public int NoteId { get; set; }
   public Note Note { get; set; } = null!;
 }

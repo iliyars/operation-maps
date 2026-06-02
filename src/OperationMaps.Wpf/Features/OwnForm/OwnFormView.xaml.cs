@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+
+namespace OperationMaps.Wpf.Features.OwnForm
+{
+  /// <summary>
+  /// Interaction logic for OwnFormView.xaml
+  /// </summary>
+  public partial class OwnFormView : UserControl
+  {
+    private OwnFormViewModel? _vm;
+    public OwnFormView()
+    {
+      InitializeComponent();
+      DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object sender,
+        DependencyPropertyChangedEventArgs e)
+    {
+      if (_vm is not null)
+        _vm.SplitRequested -= OnSplitRequested;
+
+      _vm = e.NewValue as OwnFormViewModel;
+
+      if (_vm is not null)
+        _vm.SplitRequested += OnSplitRequested;
+    }
+
+    private void OnSplitRequested(FormColumnVm column)
+    {
+      // TODO: show SplitDialog — same pattern as ComponentsView
+    }
+
+  }
+}

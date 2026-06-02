@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
 using OperationMaps.Domain.Entities.Catalog;
+using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
 
 namespace OperationMaps.Infrastructure.Services;
@@ -16,7 +17,9 @@ public sealed class ComponentMatcher : IComponentMatcher
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
   }
 
-  public async Task<MatchResult> MatchAsync(ImportedComponent imported, CancellationToken ct = default)
+  public async Task<MatchResult> MatchAsync(
+    ImportedComponent imported,
+    CancellationToken ct = default)
   {
     var typeName = imported.DetectedCategory;
 
@@ -30,11 +33,9 @@ public sealed class ComponentMatcher : IComponentMatcher
     if (type is null)
       return Unmatched($"Неизвестный тип компонента: {typeName}");
 
-    // 2. Парсим семейство — передаём полное имя с типом чтобы парсер работал корректно
+    Family? family = null;
     var parsed = _nameParser.Parse($"{typeName} {imported.RawName}");
 
-
-    Family? family = null;
     if (!string.IsNullOrEmpty(parsed.Family) && parsed.Family != parsed.Name)
     {
       family = await _context.Families
@@ -48,11 +49,25 @@ public sealed class ComponentMatcher : IComponentMatcher
 
     // 4. Ищем компонент по полному имени
     var component = await _context.Components
+    .Include(c => c.OwnForm)
     .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
 
     // 4. Определяем требуемые формы
-    var requiredForms = family?.FamilyForms.Select(ff => ff.Form).ToList()
-                     ?? [];
+    var requiredForms = new List<Form>();
+
+    if (family is not null)
+      requiredForms.AddRange(family.FamilyForms.Select(ff => ff.Form));
+
+    if (component?.OwnForm is not null
+        && requiredForms.All(f => f.Id != component.OwnForm.Id))
+      requiredForms.Add(component.OwnForm);
+
+    System.Diagnostics.Debug.WriteLine(
+  $"Looking for component: '{imported.RawName}'");
+    System.Diagnostics.Debug.WriteLine(
+        $"Found component: {component?.FullName ?? "NULL"}");
+    System.Diagnostics.Debug.WriteLine(
+        $"OwnForm: {component?.OwnForm?.Number ?? "NULL"}");
 
 
     return new MatchResult
@@ -61,7 +76,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       MatchedType = type,
       MatchedFamily = family,
       MatchedComponent = component,
-      RequiredForm = requiredForms,
+      RequiredForms = requiredForms,
       Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null
     };
   }

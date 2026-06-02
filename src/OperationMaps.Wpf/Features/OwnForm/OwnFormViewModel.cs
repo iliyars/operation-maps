@@ -177,6 +177,27 @@ namespace OperationMaps.Wpf.Features.OwnForm
           Columns, original, leftPositions, rightPositions));
     }
 
+    partial void OnSelectedColumnChanged(FormColumnVm? value)
+    {
+      SplitCommand.NotifyCanExecuteChanged();
+      MergeCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Splits one column into N columns (N >= 2).
+    /// Each split is recorded as a separate undoable command.
+    /// </summary>
+    public void ExecuteMultiSplit(
+        FormColumnVm original,
+        IReadOnlyList<IReadOnlyList<string>> groups)
+    {
+      if (groups.Count < 2) return;
+
+      ExecuteCommand(new MultiSplitColumnCommand(Columns, original, groups));
+
+    }
+
+
     public event Action<FormColumnVm>? SplitRequested;
 
     // ── Private ───────────────────────────────────────────────────────────────

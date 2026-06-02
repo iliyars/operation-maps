@@ -15,6 +15,7 @@ using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.Stores;
 using OperationMaps.Wpf.Features.Form4;
+using OperationMaps.Wpf.Features.OwnForm;
 
 namespace OperationMaps.Wpf
 {
@@ -42,6 +43,7 @@ namespace OperationMaps.Wpf
       services.AddTransient<CatalogViewModel>();
       services.AddTransient<ComponentsViewModel>();
       services.AddTransient<Form4ViewModel>();
+      services.AddTransient<OwnFormViewModel>();
       services.AddTransient<UnresolvedViewModel>();
 
       return services;

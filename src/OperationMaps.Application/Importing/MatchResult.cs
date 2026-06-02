@@ -10,6 +10,6 @@ public sealed class MatchResult
   public Family? MatchedFamily { get; init; }
   public Component? MatchedComponent { get; init; }
 
-    public IReadOnlyList<Form> RequiredForm { get; init; } 
+  public IReadOnlyList<Form> RequiredForms { get; init; }
   public string? Warning { get; init; }
 }

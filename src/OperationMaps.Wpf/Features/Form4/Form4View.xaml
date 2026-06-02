@@ -7,443 +7,443 @@
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Form4"
              mc:Ignorable="d"
              Background="White">
-    <UserControl.Resources>
+  <UserControl.Resources>
 
-        <!-- Section header style -->
-        <Style x:Key="SectionHeader"
-               TargetType="TextBlock">
-            <Setter Property="FontSize"
-                    Value="10" />
-            <Setter Property="FontWeight"
-                    Value="SemiBold" />
-            <Setter Property="Foreground"
-                    Value="#888888" />
-            <Setter Property="Margin"
-                    Value="0,16,0,4" />
-        </Style>
+    <!-- Section header style -->
+    <Style x:Key="SectionHeader"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="10"/>
+      <Setter Property="FontWeight"
+              Value="SemiBold"/>
+      <Setter Property="Foreground"
+              Value="#888888"/>
+      <Setter Property="Margin"
+              Value="0,16,0,4"/>
+    </Style>
 
-        <!-- Parameter label style -->
-        <Style x:Key="ParamLabel"
-               TargetType="TextBlock">
-            <Setter Property="FontSize"
-                    Value="12" />
-            <Setter Property="Foreground"
-                    Value="#666666" />
-            <Setter Property="TextWrapping"
-                    Value="Wrap" />
-            <Setter Property="Margin"
-                    Value="0,8,0,1" />
-        </Style>
+    <!-- Parameter label style -->
+    <Style x:Key="ParamLabel"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="12"/>
+      <Setter Property="Foreground"
+              Value="#666666"/>
+      <Setter Property="TextWrapping"
+              Value="Wrap"/>
+      <Setter Property="Margin"
+              Value="0,8,0,1"/>
+    </Style>
 
-        <!-- Parameter value style -->
-        <Style x:Key="ParamValue"
-               TargetType="TextBlock">
-            <Setter Property="FontSize"
-                    Value="14" />
-            <Setter Property="FontWeight"
-                    Value="Medium" />
-            <Setter Property="FontFamily"
-                    Value="Consolas" />
-            <Setter Property="Foreground"
-                    Value="#2B579A" />
-        </Style>
+    <!-- Parameter value style -->
+    <Style x:Key="ParamValue"
+           TargetType="TextBlock">
+      <Setter Property="FontSize"
+              Value="14"/>
+      <Setter Property="FontWeight"
+              Value="Medium"/>
+      <Setter Property="FontFamily"
+              Value="Consolas"/>
+      <Setter Property="Foreground"
+              Value="#2B579A"/>
+    </Style>
 
-        <!-- List item style -->
-        <Style TargetType="ListViewItem">
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Stretch" />
-            <Setter Property="Padding"
-                    Value="0" />
-            <Setter Property="BorderThickness"
-                    Value="0,0,0,1" />
-            <Setter Property="BorderBrush"
-                    Value="#F0F0F0" />
-            <Setter Property="Background"
-                    Value="Transparent" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ListViewItem">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ContentPresenter />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver"
-                                     Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#F5F7FF" />
-                            </Trigger>
-                            <Trigger Property="IsSelected"
-                                     Value="True">
-                                <Setter TargetName="Bd"
-                                        Property="Background"
-                                        Value="#EBF0FB" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <!-- List item style -->
+    <Style TargetType="ListViewItem">
+      <Setter Property="HorizontalContentAlignment"
+              Value="Stretch"/>
+      <Setter Property="Padding"
+              Value="0"/>
+      <Setter Property="BorderThickness"
+              Value="0,0,0,1"/>
+      <Setter Property="BorderBrush"
+              Value="#F0F0F0"/>
+      <Setter Property="Background"
+              Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="ListViewItem">
+            <Border x:Name="Bd"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}">
+              <ContentPresenter/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver"
+                       Value="True">
+                <Setter TargetName="Bd"
+                        Property="Background"
+                        Value="#F5F7FF"/>
+              </Trigger>
+              <Trigger Property="IsSelected"
+                       Value="True">
+                <Setter TargetName="Bd"
+                        Property="Background"
+                        Value="#EBF0FB"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-    </UserControl.Resources>
+  </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <Border Grid.Row="0"
-                Background="#FAFAFA"
-                BorderBrush="#EEEEEE"
-                BorderThickness="0,0,0,1"
-                Padding="16,10">
-            <StackPanel>
-                <TextBlock Text="Форма 4"
-                           FontSize="15"
-                           FontWeight="SemiBold"
-                           Foreground="#1A1A2E" />
-                <TextBlock Text="Карта оценки номенклатуры ЭРИ"
-                           FontSize="11"
-                           Foreground="#888888"
-                           Margin="0,2,0,0" />
-            </StackPanel>
-        </Border>
+    <!-- Header -->
+    <Border Grid.Row="0"
+            Background="#FAFAFA"
+            BorderBrush="#EEEEEE"
+            BorderThickness="0,0,0,1"
+            Padding="16,10">
+      <StackPanel>
+        <TextBlock Text="Форма 4"
+                   FontSize="15"
+                   FontWeight="SemiBold"
+                   Foreground="#1A1A2E"/>
+        <TextBlock Text="Карта оценки номенклатуры ЭРИ"
+                   FontSize="11"
+                   Foreground="#888888"
+                   Margin="0,2,0,0"/>
+      </StackPanel>
+    </Border>
 
-        <!-- Loading -->
-        <StackPanel Grid.Row="1"
-                    VerticalAlignment="Center"
+    <!-- Loading -->
+    <StackPanel Grid.Row="1"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+      <TextBlock Text="Загрузка..."
+                 FontSize="14"
+                 Foreground="#AAAAAA"/>
+    </StackPanel>
+
+    <!-- Content -->
+    <Grid Grid.Row="1"
+          Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="260"
+                          MinWidth="180"
+                          MaxWidth="360"/>
+        <ColumnDefinition Width="1"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <!-- Groups list -->
+      <ScrollViewer Grid.Column="0"
+                    Background="#FAFAFA"
+                    VerticalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled">
+        <ItemsControl ItemsSource="{Binding Groups}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type local:Form4Group}">
+              <Border BorderBrush="#F0F0F0"
+                      BorderThickness="0,0,0,1"
+                      Cursor="Hand">
+                <Border.InputBindings>
+                  <MouseBinding MouseAction="LeftClick"
+                                Command="{Binding DataContext.SelectGroupCommand,
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                CommandParameter="{Binding}"/>
+                </Border.InputBindings>
+                <Border.Style>
+                  <Style TargetType="Border">
+                    <Setter Property="Background"
+                            Value="Transparent"/>
+                    <Style.Triggers>
+                      <Trigger Property="IsMouseOver"
+                               Value="True">
+                        <Setter Property="Background"
+                                Value="#F0F4FF"/>
+                      </Trigger>
+                      <DataTrigger Binding="{Binding IsSelected}"
+                                   Value="True">
+                        <Setter Property="Background"
+                                Value="#EBF0FB"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Border.Style>
+                <Grid Margin="12,10">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="10"/>
+                  </Grid.ColumnDefinitions>
+                  <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding DisplayName}"
+                               FontSize="13"
+                               FontWeight="Medium"
+                               Foreground="#1A1A2E"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Positions}"
+                               FontFamily="Consolas"
+                               FontSize="10"
+                               Foreground="#999999"
+                               TextWrapping="Wrap"
+                               Margin="0,3,0,0"/>
+                  </StackPanel>
+                  <Ellipse Grid.Column="1"
+                           Width="7"
+                           Height="7"
+                           VerticalAlignment="Top"
+                           Margin="0,3,0,0">
+                    <Ellipse.Style>
+                      <Style TargetType="Ellipse">
+                        <Setter Property="Fill"
+                                Value="#F9A825"/>
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding HasNtdValues}"
+                                       Value="True">
+                            <Setter Property="Fill"
+                                    Value="#34A853"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Ellipse.Style>
+                  </Ellipse>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+
+      <!-- Divider -->
+      <Border Grid.Column="1"
+              Background="#E0E0E0"/>
+
+      <!-- Detail panel -->
+      <Grid Grid.Column="2">
+
+        <!-- Empty state -->
+        <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
-            <TextBlock Text="Загрузка..."
-                       FontSize="14"
-                       Foreground="#AAAAAA" />
+                    Visibility="{Binding SelectedGroup,
+                                Converter={StaticResource NotNullToVis}}">
+          <TextBlock Text="&#xE9D9;"
+                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                     FontSize="40"
+                     Foreground="#DDDDDD"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="Выберите компонент из списка"
+                     Foreground="#BBBBBB"
+                     FontSize="13"
+                     Margin="0,10,0,0"/>
         </StackPanel>
 
-        <!-- Content -->
-        <Grid Grid.Row="1"
-              Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"
-                                  MinWidth="180"
-                                  MaxWidth="360" />
-                <ColumnDefinition Width="1" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <!-- Groups list -->
-            <ScrollViewer Grid.Column="0"
-                          Background="#FAFAFA"
-                          VerticalScrollBarVisibility="Auto"
-                          HorizontalScrollBarVisibility="Disabled">
-                <ItemsControl ItemsSource="{Binding Groups}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type local:Form4Group}">
-                            <Border BorderBrush="#F0F0F0"
-                                    BorderThickness="0,0,0,1"
-                                    Cursor="Hand">
-                                <Border.InputBindings>
-                                    <MouseBinding MouseAction="LeftClick"
-                                                  Command="{Binding DataContext.SelectGroupCommand,
-                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                  CommandParameter="{Binding}" />
-                                </Border.InputBindings>
-                                <Border.Style>
-                                    <Style TargetType="Border">
-                                        <Setter Property="Background"
-                                                Value="Transparent" />
-                                        <Style.Triggers>
-                                            <Trigger Property="IsMouseOver"
-                                                     Value="True">
-                                                <Setter Property="Background"
-                                                        Value="#F0F4FF" />
-                                            </Trigger>
-                                            <DataTrigger Binding="{Binding IsSelected}"
-                                                         Value="True">
-                                                <Setter Property="Background"
-                                                        Value="#EBF0FB" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Border.Style>
-                                <Grid Margin="12,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="10" />
-                                    </Grid.ColumnDefinitions>
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock Text="{Binding DisplayName}"
-                                                   FontSize="13"
-                                                   FontWeight="Medium"
-                                                   Foreground="#1A1A2E"
-                                                   TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding Positions}"
-                                                   FontFamily="Consolas"
-                                                   FontSize="10"
-                                                   Foreground="#999999"
-                                                   TextWrapping="Wrap"
-                                                   Margin="0,3,0,0" />
-                                    </StackPanel>
-                                    <Ellipse Grid.Column="1"
-                                             Width="7"
-                                             Height="7"
-                                             VerticalAlignment="Top"
-                                             Margin="0,3,0,0">
-                                        <Ellipse.Style>
-                                            <Style TargetType="Ellipse">
-                                                <Setter Property="Fill"
-                                                        Value="#F9A825" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HasNtdValues}"
-                                                                 Value="True">
-                                                        <Setter Property="Fill"
-                                                                Value="#34A853" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Ellipse.Style>
-                                    </Ellipse>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-
-            <!-- Divider -->
-            <Border Grid.Column="1"
-                    Background="#E0E0E0" />
-
-            <!-- Detail panel -->
-            <Grid Grid.Column="2">
-
-                <!-- Empty state -->
-                <StackPanel VerticalAlignment="Center"
-                            HorizontalAlignment="Center"
-                            Visibility="{Binding SelectedGroup,
-                                Converter={StaticResource NotNullToVis}}">
-                    <TextBlock Text="&#xE9D9;"
-                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                               FontSize="40"
-                               Foreground="#DDDDDD"
-                               HorizontalAlignment="Center" />
-                    <TextBlock Text="Выберите компонент из списка"
-                               Foreground="#BBBBBB"
-                               FontSize="13"
-                               Margin="0,10,0,0" />
-                </StackPanel>
-
-                <!-- NTD detail -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                              Padding="24,16,24,24"
-                              Visibility="{Binding SelectedGroup,
+        <!-- NTD detail -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      Padding="24,16,24,24"
+                      Visibility="{Binding SelectedGroup,
                                   Converter={StaticResource NullToVis}}">
-                    <StackPanel DataContext="{Binding SelectedGroup}">
+          <StackPanel DataContext="{Binding SelectedGroup}">
 
-                        <!-- Component name -->
-                        <TextBlock Text="{Binding DisplayName}"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="#1A1A2E"
-                                   TextWrapping="Wrap" />
+            <!-- Component name -->
+            <TextBlock Text="{Binding DisplayName}"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="#1A1A2E"
+                       TextWrapping="Wrap"/>
 
-                        <!-- Positions -->
-                        <TextBlock Text="{Binding Positions}"
-                                   FontFamily="Consolas"
-                                   FontSize="11"
-                                   Foreground="#999999"
-                                   TextWrapping="Wrap"
-                                   Margin="0,4,0,0" />
+            <!-- Positions -->
+            <TextBlock Text="{Binding Positions}"
+                       FontFamily="Consolas"
+                       FontSize="11"
+                       Foreground="#999999"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,0"/>
 
-                        <!-- No NTD warning -->
-                        <Border Background="#FFFBEB"
-                                BorderBrush="#FDE68A"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12,10"
-                                Margin="0,16,0,0"
-                                Visibility="{Binding HasNtdValues,
+            <!-- No NTD warning -->
+            <Border Background="#FFFBEB"
+                    BorderBrush="#FDE68A"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="12,10"
+                    Margin="0,16,0,0"
+                    Visibility="{Binding HasNtdValues,
                                     Converter={StaticResource InverseBoolToVis}}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE7BA;"
-                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                           FontSize="16"
-                                           Foreground="#D97706"
-                                           VerticalAlignment="Center"
-                                           Margin="0,0,10,0" />
-                                <StackPanel>
-                                    <TextBlock Text="Параметры не найдены"
-                                               FontSize="13"
-                                               FontWeight="Medium"
-                                               Foreground="#92400E" />
-                                    <TextBlock Text="Компонент отсутствует в каталоге ЭРИ"
-                                               FontSize="11"
-                                               Foreground="#B45309"
-                                               Margin="0,2,0,0" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE7BA;"
+                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           FontSize="16"
+                           Foreground="#D97706"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0"/>
+                <StackPanel>
+                  <TextBlock Text="Параметры не найдены"
+                             FontSize="13"
+                             FontWeight="Medium"
+                             Foreground="#92400E"/>
+                  <TextBlock Text="Компонент отсутствует в каталоге ЭРИ"
+                             FontSize="11"
+                             Foreground="#B45309"
+                             Margin="0,2,0,0"/>
+                </StackPanel>
+              </StackPanel>
+            </Border>
 
-                        <!-- NTD parameters -->
-                        <StackPanel Visibility="{Binding HasNtdValues,
+            <!-- NTD parameters -->
+            <StackPanel Visibility="{Binding HasNtdValues,
                                         Converter={StaticResource BoolToVis}}">
 
-                            <ItemsControl ItemsSource="{Binding NtdValues}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type comp:NtdParameterVm}">
-                                        <Border BorderBrush="#F0F0F0"
-                                                BorderThickness="0,0,0,1"
-                                                Padding="0,10,0,10">
-                                            <StackPanel>
+              <ItemsControl ItemsSource="{Binding NtdValues}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate DataType="{x:Type comp:NtdParameterVm}">
+                    <Border BorderBrush="#F0F0F0"
+                            BorderThickness="0,0,0,1"
+                            Padding="0,10,0,10">
+                      <StackPanel>
 
-                                                <!-- Parameter name -->
-                                                <TextBlock Text="{Binding DisplayName}"
-                                                           Style="{StaticResource ParamLabel}"
-                                                           Margin="0" />
+                        <!-- Parameter name -->
+                        <TextBlock Text="{Binding DisplayName}"
+                                   Style="{StaticResource ParamLabel}"
+                                   Margin="0"/>
 
-                                                <!-- Value + markers -->
-                                                <StackPanel Orientation="Horizontal"
-                                                            Margin="0,2,0,0">
-                                                    <TextBlock Text="{Binding Value}"
-                                                               Style="{StaticResource ParamValue}" />
-                                                    <ItemsControl ItemsSource="{Binding Notes}">
-                                                        <ItemsControl.ItemsPanel>
-                                                            <ItemsPanelTemplate>
-                                                                <StackPanel Orientation="Horizontal" />
-                                                            </ItemsPanelTemplate>
-                                                        </ItemsControl.ItemsPanel>
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <TextBlock Text="{Binding Marker}"
-                                                                           FontSize="10"
-                                                                           Foreground="#2B579A"
-                                                                           VerticalAlignment="Top"
-                                                                           Margin="1,0,0,0" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </StackPanel>
-
-                                                <!-- Existing notes -->
-                                                <ItemsControl ItemsSource="{Binding Notes}"
-                                                              Margin="0,6,0,0">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid Margin="0,2">
-                                                                <Grid.ColumnDefinitions>
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                    <ColumnDefinition Width="*" />
-                                                                    <ColumnDefinition Width="Auto" />
-                                                                </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0"
-                                                                           Text="{Binding Marker}"
-                                                                           FontSize="11"
-                                                                           Foreground="#2B579A"
-                                                                           VerticalAlignment="Top"
-                                                                           Margin="0,0,4,0" />
-                                                                <TextBlock Grid.Column="1"
-                                                                           Text="{Binding NoteText}"
-                                                                           FontSize="11"
-                                                                           Foreground="#444444"
-                                                                           TextWrapping="Wrap" />
-                                                                <Button Grid.Column="2"
-                                                                        Command="{Binding DeleteCommand}"
-                                                                        Background="Transparent"
-                                                                        BorderThickness="0"
-                                                                        Cursor="Hand"
-                                                                        Padding="4,0"
-                                                                        ToolTip="Удалить примечание">
-                                                                    <TextBlock Text="&#xE711;"
-                                                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                                               FontSize="10"
-                                                                               Foreground="#AAAAAA" />
-                                                                </Button>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-
-                                                <!-- Add note input -->
-                                                <Grid Margin="0,6,0,0"
-                                                      Visibility="{Binding IsAddingNote,
-                                                          Converter={StaticResource BoolToVis}}">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBox Grid.Column="0"
-                                                             Text="{Binding PendingNoteText,
-                                                                 UpdateSourceTrigger=PropertyChanged}"
-                                                             FontSize="12"
-                                                             Padding="6,4"
-                                                             BorderBrush="#DCDCDC"
-                                                             BorderThickness="1"
-                                                             TextWrapping="Wrap"
-                                                             AcceptsReturn="False" />
-                                                    <Button Grid.Column="1"
-                                                            Command="{Binding ConfirmAddNoteCommand}"
-                                                            Margin="4,0,0,0"
-                                                            Padding="8,4"
-                                                            Background="#2B579A"
-                                                            Foreground="White"
-                                                            BorderThickness="0"
-                                                            Cursor="Hand"
-                                                            FontSize="12">
-                                                        <TextBlock Text="ОК" />
-                                                    </Button>
-                                                    <Button Grid.Column="2"
-                                                            Command="{Binding CancelAddNoteCommand}"
-                                                            Margin="4,0,0,0"
-                                                            Padding="8,4"
-                                                            Background="Transparent"
-                                                            BorderBrush="#DCDCDC"
-                                                            BorderThickness="1"
-                                                            Cursor="Hand"
-                                                            FontSize="12">
-                                                        <TextBlock Text="✕"
-                                                                   Foreground="#666666" />
-                                                    </Button>
-                                                </Grid>
-
-                                                <!-- Add note button -->
-                                                <Button Command="{Binding StartAddNoteCommand}"
-                                                        Background="Transparent"
-                                                        BorderThickness="0"
-                                                        HorizontalAlignment="Left"
-                                                        Cursor="Hand"
-                                                        Padding="0"
-                                                        Margin="0,4,0,0"
-                                                        Visibility="{Binding IsAddingNote,
-                                                            Converter={StaticResource InverseBoolToVis}}">
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE710;"
-                                                                   FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                                   FontSize="10"
-                                                                   Foreground="#AAAAAA"
-                                                                   VerticalAlignment="Center"
-                                                                   Margin="0,0,4,0" />
-                                                        <TextBlock Text="Добавить примечание"
-                                                                   FontSize="11"
-                                                                   Foreground="#AAAAAA" />
-                                                    </StackPanel>
-                                                </Button>
-
-                                            </StackPanel>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
+                        <!-- Value + markers -->
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2,0,0">
+                          <TextBlock Text="{Binding Value}"
+                                     Style="{StaticResource ParamValue}"/>
+                          <ItemsControl ItemsSource="{Binding Notes}">
+                            <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                              </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                <TextBlock Text="{Binding Marker}"
+                                           FontSize="10"
+                                           Foreground="#2B579A"
+                                           VerticalAlignment="Top"
+                                           Margin="1,0,0,0"/>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
                         </StackPanel>
 
-                    </StackPanel>
-                </ScrollViewer>
-            </Grid>
-        </Grid>
+                        <!-- Existing notes -->
+                        <ItemsControl ItemsSource="{Binding Notes}"
+                                      Margin="0,6,0,0">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                              <Grid Margin="0,2">
+                                <Grid.ColumnDefinitions>
+                                  <ColumnDefinition Width="Auto"/>
+                                  <ColumnDefinition Width="*"/>
+                                  <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Marker}"
+                                           FontSize="11"
+                                           Foreground="#2B579A"
+                                           VerticalAlignment="Top"
+                                           Margin="0,0,4,0"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding NoteText}"
+                                           FontSize="11"
+                                           Foreground="#444444"
+                                           TextWrapping="Wrap"/>
+                                <Button Grid.Column="2"
+                                        Command="{Binding DeleteCommand}"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Padding="4,0"
+                                        ToolTip="Удалить примечание">
+                                  <TextBlock Text="&#xE711;"
+                                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                             FontSize="10"
+                                             Foreground="#AAAAAA"/>
+                                </Button>
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Add note input -->
+                        <Grid Margin="0,6,0,0"
+                              Visibility="{Binding IsAddingNote,
+                                                          Converter={StaticResource BoolToVis}}">
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                          </Grid.ColumnDefinitions>
+                          <TextBox x:Name="NoteInput"
+                                   Grid.Column="0"
+                                   FontSize="12"
+                                   Padding="6,4"
+                                   BorderBrush="#DCDCDC"
+                                   BorderThickness="1"
+                                   TextWrapping="Wrap"
+                                   AcceptsReturn="False"/>
+                          <Button Grid.Column="1"
+                                  Command="{Binding ConfirmAddNoteCommand}"
+                                  CommandParameter="{Binding Text, ElementName=NoteInput}"
+                                  Margin="4,0,0,0"
+                                  Padding="8,4"
+                                  Background="#2B579A"
+                                  Foreground="White"
+                                  BorderThickness="0"
+                                  Cursor="Hand"
+                                  FontSize="12">
+                            <TextBlock Text="ОК"/>
+                          </Button>
+                          <Button Grid.Column="2"
+                                  Command="{Binding CancelAddNoteCommand}"
+                                  Margin="4,0,0,0"
+                                  Padding="8,4"
+                                  Background="Transparent"
+                                  BorderBrush="#DCDCDC"
+                                  BorderThickness="1"
+                                  Cursor="Hand"
+                                  FontSize="12">
+                            <TextBlock Text="✕"
+                                       Foreground="#666666"/>
+                          </Button>
+                        </Grid>
+
+                        <!-- Add note button -->
+                        <Button Command="{Binding StartAddNoteCommand}"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                HorizontalAlignment="Left"
+                                Cursor="Hand"
+                                Padding="0"
+                                Margin="0,4,0,0"
+                                Visibility="{Binding IsAddingNote,
+                                                            Converter={StaticResource InverseBoolToVis}}">
+                          <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;"
+                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       FontSize="10"
+                                       Foreground="#AAAAAA"
+                                       VerticalAlignment="Center"
+                                       Margin="0,0,4,0"/>
+                            <TextBlock Text="Добавить примечание"
+                                       FontSize="11"
+                                       Foreground="#AAAAAA"/>
+                          </StackPanel>
+                        </Button>
+
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
     </Grid>
+  </Grid>
 </UserControl>

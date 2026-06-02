@@ -17,6 +17,13 @@ namespace OperationMaps.Wpf.Shell
     [ObservableProperty] private bool _isVisible = true;
     [ObservableProperty] private bool _isActive;
 
+    /// <summary>
+    /// True for nav items added dynamically after project load (e.g. form-specific items).
+    /// These are removed and re-added when a new project is loaded.
+    /// </summary>
+    public bool IsDynamic { get; init; }
+
+
     // ── Behaviour ────────────────────────────────────────────────────────────
 
     /// <summary>

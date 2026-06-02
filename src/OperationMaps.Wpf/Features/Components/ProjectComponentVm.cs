@@ -101,5 +101,25 @@ namespace OperationMaps.Wpf.Features.Components
       OnPropertyChanged(nameof(Positions));
     }
 
+    public ProjectComponentVm CloneWithPositions(IReadOnlyList<string> positions)
+    {
+      var clonedImported = new ImportedComponent
+      {
+        RawName = Entry.Imported.RawName,
+        DetectedCategory = Entry.Imported.DetectedCategory,
+        Positions = positions.ToList(),
+        RawPositions = string.Join(", ", positions),
+      };
+
+      var clonedEntry = new ComponentMatchEntry
+      {
+        Imported = clonedImported,
+        MatchResult = Entry.MatchResult,
+      };
+
+      return new ProjectComponentVm(clonedEntry);
+    }
+
+
   }
 }

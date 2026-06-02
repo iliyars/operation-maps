@@ -8,6 +8,7 @@ using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.Features.Form4;
+using OperationMaps.Wpf.Features.OwnForm;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -130,24 +131,61 @@ namespace OperationMaps.Wpf.Shell
           case nameof(ComponentsViewModel):
             item.IsVisible = true;
             break;
-
           case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;
-
-          case nameof(UnresolvedViewModel):
-            item.IsVisible = matchResult.Unresolved.Count > 0;
-            break;
-
-          case "SaveProject":
-          case "ExportWord":
-            item.IsVisible = true;
-            break;
-
           case null when item.Label is "Сохранить .omaps" or "Экспорт Word":
             item.IsVisible = true;
             break;
         }
+      }
+
+      var formsSection = NavItems
+        .FirstOrDefault(i => i.IsSeparator && i.Label == "ФОРМЫ");
+
+      if (formsSection is null) return;
+
+      var formsIndex = NavItems.IndexOf(formsSection);
+
+      // Remove previously added dynamic form items
+      var dynamicItems = NavItems
+          .Where(i => i.IsDynamic)
+          .ToList();
+      foreach (var item in dynamicItems)
+        NavItems.Remove(item);
+
+      // Collect unique forms from match result (excluding Form 4)
+      var forms = matchResult.Matched
+          .Concat(matchResult.Unresolved)
+          .SelectMany(e => e.MatchResult.RequiredForms)
+          .Where(f => f.Number != "4")
+          .DistinctBy(f => f.Id)
+          .OrderBy(f => f.Number);
+
+            System.Diagnostics.Debug.WriteLine($"Dynamic forms count: {forms.Count()}");
+            foreach (var f in forms)
+                System.Diagnostics.Debug.WriteLine($"  Form: {f.Number} - {f.Title}");
+
+            int insertIndex = formsIndex + 2;
+
+      foreach (var form in forms)
+      {
+        var formId = form.Id;
+        var formLabel = $"Форма {form.Number}";
+
+        var navItem = new NavItemViewModel
+        {
+          Label = formLabel,
+          Icon = "\uE9D9",
+          IsVisible = true,
+          IsDynamic = true,
+          ScreenType = typeof(OwnFormViewModel),
+          Command = new AsyncRelayCommand(
+                () => _navigation.NavigateAsync<OwnFormViewModel>(
+                    parameter: formId)),
+        };
+
+        NavItems.Insert(insertIndex++, navItem);
       }
     }
 

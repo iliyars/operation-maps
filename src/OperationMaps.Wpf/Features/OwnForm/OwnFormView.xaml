@@ -122,7 +122,6 @@
         </Button>
         <Button Style="{StaticResource ToolbarButton}"
                 Command="{Binding SplitCommand}"
-                IsEnabled="{Binding CanSplit}"
                 Margin="0,0,4,0">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xF547;"

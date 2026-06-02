@@ -63,7 +63,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
   private async Task BuildGroupsAsync(CancellationToken ct)
   {
     // Load Form 4 parameters (row headers)
-    var form4 = await _db.Froms
+    var form4 = await _db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Number == "4", ct);
 

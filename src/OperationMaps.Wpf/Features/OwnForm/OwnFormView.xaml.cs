@@ -26,7 +26,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     }
 
     private void OnDataContextChanged(object sender,
-        DependencyPropertyChangedEventArgs e)
+         DependencyPropertyChangedEventArgs e)
     {
       if (_vm is not null)
         _vm.SplitRequested -= OnSplitRequested;
@@ -39,7 +39,26 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     private void OnSplitRequested(FormColumnVm column)
     {
-      // TODO: show SplitDialog — same pattern as ComponentsView
+      var positions = column.Component.Entry.Imported.Positions;
+
+      var dialog = new SplitDialog.SplitDialog(positions)
+      {
+        Owner = Window.GetWindow(this)
+      };
+
+      if (dialog.ShowDialog() != true || dialog.Result is null)
+        return;
+
+      var result = dialog.Result;
+
+      if (result.Count < 2)
+        return;
+
+      // Two groups → standard split
+      // Always use ExecuteMultiSplit — works for 2 or N groups
+      _vm!.ExecuteMultiSplit(column, dialog.Result);
+
+
     }
 
   }

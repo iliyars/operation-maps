@@ -175,6 +175,39 @@
                       Foreground="{DynamicResource TextPrimaryBrush}"
                       VirtualizingPanel.IsVirtualizing="True"
                       VirtualizingPanel.VirtualizationMode="Recycling">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="FocusVisualStyle"           Value="{x:Null}"/>
+                        <Setter Property="Background"                 Value="Transparent"/>
+                        <Setter Property="Padding"                    Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <Border x:Name="Bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{DynamicResource BorderDefaultBrush}"
+                            BorderThickness="0,0,0,1">
+                                        <GridViewRowPresenter
+                            Columns="{Binding Path=View.Columns,
+                                RelativeSource={RelativeSource AncestorType=ListView}}"
+                            Content="{TemplateBinding Content}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource BgHoverBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Bd" Property="Background"
+                                    Value="{DynamicResource BgActiveBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Позиции" Width="130">

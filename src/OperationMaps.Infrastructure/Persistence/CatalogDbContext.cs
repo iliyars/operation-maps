@@ -14,8 +14,9 @@ public class CatalogDbContext : DbContext
 {
   public CatalogDbContext(DbContextOptions<CatalogDbContext> options) : base(options) { }
 
+
   // ── Forms ─────────────────────────────────────────────────────────────────
-  public DbSet<Form> Froms => Set<Form>();
+  public DbSet<Form> Forms => Set<Form>();
   public DbSet<FormSection> FormSections => Set<FormSection>();
   public DbSet<FormParameter> FormParameters => Set<FormParameter>();
   public DbSet<FormValueColumn> FormValueColumns => Set<FormValueColumn>();

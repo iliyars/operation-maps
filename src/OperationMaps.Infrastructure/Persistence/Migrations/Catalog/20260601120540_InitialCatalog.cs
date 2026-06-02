@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persistence.Migrations.Catalog
+namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
 {
     /// <inheritdoc />
     public partial class InitialCatalog : Migration
@@ -300,6 +300,23 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 });
 
             migrationBuilder.CreateTable(
+                name: "Form4Note",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    FamilyId = table.Column<int>(type: "INTEGER", nullable: true),
+                    ComponentId = table.Column<int>(type: "INTEGER", nullable: true),
+                    FormParameterId = table.Column<int>(type: "INTEGER", nullable: false),
+                    NoteText = table.Column<string>(type: "TEXT", nullable: false),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Form4Note", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FormParameters",
                 columns: table => new
                 {
@@ -319,7 +336,7 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 });
 
             migrationBuilder.CreateTable(
-                name: "Froms",
+                name: "Forms",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -332,9 +349,9 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Froms", x => x.Id);
+                    table.PrimaryKey("PK_Forms", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Froms_FormParameters_DefaultLoadFactorParameterId",
+                        name: "FK_Forms_FormParameters_DefaultLoadFactorParameterId",
                         column: x => x.DefaultLoadFactorParameterId,
                         principalTable: "FormParameters",
                         principalColumn: "Id");
@@ -354,9 +371,9 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 {
                     table.PrimaryKey("PK_FormSections", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FormSections_Froms_FormId",
+                        name: "FK_FormSections_Forms_FormId",
                         column: x => x.FormId,
-                        principalTable: "Froms",
+                        principalTable: "Forms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -377,9 +394,9 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 {
                     table.PrimaryKey("PK_FormValueColumns", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FormValueColumns_Froms_FormId",
+                        name: "FK_FormValueColumns_Forms_FormId",
                         column: x => x.FormId,
-                        principalTable: "Froms",
+                        principalTable: "Forms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -405,9 +422,9 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                         principalTable: "FormParameters",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_RegimeGroup_Froms_FormId",
+                        name: "FK_RegimeGroup_Forms_FormId",
                         column: x => x.FormId,
-                        principalTable: "Froms",
+                        principalTable: "Forms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -585,6 +602,11 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 column: "ComponentTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Form4Note_FormParameterId",
+                table: "Form4Note",
+                column: "FormParameterId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FormParameters_FormId_RowNumber",
                 table: "FormParameters",
                 columns: new[] { "FormId", "RowNumber" },
@@ -596,6 +618,17 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 column: "SectionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Forms_DefaultLoadFactorParameterId",
+                table: "Forms",
+                column: "DefaultLoadFactorParameterId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Forms_Number",
+                table: "Forms",
+                column: "Number",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FormSections_FormId",
                 table: "FormSections",
                 column: "FormId");
@@ -604,17 +637,6 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 name: "IX_FormValueColumns_FormId_Key",
                 table: "FormValueColumns",
                 columns: new[] { "FormId", "Key" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Froms_DefaultLoadFactorParameterId",
-                table: "Froms",
-                column: "DefaultLoadFactorParameterId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Froms_Number",
-                table: "Froms",
-                column: "Number",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -710,10 +732,10 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_FamilyForms_Froms_FormId",
+                name: "FK_FamilyForms_Forms_FormId",
                 table: "FamilyForms",
                 column: "FormId",
-                principalTable: "Froms",
+                principalTable: "Forms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
@@ -734,6 +756,14 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
+                name: "FK_Form4Note_FormParameters_FormParameterId",
+                table: "Form4Note",
+                column: "FormParameterId",
+                principalTable: "FormParameters",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
                 name: "FK_FormParameters_FormSections_SectionId",
                 table: "FormParameters",
                 column: "SectionId",
@@ -742,10 +772,10 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_FormParameters_Froms_FormId",
+                name: "FK_FormParameters_Forms_FormId",
                 table: "FormParameters",
                 column: "FormId",
-                principalTable: "Froms",
+                principalTable: "Forms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
@@ -754,8 +784,8 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Froms_FormParameters_DefaultLoadFactorParameterId",
-                table: "Froms");
+                name: "FK_Forms_FormParameters_DefaultLoadFactorParameterId",
+                table: "Forms");
 
             migrationBuilder.DropTable(
                 name: "ComponentNotes");
@@ -777,6 +807,9 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
 
             migrationBuilder.DropTable(
                 name: "FamilyParsingRules");
+
+            migrationBuilder.DropTable(
+                name: "Form4Note");
 
             migrationBuilder.DropTable(
                 name: "ParameterCellNote");
@@ -821,7 +854,7 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                 name: "FormSections");
 
             migrationBuilder.DropTable(
-                name: "Froms");
+                name: "Forms");
         }
     }
 }

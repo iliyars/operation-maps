@@ -8,11 +8,11 @@ using OperationMaps.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persistence.Migrations.Catalog
+namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
 {
     [DbContext(typeof(CatalogDbContext))]
-    [Migration("20260530233844_InitialCatalog")]
-    partial class InitialCatalog
+    [Migration("20260601125521_AddComponentOwnForm")]
+    partial class AddComponentOwnForm
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -37,12 +37,22 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("NeedsAdminReview")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(false);
+
+                    b.Property<int?>("OwnFormId")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("FamilyId");
 
                     b.HasIndex("FullName")
                         .IsUnique();
+
+                    b.HasIndex("OwnFormId");
 
                     b.ToTable("Components");
                 });
@@ -291,7 +301,7 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                     b.HasIndex("Number")
                         .IsUnique();
 
-                    b.ToTable("Froms");
+                    b.ToTable("Forms");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Forms.FormParameter", b =>
@@ -389,6 +399,35 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                         .IsUnique();
 
                     b.ToTable("FormValueColumns");
+                });
+
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.Form4Note", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ComponentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("FamilyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FormParameterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("NoteText")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FormParameterId");
+
+                    b.ToTable("Form4Note");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellNote", b =>
@@ -604,7 +643,13 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("OperationMaps.Domain.Entities.Forms.Form", "OwnForm")
+                        .WithMany()
+                        .HasForeignKey("OwnFormId");
+
                     b.Navigation("Family");
+
+                    b.Navigation("OwnForm");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentNote", b =>
@@ -807,6 +852,17 @@ namespace OperationMaps.Infrastructure.src.OperationMaps.infrastructure.Persiste
                         .IsRequired();
 
                     b.Navigation("Form");
+                });
+
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.Form4Note", b =>
+                {
+                    b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "FormParameter")
+                        .WithMany()
+                        .HasForeignKey("FormParameterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FormParameter");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Projects.ParameterCellNote", b =>

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using OperationMaps.Infrastructure.Persistence;
 
@@ -10,9 +11,11 @@ using OperationMaps.Infrastructure.Persistence;
 namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
 {
     [DbContext(typeof(CatalogDbContext))]
-    partial class CatalogDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601120540_InitialCatalog")]
+    partial class InitialCatalog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.8");
@@ -34,22 +37,12 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
                         .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("NeedsAdminReview")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(false);
-
-                    b.Property<int?>("OwnFormId")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("FamilyId");
 
                     b.HasIndex("FullName")
                         .IsUnique();
-
-                    b.HasIndex("OwnFormId");
 
                     b.ToTable("Components");
                 });
@@ -312,9 +305,6 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
 
                     b.Property<int>("FormId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Formula")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -643,13 +633,7 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OperationMaps.Domain.Entities.Forms.Form", "OwnForm")
-                        .WithMany()
-                        .HasForeignKey("OwnFormId");
-
                     b.Navigation("Family");
-
-                    b.Navigation("OwnForm");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentNote", b =>

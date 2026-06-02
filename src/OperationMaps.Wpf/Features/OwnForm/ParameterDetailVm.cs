@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace OperationMaps.Wpf.Features.OwnForm
 {
@@ -18,8 +20,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     [ObservableProperty] private string _schemeValue = "";
 
-    /// <summary>Parent column — used to persist value back when changed.</summary>
+    [ObservableProperty] private bool _isAddingNote;
+
+    [ObservableProperty] private string _pendingNoteText = "";
+
     private readonly FormColumnVm _column;
+
+    public ObservableCollection<OwnFormNoteVm> Notes
+      => _column.GetNotes(FormParameterId);
 
     public ParameterDetailVm(
       FormColumnVm column,
@@ -27,7 +35,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       int rowNumber,
       string displayName,
       string ntdValue,
-      string formula = null)
+      string? formula = null)
     {
       _column = column;
       FormParameterId = parameterId;
@@ -39,7 +47,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     }
 
     partial void OnSchemeValueChanged(string value)
-        => _column.SetCellValue(FormParameterId, value);
+    {
+      if (!IsDerived)
+        _column.SetCellValue(FormParameterId, value);
+    }
     //TODO: Парсер жёстко связан со строкой. Парсит только один тип "row1+row2+row3"
     public void Recalculate(IReadOnlyList<ParameterDetailVm> AllRows)
     {
@@ -64,9 +75,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
         if (string.IsNullOrEmpty(raw) || raw == "-") continue;
 
         raw = raw.Replace(',', '.');
-        if (double.TryParse(raw, System.Globalization.NumberStyles.Any,
-                                System.Globalization.CultureInfo.InvariantCulture,
-                                out var val))
+        if (double.TryParse(raw,
+            System.Globalization.NumberStyles.Any,
+            System.Globalization.CultureInfo.InvariantCulture,
+            out var val))
         {
           sum += val;
           hasAnyValue = true;
@@ -75,6 +87,46 @@ namespace OperationMaps.Wpf.Features.OwnForm
       SchemeValue = hasAnyValue
             ? sum.ToString("G", System.Globalization.CultureInfo.CurrentCulture)
             : "";
+    }
+
+    [RelayCommand]
+    private void StartAddNote()
+    {
+      PendingNoteText = "";
+      IsAddingNote = true;
+    }
+
+    [RelayCommand]
+    private void CancelAddNote()
+    {
+      PendingNoteText = "";
+      IsAddingNote = false;
+    }
+
+    [RelayCommand]
+    private void ConfirmAddNote()
+    {
+      if (string.IsNullOrWhiteSpace(PendingNoteText)) return;
+
+      var note = new OwnFormNoteVm
+      {
+        FormParameterId = FormParameterId,
+        NoteText = PendingNoteText,
+        Order = 1,
+      };
+
+      note.DeleteRequested += OnNoteDeleteRequested;
+      Notes.Add(note);
+      _column.RecalculateNoteOrders();
+
+      PendingNoteText = "";
+      IsAddingNote = false;
+    }
+
+    private void OnNoteDeleteRequested(OwnFormNoteVm note)
+    {
+      Notes.Remove(note);
+      _column.RecalculateNoteOrders();
     }
   }
 }

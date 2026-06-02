@@ -71,11 +71,8 @@
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <!-- header  -->
       <RowDefinition Height="Auto"/>
-      <!-- toolbar -->
       <RowDefinition Height="*"/>
-      <!-- content -->
     </Grid.RowDefinitions>
 
     <!-- Header -->
@@ -159,7 +156,7 @@
                  Foreground="#AAAAAA"/>
     </StackPanel>
 
-    <!-- Content: list + detail -->
+    <!-- Content -->
     <Grid Grid.Row="2"
           Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
       <Grid.ColumnDefinitions>
@@ -170,7 +167,7 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Columns list (left) -->
+      <!-- Left: columns list -->
       <ScrollViewer Grid.Column="0"
                     Background="#FAFAFA"
                     VerticalScrollBarVisibility="Auto"
@@ -184,7 +181,7 @@
                 <Border.InputBindings>
                   <MouseBinding MouseAction="LeftClick"
                                 Command="{Binding DataContext.SelectColumnCommand,
-                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding}"/>
                 </Border.InputBindings>
                 <Border.Style>
@@ -240,14 +237,13 @@
       <Border Grid.Column="1"
               Background="#E0E0E0"/>
 
-      <!-- Detail panel (right) -->
+      <!-- Right: detail panel -->
       <Grid Grid.Column="2">
 
         <!-- Empty state -->
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Visibility="{Binding SelectedColumn,
-                                Converter={StaticResource NotNullToVis}}">
+                    Visibility="{Binding SelectedColumn, Converter={StaticResource NotNullToVis}}">
           <TextBlock Text="&#xE9D9;"
                      FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
                      FontSize="40"
@@ -262,11 +258,9 @@
         <!-- Parameters -->
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       Padding="24,16,24,24"
-                      Visibility="{Binding SelectedColumn,
-                                  Converter={StaticResource NullToVis}}">
+                      Visibility="{Binding SelectedColumn, Converter={StaticResource NullToVis}}">
           <StackPanel DataContext="{Binding SelectedColumn}">
 
-            <!-- Component name -->
             <TextBlock Text="{Binding Name}"
                        FontSize="16"
                        FontWeight="SemiBold"
@@ -279,9 +273,8 @@
                        TextWrapping="Wrap"
                        Margin="0,4,0,16"/>
 
-            <!-- Parameters list -->
             <ItemsControl ItemsSource="{Binding DataContext.ParameterDetails,
-                            RelativeSource={RelativeSource AncestorType=UserControl}}">
+                RelativeSource={RelativeSource AncestorType=UserControl}}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type local:ParameterDetailVm}">
                   <Border BorderBrush="#F0F0F0"
@@ -289,10 +282,12 @@
                           Padding="0,10,0,10">
                     <StackPanel>
 
+                      <!-- Parameter name -->
                       <TextBlock Text="{Binding DisplayName}"
                                  Style="{StaticResource ParamLabel}"
                                  Margin="0"/>
 
+                      <!-- в схеме + по НТД -->
                       <Grid Margin="0,4,0,0">
                         <Grid.ColumnDefinitions>
                           <ColumnDefinition Width="*"/>
@@ -307,23 +302,18 @@
                                      Foreground="#2B579A"
                                      FontWeight="Medium"
                                      Margin="0,0,0,3"/>
-                          <!-- Editable for manual params -->
-                          <TextBox Text="{Binding SchemeValue,
-                                                                 UpdateSourceTrigger=PropertyChanged}"
+                          <TextBox Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
                                    FontSize="13"
                                    Padding="6,4"
                                    BorderBrush="#DCDCDC"
                                    BorderThickness="1"
                                    Background="White"
-                                   Visibility="{Binding IsDerived,
-                                                                 Converter={StaticResource InverseBoolToVis}}"/>
-                          <!-- Read-only for derived params -->
+                                   Visibility="{Binding IsDerived, Converter={StaticResource InverseBoolToVis}}"/>
                           <Border Background="#F5F5F5"
                                   BorderBrush="#DCDCDC"
                                   BorderThickness="1"
                                   Padding="6,4"
-                                  Visibility="{Binding IsDerived,
-                                                                Converter={StaticResource BoolToVis}}">
+                                  Visibility="{Binding IsDerived, Converter={StaticResource BoolToVis}}">
                             <StackPanel Orientation="Horizontal">
                               <TextBlock Text="{Binding SchemeValue}"
                                          FontSize="13"
@@ -350,6 +340,108 @@
                                      Padding="0,4"/>
                         </StackPanel>
                       </Grid>
+
+                      <!-- Existing notes -->
+                      <ItemsControl ItemsSource="{Binding Notes}"
+                                    Margin="0,6,0,0">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate DataType="{x:Type local:OwnFormNoteVm}">
+                            <Grid Margin="0,2">
+                              <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                              </Grid.ColumnDefinitions>
+                              <TextBlock Grid.Column="0"
+                                         Text="{Binding Marker}"
+                                         FontSize="11"
+                                         Foreground="#2B579A"
+                                         VerticalAlignment="Top"
+                                         Margin="0,0,4,0"/>
+                              <TextBlock Grid.Column="1"
+                                         Text="{Binding NoteText}"
+                                         FontSize="11"
+                                         Foreground="#444444"
+                                         TextWrapping="Wrap"/>
+                              <Button Grid.Column="2"
+                                      Command="{Binding DeleteCommand}"
+                                      Background="Transparent"
+                                      BorderThickness="0"
+                                      Cursor="Hand"
+                                      Padding="4,0"
+                                      ToolTip="Удалить примечание">
+                                <TextBlock Text="&#xE711;"
+                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                           FontSize="10"
+                                           Foreground="#AAAAAA"/>
+                              </Button>
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+
+                      <!-- Add note input -->
+                      <Grid Margin="0,6,0,0"
+                            Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="*"/>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="12"
+                                 Padding="6,4"
+                                 BorderBrush="#DCDCDC"
+                                 BorderThickness="1"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="False"/>
+                        <Button Grid.Column="1"
+                                Command="{Binding ConfirmAddNoteCommand}"
+                                Margin="4,0,0,0"
+                                Padding="8,4"
+                                Background="#2B579A"
+                                Foreground="White"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                FontSize="12">
+                          <TextBlock Text="ОК"/>
+                        </Button>
+                        <Button Grid.Column="2"
+                                Command="{Binding CancelAddNoteCommand}"
+                                Margin="4,0,0,0"
+                                Padding="8,4"
+                                Background="Transparent"
+                                BorderBrush="#DCDCDC"
+                                BorderThickness="1"
+                                Cursor="Hand"
+                                FontSize="12">
+                          <TextBlock Text="✕"
+                                     Foreground="#666666"/>
+                        </Button>
+                      </Grid>
+
+                      <!-- Add note button -->
+                      <Button Command="{Binding StartAddNoteCommand}"
+                              Background="Transparent"
+                              BorderThickness="0"
+                              HorizontalAlignment="Left"
+                              Cursor="Hand"
+                              Padding="0"
+                              Margin="0,4,0,0"
+                              Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
+                        <StackPanel Orientation="Horizontal">
+                          <TextBlock Text="&#xE710;"
+                                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                     FontSize="10"
+                                     Foreground="#AAAAAA"
+                                     VerticalAlignment="Center"
+                                     Margin="0,0,4,0"/>
+                          <TextBlock Text="Добавить примечание"
+                                     FontSize="11"
+                                     Foreground="#AAAAAA"/>
+                        </StackPanel>
+                      </Button>
 
                     </StackPanel>
                   </Border>

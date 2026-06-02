@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:OperationMaps.Wpf.Shared.Converters"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.OwnForm"
              mc:Ignorable="d"
              Background="White">
@@ -334,7 +335,7 @@
                       <Border.Width>
                         <MultiBinding>
                           <MultiBinding.Converter>
-                            <local:FractionToWidthConverter/>
+                            <converters:FractionToWidthConverter/>
                           </MultiBinding.Converter>
                           <Binding Path="ProgressFraction"/>
                           <Binding Path="ActualWidth"

@@ -1,0 +1,126 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ══════════════════════════════════════════════════════════════
+         LIGHT THEME — VS Code Light+ inspired
+         ══════════════════════════════════════════════════════════════ -->
+
+  <!-- ── Backgrounds ───────────────────────────────────────────────── -->
+  <Color x:Key="BgAppColor">#FFFFFF</Color>
+  <!-- main content area   -->
+  <Color x:Key="BgSidebarColor">#F3F3F3</Color>
+  <!-- sidebar / panels    -->
+  <Color x:Key="BgPanelColor">#FAFAFA</Color>
+  <!-- headers, toolbars   -->
+  <Color x:Key="BgHoverColor">#E8E8E8</Color>
+  <!-- hover state         -->
+  <Color x:Key="BgActiveColor">#DCDCDC</Color>
+  <!-- active/selected     -->
+  <Color x:Key="BgInputColor">#FFFFFF</Color>
+  <!-- TextBox background  -->
+  <Color x:Key="BgDerivedColor">#F5F5F5</Color>
+  <!-- read-only fields    -->
+
+  <!-- ── Borders ───────────────────────────────────────────────────── -->
+  <Color x:Key="BorderDefaultColor">#E4E4E4</Color>
+  <Color x:Key="BorderInputColor">#CECECE</Color>
+  <Color x:Key="BorderFocusColor">#0078D4</Color>
+
+  <!-- ── Text ──────────────────────────────────────────────────────── -->
+  <Color x:Key="TextPrimaryColor">#1F1F1F</Color>
+  <Color x:Key="TextSecondaryColor">#616161</Color>
+  <Color x:Key="TextMutedColor">#A0A0A0</Color>
+  <Color x:Key="TextLinkColor">#0078D4</Color>
+
+  <!-- ── Accent ─────────────────────────────────────────────────────── -->
+  <Color x:Key="AccentColor">#0078D4</Color>
+  <!-- primary blue        -->
+  <Color x:Key="AccentHoverColor">#106EBE</Color>
+  <Color x:Key="AccentTextColor">#FFFFFF</Color>
+
+  <!-- ── Sidebar ───────────────────────────────────────────────────── -->
+  <Color x:Key="SidebarBgColor">#F3F3F3</Color>
+  <Color x:Key="SidebarTextColor">#424242</Color>
+  <Color x:Key="SidebarActiveColor">#000000</Color>
+  <Color x:Key="SidebarActiveBgColor">#E4E6F1</Color>
+  <Color x:Key="SidebarHoverBgColor">#E8E8E8</Color>
+  <Color x:Key="SidebarAccentColor">#0078D4</Color>
+  <Color x:Key="SidebarSectionColor">#717171</Color>
+
+  <!-- ── Status ────────────────────────────────────────────────────── -->
+  <Color x:Key="StatusSuccessColor">#388A34</Color>
+  <Color x:Key="StatusWarningColor">#B8891C</Color>
+  <Color x:Key="StatusErrorColor">#E51400</Color>
+  <Color x:Key="StatusRequiredColor">#E51400</Color>
+
+  <Color x:Key="StatusSuccessBgColor">#DFF0D8</Color>
+  <Color x:Key="StatusWarningBgColor">#FFF8DC</Color>
+
+  <!-- ── Brushes (from colors) ──────────────────────────────────────── -->
+  <SolidColorBrush x:Key="BgAppBrush"
+      Color="{StaticResource BgAppColor}"/>
+  <SolidColorBrush x:Key="BgSidebarBrush"
+      Color="{StaticResource BgSidebarColor}"/>
+  <SolidColorBrush x:Key="BgPanelBrush"
+      Color="{StaticResource BgPanelColor}"/>
+  <SolidColorBrush x:Key="BgHoverBrush"
+      Color="{StaticResource BgHoverColor}"/>
+  <SolidColorBrush x:Key="BgActiveBrush"
+      Color="{StaticResource BgActiveColor}"/>
+  <SolidColorBrush x:Key="BgInputBrush"
+      Color="{StaticResource BgInputColor}"/>
+  <SolidColorBrush x:Key="BgDerivedBrush"
+      Color="{StaticResource BgDerivedColor}"/>
+
+  <SolidColorBrush x:Key="BorderDefaultBrush"
+      Color="{StaticResource BorderDefaultColor}"/>
+  <SolidColorBrush x:Key="BorderInputBrush"
+      Color="{StaticResource BorderInputColor}"/>
+  <SolidColorBrush x:Key="BorderFocusBrush"
+      Color="{StaticResource BorderFocusColor}"/>
+
+  <SolidColorBrush x:Key="TextPrimaryBrush"
+      Color="{StaticResource TextPrimaryColor}"/>
+  <SolidColorBrush x:Key="TextSecondaryBrush"
+      Color="{StaticResource TextSecondaryColor}"/>
+  <SolidColorBrush x:Key="TextMutedBrush"
+      Color="{StaticResource TextMutedColor}"/>
+  <SolidColorBrush x:Key="TextLinkBrush"
+      Color="{StaticResource TextLinkColor}"/>
+
+  <SolidColorBrush x:Key="AccentBrush"
+      Color="{StaticResource AccentColor}"/>
+  <SolidColorBrush x:Key="AccentHoverBrush"
+      Color="{StaticResource AccentHoverColor}"/>
+  <SolidColorBrush x:Key="AccentTextBrush"
+      Color="{StaticResource AccentTextColor}"/>
+
+  <SolidColorBrush x:Key="SidebarBgBrush"
+      Color="{StaticResource SidebarBgColor}"/>
+  <SolidColorBrush x:Key="SidebarTextBrush"
+      Color="{StaticResource SidebarTextColor}"/>
+  <SolidColorBrush x:Key="SidebarActiveBrush"
+      Color="{StaticResource SidebarActiveColor}"/>
+  <SolidColorBrush x:Key="SidebarActiveBgBrush"
+      Color="{StaticResource SidebarActiveBgColor}"/>
+  <SolidColorBrush x:Key="SidebarHoverBgBrush"
+      Color="{StaticResource SidebarHoverBgColor}"/>
+  <SolidColorBrush x:Key="SidebarAccentBrush"
+      Color="{StaticResource SidebarAccentColor}"/>
+  <SolidColorBrush x:Key="SidebarSectionBrush"
+      Color="{StaticResource SidebarSectionColor}"/>
+
+  <SolidColorBrush x:Key="StatusSuccessBrush"
+      Color="{StaticResource StatusSuccessColor}"/>
+  <SolidColorBrush x:Key="StatusWarningBrush"
+      Color="{StaticResource StatusWarningColor}"/>
+  <SolidColorBrush x:Key="StatusErrorBrush"
+      Color="{StaticResource StatusErrorColor}"/>
+  <SolidColorBrush x:Key="StatusRequiredBrush"
+      Color="{StaticResource StatusRequiredColor}"/>
+  <SolidColorBrush x:Key="StatusSuccessBgBrush"
+      Color="{StaticResource StatusSuccessBgColor}"/>
+  <SolidColorBrush x:Key="StatusWarningBgBrush"
+      Color="{StaticResource StatusWarningBgColor}"/>
+
+</ResourceDictionary>

@@ -1,70 +1,102 @@
 ﻿<UserControl x:Class="OperationMaps.Wpf.Shell.ShellView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Shell"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d"
+             d:DesignHeight="450"
+        d:DesignWidth="800">
     <UserControl.Resources>
 
         <!-- Section separator -->
         <DataTemplate x:Key="SeparatorTemplate"
                       DataType="{x:Type local:NavItemViewModel}">
             <TextBlock Text="{Binding Label}"
-                       Foreground="#888888"
+                       Foreground="{DynamicResource SidebarSectionBrush}"
                        FontSize="10"
                        FontWeight="SemiBold"
-                       Margin="12,14,12,4" />
+                       Margin="14,14,12,2"/>
         </DataTemplate>
 
-        <!-- Clickable nav item -->
+        <!-- Nav item -->
         <DataTemplate x:Key="NavItemTemplate"
                       DataType="{x:Type local:NavItemViewModel}">
             <Button Command="{Binding Command}"
                     Visibility="{Binding IsVisible, Converter={StaticResource BoolToVis}}"
-                    Height="36"
                     Cursor="Hand"
                     Background="Transparent"
                     BorderThickness="0"
-                    HorizontalContentAlignment="Stretch">
+                    HorizontalContentAlignment="Stretch"
+                    FocusVisualStyle="{x:Null}">
                 <Button.Template>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="Bd"
-                                Background="{TemplateBinding Background}"
-                                CornerRadius="6"
-                                Margin="6,1">
-                            <Grid Margin="10,0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="22" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0"
-                                           Text="{Binding Icon}"
-                                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                           FontSize="14"
-                                           Foreground="{Binding IsActive, Converter={StaticResource BoolToNavFg}}"
-                                           VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Label}"
-                                           FontSize="13"
-                                           Foreground="{Binding IsActive, Converter={StaticResource BoolToNavFg}}"
-                                           VerticalAlignment="Center"
-                                           Margin="6,0,0,0" />
-                            </Grid>
-                        </Border>
+                        <!-- Active indicator bar + item -->
+                        <Grid Height="34">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left accent bar (visible when active) -->
+                            <Border Grid.Column="0"
+                                    x:Name="AccentBar"
+                                    Background="{DynamicResource SidebarAccentBrush}"
+                                    Visibility="Collapsed"/>
+
+                            <!-- Item background + content -->
+                            <Border Grid.Column="1"
+                                    x:Name="Bd"
+                                    Background="Transparent"
+                                    Margin="0,1,6,1"
+                                    CornerRadius="4"
+                                    Padding="10,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding Icon}"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="13"
+                                               x:Name="IconText"
+                                               Foreground="{DynamicResource SidebarTextBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Label}"
+                                               FontSize="13"
+                                               x:Name="LabelText"
+                                               Foreground="{DynamicResource SidebarTextBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"/>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
                         <ControlTemplate.Triggers>
+                            <!-- Hover -->
                             <Trigger Property="IsMouseOver"
-                                     Value="True">
+                                    Value="True">
                                 <Setter TargetName="Bd"
                                         Property="Background"
-                                        Value="#ECECF0" />
+                                        Value="{DynamicResource SidebarHoverBgBrush}"/>
                             </Trigger>
+                            <!-- Active -->
                             <DataTrigger Binding="{Binding IsActive}"
-                                         Value="True">
+                                    Value="True">
                                 <Setter TargetName="Bd"
                                         Property="Background"
-                                        Value="#DCE6F5" />
+                                        Value="{DynamicResource SidebarActiveBgBrush}"/>
+                                <Setter TargetName="AccentBar"
+                                        Property="Visibility"
+                                        Value="Visible"/>
+                                <Setter TargetName="IconText"
+                                        Property="Foreground"
+                                        Value="{DynamicResource SidebarActiveBrush}"/>
+                                <Setter TargetName="LabelText"
+                                        Property="Foreground"
+                                        Value="{DynamicResource SidebarActiveBrush}"/>
                             </DataTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -72,51 +104,116 @@
             </Button>
         </DataTemplate>
 
-        <!-- Selector -->
         <local:NavItemTemplateSelector x:Key="NavItemSelector"
                                        SeparatorTemplate="{StaticResource SeparatorTemplate}"
-                                       NavItemTemplate="{StaticResource NavItemTemplate}" />
+                                       NavItemTemplate="{StaticResource NavItemTemplate}"/>
 
     </UserControl.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220" />
-            <ColumnDefinition Width="1" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="1"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Side panel -->
+        <!-- Sidebar -->
         <Grid Grid.Column="0"
-              Background="#F5F5F7">
+              Background="{DynamicResource SidebarBgBrush}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto"/>
+                <!-- app title    -->
+                <RowDefinition Height="*"/>
+                <!-- nav items    -->
+                <RowDefinition Height="Auto"/>
+                <!-- theme toggle -->
             </Grid.RowDefinitions>
 
+            <!-- App title -->
             <Border Grid.Row="0"
-                    Background="#2B579A"
-                    Padding="14,12">
-                <TextBlock Text="OperationMaps"
-                           Foreground="White"
-                           FontSize="14"
-                           FontWeight="SemiBold" />
+                    Background="{DynamicResource SidebarBgBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,14">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE9D9;"
+                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               FontSize="16"
+                               Foreground="{DynamicResource SidebarAccentBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <TextBlock Text="OperationMaps"
+                               Foreground="{DynamicResource SidebarActiveBrush}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
             </Border>
 
+            <!-- Nav items -->
             <ScrollViewer Grid.Row="1"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Padding="0,6">
+                          Focusable="False"
+                          Padding="0,6,0,6">
                 <ItemsControl ItemsSource="{Binding NavItems}"
-                              ItemTemplateSelector="{StaticResource NavItemSelector}" />
+                              ItemTemplateSelector="{StaticResource NavItemSelector}"
+                              Focusable="False"/>
             </ScrollViewer>
+
+            <!-- Theme toggle -->
+            <Border Grid.Row="2"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="6,6">
+                <Button Command="{Binding ToggleThemeCommand}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        FocusVisualStyle="{x:Null}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd"
+                                    Background="Transparent"
+                                    CornerRadius="4"
+                                    Padding="10,7"
+                                    Margin="0,1,6,1">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding ThemeIcon}"
+                                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource SidebarTextBrush}"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ThemeLabel}"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource SidebarTextBrush}"
+                                               VerticalAlignment="Center"
+                                               Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver"
+                                        Value="True">
+                                    <Setter TargetName="Bd"
+                                            Property="Background"
+                                            Value="{DynamicResource SidebarHoverBgBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Border>
         </Grid>
 
         <!-- Divider -->
         <Border Grid.Column="1"
-                Background="#DCDCDC" />
+                Background="{DynamicResource BorderDefaultBrush}"/>
 
         <!-- Content -->
         <ContentControl Grid.Column="2"
-                        Content="{Binding CurrentScreen}" />
+                        Background="{DynamicResource BgAppBrush}"
+                        Content="{Binding CurrentScreen}"/>
     </Grid>
 </UserControl>

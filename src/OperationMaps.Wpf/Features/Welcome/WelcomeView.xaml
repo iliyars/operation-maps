@@ -5,87 +5,56 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Welcome"
              mc:Ignorable="d"
-             Background="White"
-             d:DesignHeight="450"
-             d:DesignWidth="800">
-  <Grid>
+             Background="{DynamicResource BgAppBrush}">
+    <Grid>
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Width="380">
       <!-- Icon -->
-      <TextBlock Text="&#xE8FD;"
-                 FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                 FontSize="48"
-                 Foreground="#2B579A"
-                 HorizontalAlignment="Center"
-                 Margin="0,0,0,20"/>
-      <!-- Title -->
+            <TextBlock Text="&#xE8FD;"
+           Style="{StaticResource IconText}"
+           FontSize="48"
+           Margin="0,0,0,20"/>
+            <!-- Title -->
       <TextBlock Text="OperationMaps"
                  FontSize="28"
                  FontWeight="SemiBold"
-                 Foreground="#1A1A2E"
+                 Foreground="{DynamicResource TextPrimaryBrush}"
                  HorizontalAlignment="Center"/>
 
       <TextBlock Text="Карты рабочих режимов ЭРИ"
                  FontSize="14"
-                 Foreground="#888888"
+                 Foreground="{DynamicResource TextSecondaryBrush}"
                  HorizontalAlignment="Center"
                  Margin="0,4,0,0"/>
 
-      <!-- Open XML button -->
-      <Button Command="{Binding OpenXmlCommand}"
-              Height="44"
-              Cursor="Hand">
-        <Button.Template>
-          <ControlTemplate TargetType="Button">
-            <Border x:Name="Bd"
-                    Background="#2B579A"
-                    CornerRadius="8">
-              <StackPanel Orientation="Horizontal"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"
-                          Margin="24,0">
-                <TextBlock Text="&#xE8E5;"
-                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                           FontSize="16"
-                           Foreground="White"
-                           VerticalAlignment="Center"
-                           Margin="0,0,8,0"/>
-                <TextBlock Text="Открыть XML (ПЭ3)"
-                           Foreground="White"
-                           FontSize="14"
-                           VerticalAlignment="Center"/>
-              </StackPanel>
-            </Border>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsMouseOver"
-                       Value="True">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#1E4080"/>
-              </Trigger>
-              <Trigger Property="IsPressed"
-                       Value="True">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#163060"/>
-              </Trigger>
-              <Trigger Property="IsEnabled"
-                       Value="False">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#CCCCCC"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Button.Template>
-      </Button>
+            <!-- Open XML button -->
+            <Button Command="{Binding OpenXmlCommand}"
+                    Style="{StaticResource PrimaryButton}"
+                    Height="44"
+                    FontSize="14">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                    <TextBlock Text="&#xE8E5;"
+                               FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                               FontSize="16"
+                               Foreground="{DynamicResource AccentTextBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <TextBlock Text="Открыть XML (ПЭ3)"
+                               Foreground="{DynamicResource AccentTextBrush}"
+                               FontSize="14"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
 
-      <TextBlock Text="Перечень элементов в формате Pe3 XML"
-                 FontSize="11"
-                 Foreground="#AAAAAA"
-                 HorizontalAlignment="Center"
-                 Margin="0,10,0,0"/>
-    </StackPanel>
-  </Grid>
+            <TextBlock Text="Перечень элементов в формате Pe3 XML"
+                       FontSize="11"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       HorizontalAlignment="Center"
+                       Margin="0,10,0,0"/>
+
+        </StackPanel>
+    </Grid>
 </UserControl>

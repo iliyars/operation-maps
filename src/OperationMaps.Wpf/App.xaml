@@ -7,7 +7,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Shared/Converters/Converters.xaml"/>
+        <ResourceDictionary Source="Shared/AppStyles.xaml"/>
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>
   </Application.Resources>

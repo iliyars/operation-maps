@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using OperationMaps.Wpf.Shared.Themes;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -22,5 +23,8 @@ namespace OperationMaps.Wpf.Shell
         {
             InitializeComponent();
         }
+
+
+
     }
 }

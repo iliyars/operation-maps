@@ -12,6 +12,7 @@ using OperationMaps.Wpf.Infrastructure.ViewLocation;
 using OperationMaps.Wpf.Main;
 using OperationMaps.Wpf.Features.Welcome;
 using Serilog;
+using OperationMaps.Wpf.Shared.Themes;
 
 namespace OperationMaps.Wpf;
 
@@ -42,9 +43,9 @@ public partial class App : System.Windows.Application
   {
     _host = BuildHost();
     await _host.StartAsync();
-
-    // Register View DataTemplates by convention (ViewModel → View)
-    ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
+        ThemeManager.Instance.Initialize(System.Windows.Application.Current.Resources);
+        // Register View DataTemplates by convention (ViewModel → View)
+        ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
 
     // Seed the database
     await InitializeDatabaseAsync();

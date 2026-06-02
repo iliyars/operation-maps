@@ -162,11 +162,11 @@ namespace OperationMaps.Wpf.Shell
           .DistinctBy(f => f.Id)
           .OrderBy(f => f.Number);
 
-            System.Diagnostics.Debug.WriteLine($"Dynamic forms count: {forms.Count()}");
-            foreach (var f in forms)
-                System.Diagnostics.Debug.WriteLine($"  Form: {f.Number} - {f.Title}");
+      System.Diagnostics.Debug.WriteLine($"Dynamic forms count: {forms.Count()}");
+      foreach (var f in forms)
+        System.Diagnostics.Debug.WriteLine($"  Form: {f.Number} - {f.Title}");
 
-            int insertIndex = formsIndex + 2;
+      int insertIndex = formsIndex + 2;
 
       foreach (var form in forms)
       {
@@ -188,6 +188,21 @@ namespace OperationMaps.Wpf.Shell
         NavItems.Insert(insertIndex++, navItem);
       }
     }
+
+    // 1. Поля:
+    [ObservableProperty] private string _themeIcon = "\uE708"; // луна
+    [ObservableProperty] private string _themeLabel = "Тёмная тема";
+
+    // 2. Команда:
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+      Shared.Themes.ThemeManager.Instance.Toggle();
+      var isDark = Shared.Themes.ThemeManager.Instance.Current == Shared.Themes.AppTheme.Dark;
+      ThemeIcon = isDark ? "\uE706" : "\uE708"; // солнце : луна
+      ThemeLabel = isDark ? "Светлая тема" : "Тёмная тема";
+    }
+
 
   }
 }

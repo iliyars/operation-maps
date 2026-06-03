@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
+using OperationMaps.Application.Services;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Components.Commands;
@@ -19,6 +20,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 {
   private readonly ProjectStore _store;
   private readonly CatalogDbContext _db;
+  private readonly IFilePicker _filePicker;
 
   [ObservableProperty] private IReadOnlyList<Form4Group> _groups = [];
   [ObservableProperty] private bool _isLoading;
@@ -35,11 +37,20 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     group.IsSelected = true;
   }
 
-  public Form4ViewModel(ProjectStore store, CatalogDbContext db)
+  public Form4ViewModel(
+    ProjectStore store,
+    CatalogDbContext db,
+    IFilePicker filePicker)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
     _db = db ?? throw new ArgumentNullException(nameof(db));
+    _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
   }
+
+  [ObservableProperty]
+  private bool _isExporting;
+
+
 
   public async Task OnNavigatedToAsync(
       object? parameter = null,

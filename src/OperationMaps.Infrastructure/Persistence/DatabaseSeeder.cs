@@ -7,157 +7,159 @@ namespace OperationMaps.Infrastructure.Persistence;
 
 public static class DatabaseSeeder
 {
-  public static async Task SeedAsync(CatalogDbContext db)
-  {
-    if (await db.Forms.AnyAsync(f => f.Number == "4"))
-      return;
+        public static async Task SeedAsync(CatalogDbContext db)
+        {
+                if (await db.Forms.AnyAsync(f => f.Number == "4"))
+                        return;
 
 
-    var form4 = AddForm4(db);
-    AddForm6(db);
-    AddForm7(db);
-    AddForm8(db);
-    AddForm8(db);
-    AddForm9(db);
-    AddForm13(db);
-    AddForm14(db);
-    AddForm15(db);
-    AddForm16(db);
-    AddForm17(db);
-    AddForm19(db);
-    AddForm20(db);
-    AddForm21(db);
-    AddForm22(db);
-    AddForm24(db);
-    AddForm25(db);
-    AddForm26(db);
-    AddForm28(db);
-    AddForm30(db);
-    AddForm31(db);
-    AddForm32(db);
-    AddForm33(db);
-    AddForm34(db);
-    AddForm36(db);
-    AddForm37(db);
-    AddForm38(db);
-    AddForm39(db);
-    AddForm40(db);
-    AddForm41(db);
-    AddForm44(db);
-    AddForm45(db);
-    AddForm46(db);
-    AddForm47(db);
-    AddForm48(db);
-    AddForm49(db);
-    AddForm50(db);
-    AddForm51(db);
-    AddForm52(db);
-    AddForm53(db);
-    AddForm54(db);
-    AddForm55(db);
-    AddForm56(db);
-    AddForm57(db);
-    AddForm59(db);
-    AddForm61(db);
-    AddForm63(db);
-    AddForm64(db);
-    AddForm65(db);
-    AddForm65A(db);
-    AddForm66(db);
-    var form67 = AddForm67(db);
-    var form68 = AddForm68(db);
-    AddForm69(db);
-    AddForm70(db);
-    AddForm71(db);
-    AddForm72(db);
-    AddForm73(db);
-    AddForm74(db);
-    AddForm77(db);
-    AddForm78(db);
-    AddForm79(db);
-    AddForm80(db);
-    AddForm81(db);
-    AddForm82(db);
-    AddForm83(db);
-    AddForm84(db);
-    AddForm85(db);
-    AddForm86(db);
-    AddForm87(db);
+                var form4 = AddForm4(db);
+                AddForm6(db);
+                AddForm7(db);
+                AddForm8(db);
+                AddForm9(db);
+                AddForm13(db);
+                AddForm14(db);
+                AddForm15(db);
+                AddForm16(db);
+                AddForm17(db);
+                AddForm19(db);
+                AddForm20(db);
+                AddForm21(db);
+                AddForm22(db);
+                AddForm24(db);
+                AddForm25(db);
+                AddForm26(db);
+                AddForm28(db);
+                AddForm30(db);
+                AddForm31(db);
+                AddForm32(db);
+                AddForm33(db);
+                AddForm34(db);
+                AddForm36(db);
+                AddForm37(db);
+                AddForm38(db);
+                AddForm39(db);
+                AddForm40(db);
+                AddForm41(db);
+                AddForm44(db);
+                AddForm45(db);
+                AddForm46(db);
+                AddForm47(db);
+                AddForm48(db);
+                AddForm49(db);
+                AddForm50(db);
+                AddForm51(db);
+                AddForm52(db);
+                AddForm53(db);
+                AddForm54(db);
+                AddForm55(db);
+                AddForm56(db);
+                AddForm57(db);
+                AddForm59(db);
+                AddForm61(db);
+                AddForm63(db);
+                AddForm64(db);
+                AddForm65(db);
+                AddForm65A(db);
+                AddForm66(db);
+                var form67 = AddForm67(db);
+                var form68 = AddForm68(db);
+                AddForm69(db);
+                AddForm70(db);
+                AddForm71(db);
+                AddForm72(db);
+                AddForm73(db);
+                AddForm74(db);
+                AddForm77(db);
+                AddForm78(db);
+                AddForm79(db);
+                AddForm80(db);
+                AddForm81(db);
+                AddForm82(db);
+                AddForm83(db);
+                AddForm84(db);
+                AddForm85(db);
+                AddForm86(db);
+                AddForm87(db);
 
 
 
-    // ── 3. Типы ───────────────────────────────────────────────────────────
-    var typeResistor = new ComponentType { Name = "Резистор" };
-    var typeCapacitor = new ComponentType { Name = "Конденсатор" };
-    var typeMicrocircuit = new ComponentType { Name = "Микросхема" };
-    var typeGenerator = new ComponentType { Name = "Генератор" };
-    var typeConnector = new ComponentType { Name = "Вилка" };
-    db.ComponentTypes.AddRange(typeResistor, typeCapacitor, typeMicrocircuit, typeGenerator, typeConnector);
+                // ── 3. Типы ───────────────────────────────────────────────────────────
+                var typeResistor = new ComponentType { Name = "Резистор" };
+                var typeCapacitor = new ComponentType { Name = "Конденсатор" };
+                var typeMicrocircuit = new ComponentType { Name = "Микросхема" };
+                var typeGenerator = new ComponentType { Name = "Генератор" };
+                var typeConnector = new ComponentType { Name = "Вилка" };
+                db.ComponentTypes.AddRange(typeResistor, typeCapacitor, typeMicrocircuit, typeGenerator, typeConnector);
 
-    // ── 4. Примечания ─────────────────────────────────────────────────────
-    var noteOblRezhim = new Note
-    {
-      Text = "Используется в облегчённом режиме, при U ≤ 0,6U_ном. " +
-               "Стойкость к условиям пониженного давления обеспечивается применением дополнительных средств защиты"
-    };
-    db.Notes.Add(noteOblRezhim);
+                // ── 4. Примечания ─────────────────────────────────────────────────────
+                var noteOblRezhim = new Note
+                {
+                        Text = "Используется в облегчённом режиме, при U ≤ 0,6U_ном. " +
+                           "Стойкость к условиям пониженного давления обеспечивается применением дополнительных средств защиты"
+                };
+                db.Notes.Add(noteOblRezhim);
 
-    // ── 5. Семейства + FamilyNtdValues (Форма 4) ─────────────────────────
-    FormParameter P4(int row) => form4.Parameters.First(p => p.RowNumber == row);
-    FamilyNtdValue FNtd(Family f, int row, string val) =>
-        new() { Family = f, FormParameter = P4(row), Value = val };
+                // ── 5. Семейства + FamilyNtdValues (Форма 4) ─────────────────────────
+                FormParameter P4(int row) => form4.Parameters.First(p => p.RowNumber == row);
+                FamilyNtdValue FNtd(Family f, int row, string val) =>
+                    new() { Family = f, FormParameter = P4(row), Value = val };
 
-    var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
-    famR18MP.NtdValues.AddRange(new[]
-    {
-            FNtd(famR18MP,  1, "100000"), FNtd(famR18MP,  2, "25"),
-            FNtd(famR18MP,  3, "25"),     FNtd(famR18MP,  4, "—"),
-            FNtd(famR18MP,  5, "—"),      FNtd(famR18MP,  6, "—"),
-            FNtd(famR18MP,  7, "10⁻⁶"),  FNtd(famR18MP,  8, "—"),
-            FNtd(famR18MP,  9, "−60 (−60)"), FNtd(famR18MP, 10, "+85 (+85)"),
-            FNtd(famR18MP, 11, "98"),     FNtd(famR18MP, 12, "+35"),
-            FNtd(famR18MP, 13, "—"),      FNtd(famR18MP, 14, "—"),
+                var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
+                famR18MP.NtdValues.AddRange(new[]
+                {
+        FNtd(famR18MP, 1, "Да"), FNtd(famR18MP, 2, "-"),
+            FNtd(famR18MP,  3, "100000"), FNtd(famR18MP,  4, "25"),
+            FNtd(famR18MP,  5, "25"),     FNtd(famR18MP,  6, "—"),
+            FNtd(famR18MP,  7, "—"),      FNtd(famR18MP,  8, "—"),
+            FNtd(famR18MP,  9, "10⁻⁶"),  FNtd(famR18MP,  10, "—"),
+            FNtd(famR18MP,  11, "−60 (−60)"), FNtd(famR18MP, 12, "+85 (+85)"),
+            FNtd(famR18MP, 13, "98"),     FNtd(famR18MP, 14, "+35"),
+            FNtd(famR18MP, 15, "—"),      FNtd(famR18MP, 16, "—"),
         });
 
-    var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
-    famK1079.NtdValues.AddRange(new[]
-    {
-            FNtd(famK1079,  1, "150000"), FNtd(famK1079,  2, "25"),
-            FNtd(famK1079,  3, "25"),     FNtd(famK1079,  4, "100-10000"),
-            FNtd(famK1079,  5, "175"),    FNtd(famK1079,  6, "5000 (500)"),
-            FNtd(famK1079,  7, "10⁻⁶"),  FNtd(famK1079,  8, "2,88"),
-            FNtd(famK1079,  9, "−60 (−60)"), FNtd(famK1079, 10, "+85 (+60)"),
-            FNtd(famK1079, 11, "98"),     FNtd(famK1079, 12, "—"),
-            FNtd(famK1079, 13, "—"),      FNtd(famK1079, 14, "—"),
+                var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
+                famK1079.NtdValues.AddRange(new[]
+                {
+        FNtd(famK1079, 1, "Да"), FNtd(famK1079, 2, "-"),
+            FNtd(famK1079,  3, "150000"), FNtd(famK1079,  4, "25"),
+            FNtd(famK1079,  5, "25"),     FNtd(famK1079,  6, "100-10000"),
+            FNtd(famK1079,  7, "175"),    FNtd(famK1079,  8, "5000 (500)"),
+            FNtd(famK1079,  9, "10⁻⁶"),  FNtd(famK1079,  10, "2,88"),
+            FNtd(famK1079,  11, "−60 (−60)"), FNtd(famK1079, 12, "+85 (+60)"),
+            FNtd(famK1079, 13, "98"),     FNtd(famK1079, 14, "—"),
+            FNtd(famK1079, 15, "—"),      FNtd(famK1079, 16, "—"),
         });
 
-    var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
-    famK5367.NtdValues.AddRange(new[]
-    {
-            FNtd(famK5367,  1, "150000"), FNtd(famK5367,  2, "25"),
-            FNtd(famK5367,  3, "25"),     FNtd(famK5367,  4, "—"),
-            FNtd(famK5367,  5, "—"),      FNtd(famK5367,  6, "—"),
-            FNtd(famK5367,  7, "10⁻⁶"),  FNtd(famK5367,  8, "—"),
-            FNtd(famK5367,  9, "−60 (−60)"), FNtd(famK5367, 10, "+125 (+85)"),
-            FNtd(famK5367, 11, "98"),     FNtd(famK5367, 12, "+35"),
-            FNtd(famK5367, 13, "—"),      FNtd(famK5367, 14, "7К1=2К, 7К4=2К"),
+                var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
+                famK5367.NtdValues.AddRange(new[]
+                {
+                    FNtd(famK5367, 1, "Да"), FNtd(famK5367, 2, "-"),
+            FNtd(famK5367,  3, "150000"), FNtd(famK5367,  4, "25"),
+            FNtd(famK5367,  5, "25"),     FNtd(famK5367,  6, "—"),
+            FNtd(famK5367,  7, "—"),      FNtd(famK5367,  8, "—"),
+            FNtd(famK5367,  9, "10⁻⁶"),  FNtd(famK5367,  10, "—"),
+            FNtd(famK5367,  11, "−60 (−60)"), FNtd(famK5367, 12, "+125 (+85)"),
+            FNtd(famK5367, 13, "98"),     FNtd(famK5367, 14, "+35"),
+            FNtd(famK5367, 15, "—"),      FNtd(famK5367, 16, "7К1=2К, 7К4=2К"),
         });
 
-    // ── 6. Тестовый компонент К10-79 с NTD для Формы 67 ──────────────────
-    FormParameter P67(int row) => form67.Parameters.First(p => p.RowNumber == row);
-    ComponentNtdValue CNtd(Component c, int row, string val) =>
-        new() { Component = c, FormParameter = P67(row), Value = val };
+                // ── 6. Тестовый компонент К10-79 с NTD для Формы 67 ──────────────────
+                FormParameter P67(int row) => form67.Parameters.First(p => p.RowNumber == row);
+                ComponentNtdValue CNtd(Component c, int row, string val) =>
+                    new() { Component = c, FormParameter = P67(row), Value = val };
 
-    var compK1079test = new Component
-    {
-      FullName = "К10-79-25 В-0,1 мкФ+80%-20%-Н90",
-      Family = famK1079,
-      OwnForm = form67,
-      NeedsAdminReview = false,
-    };
+                var compK1079test = new Component
+                {
+                        FullName = "К10-79-25 В-0,1 мкФ+80%-20%-Н90",
+                        Family = famK1079,
+                        OwnForm = form67,
+                        NeedsAdminReview = false,
+                };
 
-    compK1079test.NtdValues.AddRange(new[]
-    {
+                compK1079test.NtdValues.AddRange(new[]
+                {
             CNtd(compK1079test,  1, "16"),  CNtd(compK1079test,  2, "—"),
             CNtd(compK1079test,  3, "—"),   CNtd(compK1079test,  4, "16"),
             CNtd(compK1079test,  5, "—"),   CNtd(compK1079test,  6, "—"),
@@ -167,24 +169,24 @@ public static class DatabaseSeeder
             CNtd(compK1079test, 13, "—"),   CNtd(compK1079test, 14, "0,7"),
         });
 
-    famK1079.Components.Add(compK1079test);
-    db.Families.AddRange(famR18MP, famK1079, famK5367);
+                famK1079.Components.Add(compK1079test);
+                db.Families.AddRange(famR18MP, famK1079, famK5367);
 
-    // Тестовый резистор для Формы 68
-    FormParameter P68(int row) => form68.Parameters.First(p => p.RowNumber == row);
-    ComponentNtdValue CNtd68(Component c, int row, string val) =>
-        new() { Component = c, FormParameter = P68(row), Value = val };
+                // Тестовый резистор для Формы 68
+                FormParameter P68(int row) => form68.Parameters.First(p => p.RowNumber == row);
+                ComponentNtdValue CNtd68(Component c, int row, string val) =>
+                    new() { Component = c, FormParameter = P68(row), Value = val };
 
-    var compR18MPtest = new Component
-    {
-      FullName = "ОСМ Р1-8МП-0,1-10 кОм+-1 %-Л-А-М",
-      Family = famR18MP,
-      OwnForm = form68,
-      NeedsAdminReview = false,
-    };
+                var compR18MPtest = new Component
+                {
+                        FullName = "ОСМ Р1-8МП-0,1-10 кОм+-1 %-Л-А-М",
+                        Family = famR18MP,
+                        OwnForm = form68,
+                        NeedsAdminReview = false,
+                };
 
-    compR18MPtest.NtdValues.AddRange(new[]
-    {
+                compR18MPtest.NtdValues.AddRange(new[]
+                {
     CNtd68(compR18MPtest,  1, "50"),
     CNtd68(compR18MPtest,  2, "—"),
     CNtd68(compR18MPtest,  3, "—"),
@@ -202,89 +204,91 @@ public static class DatabaseSeeder
     CNtd68(compR18MPtest, 15, "0,5"),
 });
 
-    famR18MP.Components.Add(compR18MPtest);
+                famR18MP.Components.Add(compR18MPtest);
 
-    // ── SaveChanges 1 — получаем Id ───────────────────────────────────────
-    await db.SaveChangesAsync();
+                // ── SaveChanges 1 — получаем Id ───────────────────────────────────────
+                await db.SaveChangesAsync();
 
-    // ── 7. FamilyForm ─────────────────────────────────────────────────────
-    db.FamilyForms.AddRange(
-        new FamilyForm { FamilyId = famR18MP.Id, FormId = form4.Id },
-        new FamilyForm { FamilyId = famK1079.Id, FormId = form4.Id },
-        new FamilyForm { FamilyId = famK5367.Id, FormId = form4.Id }
-    );
+                // ── 7. FamilyForm ─────────────────────────────────────────────────────
+                db.FamilyForms.AddRange(
+                    new FamilyForm { FamilyId = famR18MP.Id, FormId = form4.Id },
+                    new FamilyForm { FamilyId = famK1079.Id, FormId = form4.Id },
+                    new FamilyForm { FamilyId = famK5367.Id, FormId = form4.Id }
+                );
 
-    // ── 8. FamilyNote ─────────────────────────────────────────────────────
-    db.FamilyNotes.AddRange(
-        new FamilyNote { FamilyId = famK1079.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id },
-        new FamilyNote { FamilyId = famK5367.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id }
-    );
+                // ── 8. FamilyNote ─────────────────────────────────────────────────────
+                db.FamilyNotes.AddRange(
+                    new FamilyNote { FamilyId = famK1079.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id },
+                    new FamilyNote { FamilyId = famK5367.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id }
+                );
 
-    await db.SaveChangesAsync();
-  }
-  private static Form AddForm4(CatalogDbContext db)
-  {
-    var form4 = new Form
-    {
-      Number = "4",
-      Title = "Карта оценки номенклатуры ЭРИ и сведений о соответствии условий эксплуатации и показателей надёжности требованиям НТД",
-      IsUniversal = true,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup,
-    };
-
-    var sec4Rel = new FormSection { Form = form4, Title = "Требования на изделие", Order = 1 };
-    var sec4Op = new FormSection { Form = form4, Title = "Условия эксплуатации в аппаратуре", Order = 2 };
-    form4.Sections.AddRange(new[] { sec4Rel, sec4Op });
-
-    var params4 = new List<FormParameter>
+                await db.SaveChangesAsync();
+        }
+        private static Form AddForm4(CatalogDbContext db)
         {
-            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Показатель ресурса",                                Unit = "ч"           },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Показатель срока службы",                          Unit = "лет"         },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  3, Order =  3, Name = "Показатель сохраняемости",                         Unit = "лет"         },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  4, Order =  1, Name = "Акустический шум: диапазон частот",                Unit = "Гц"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  5, Order =  2, Name = "Акустический шум: уровень звукового давления",     Unit = "дБ"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  6, Order =  3, Name = "Линейное ускорение",                               Unit = "М.С.Е-2.(G)" },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  7, Order =  4, Name = "Давление окружающей среды: пониженное",            Unit = "мм рт. ст."  },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  8, Order =  5, Name = "Давление окружающей среды: повышенное",            Unit = "атм"         },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  9, Order =  6, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 10, Order =  7, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 11, Order =  8, Name = "Относительная влажность",                         Unit = "%"           },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 12, Order =  9, Name = "Относительная влажность: температура",            Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order = 10, Name = "Роса, иней",                                      Unit = null          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order = 11, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
+                var form4 = new Form
+                {
+                        Number = "4",
+                        Title = "Карта оценки номенклатуры ЭРИ и сведений о соответствии условий эксплуатации и показателей надёжности требованиям НТД",
+                        IsUniversal = true,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup,
+                };
+
+                var sec4Rel = new FormSection { Form = form4, Title = "Требования на изделие", Order = 1 };
+                var sec4Op = new FormSection { Form = form4, Title = "Условия эксплуатации в аппаратуре", Order = 2 };
+                form4.Sections.AddRange(new[] { sec4Rel, sec4Op });
+
+                var params4 = new List<FormParameter>
+        {
+            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Наличие в перечнях при утверждении ТТЗ",           Unit = null           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Наличие в перечнях последних редакций",            Unit = null           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  3, Order =  3, Name = "Показатель ресурса",                                Unit = "ч"           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  4, Order =  2, Name = "Показатель срока службы",                          Unit = "лет"         },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  5, Order =  3, Name = "Показатель сохраняемости",                         Unit = "лет"         },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  6, Order =  1, Name = "Акустический шум: диапазон частот",                Unit = "Гц"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  7, Order =  2, Name = "Акустический шум: уровень звукового давления",     Unit = "дБ"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  8, Order =  3, Name = "Линейное ускорение",                               Unit = "М.С.Е-2.(G)" },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  9, Order =  4, Name = "Давление окружающей среды: пониженное",            Unit = "мм рт. ст."  },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  10, Order =  5, Name = "Давление окружающей среды: повышенное",            Unit = "атм"         },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  11, Order =  4, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 12,  Order =  5, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order =  6, Name = "Относительная влажность",                         Unit = "%"           },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order =  7, Name = "Относительная влажность: температура",            Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 15, Order = 8, Name = "Роса, иней",                                      Unit = null          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 16, Order = 9, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
         };
-    form4.Parameters.AddRange(params4);
-    form4.ValueColumns.Add(new FormValueColumn
-    {
-      Form = form4,
-      Key = "ntd",
-      Title = "По НТД",
-      Source = ColumnSource.DatasheetNdt,
-      Order = 1,
-    });
-    db.Forms.Add(form4);
-    return form4;
-  }
-  private static Form AddForm6(CatalogDbContext db)
-  {
-    var form6 = new Form
-    {
-      Number = "6",
-      Title = "Карта рабочих режимов магнетронов импульсного и непрерывного действия",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup // или PerColumn, если нужно
-    };
+                form4.Parameters.AddRange(params4);
+                form4.ValueColumns.Add(new FormValueColumn
+                {
+                        Form = form4,
+                        Key = "ntd",
+                        Title = "По НТД",
+                        Source = ColumnSource.DatasheetNdt,
+                        Order = 1,
+                });
+                db.Forms.Add(form4);
+                return form4;
+        }
+        private static Form AddForm6(CatalogDbContext db)
+        {
+                var form6 = new Form
+                {
+                        Number = "6",
+                        Title = "Карта рабочих режимов магнетронов импульсного и непрерывного действия",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup // или PerColumn, если нужно
+                };
 
-    // Секции (логическая группировка параметров)
-    var sec6Filament = new FormSection { Form = form6, Title = "Накал", Order = 1 };
-    var sec6Timing = new FormSection { Form = form6, Title = "Временные параметры запуска", Order = 2 };
-    var sec6Anode = new FormSection { Form = form6, Title = "Анодные параметры (постоянные/импульсные)", Order = 3 };
-    var sec6Pulse = new FormSection { Form = form6, Title = "Параметры импульсного магнетрона", Order = 4 };
-    var sec6Env = new FormSection { Form = form6, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var sec6Filament = new FormSection { Form = form6, Title = "Накал", Order = 1 };
+                var sec6Timing = new FormSection { Form = form6, Title = "Временные параметры запуска", Order = 2 };
+                var sec6Anode = new FormSection { Form = form6, Title = "Анодные параметры (постоянные/импульсные)", Order = 3 };
+                var sec6Pulse = new FormSection { Form = form6, Title = "Параметры импульсного магнетрона", Order = 4 };
+                var sec6Env = new FormSection { Form = form6, Title = "Условия эксплуатации", Order = 5 };
 
-    form6.Sections.AddRange(new[] { sec6Filament, sec6Timing, sec6Anode, sec6Pulse, sec6Env });
+                form6.Sections.AddRange(new[] { sec6Filament, sec6Timing, sec6Anode, sec6Pulse, sec6Env });
 
-    var param6 = new List<FormParameter>
+                var param6 = new List<FormParameter>
 {
     // ---- Накал (Filament)
     new() { Form = form6, Section = sec6Filament, RowNumber = 1,
@@ -351,41 +355,41 @@ public static class DatabaseSeeder
             Order = 9, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
 };
 
-    form6.Parameters.AddRange(param6);
+                form6.Parameters.AddRange(param6);
 
-    // Добавляем два столбца для значений (аналог "В схеме" / "По НТД")
-    // На картинке - два столбца: скорее всего, "мин" и "макс" или "по ТУ" и "реальное значение"
-    form6.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца для значений (аналог "В схеме" / "По НТД")
+                // На картинке - два столбца: скорее всего, "мин" и "макс" или "по ТУ" и "реальное значение"
+                form6.ValueColumns.AddRange(new[]
+                {
     new FormValueColumn { Form = form6, Key = "rated", Title = "Допустимые значения (по НТД)", Source = ColumnSource.DatasheetNdt, Order = 1 },
     new FormValueColumn { Form = form6, Key = "actual", Title = "Фактические значения (измеренные)", Source = ColumnSource.ManualScheme, Order = 2 },
     });
 
-    db.Forms.Add(form6);
-    return form6;
-  }
-  private static Form AddForm7(CatalogDbContext db)
-  {
-    // ---- Форма 7: Карта рабочих режимов ламп обратной волны
-    var form7 = new Form
-    {
-      Number = "7",
-      Title = "Карта рабочих режимов ламп обратной волны",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form6);
+                return form6;
+        }
+        private static Form AddForm7(CatalogDbContext db)
+        {
+                // ---- Форма 7: Карта рабочих режимов ламп обратной волны
+                var form7 = new Form
+                {
+                        Number = "7",
+                        Title = "Карта рабочих режимов ламп обратной волны",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var sec7Filament = new FormSection { Form = form7, Title = "Параметры накала", Order = 1 };
-    var sec7Anode = new FormSection { Form = form7, Title = "Анодные параметры", Order = 2 };
-    var sec7InputPulse = new FormSection { Form = form7, Title = "Параметры входного СВЧ импульса", Order = 3 };
-    var sec7ModulatingPulse = new FormSection { Form = form7, Title = "Параметры импульса моделирующего напряжения", Order = 4 };
-    var sec7SWR = new FormSection { Form = form7, Title = "КСВН", Order = 5 };
-    var sec7Env = new FormSection { Form = form7, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var sec7Filament = new FormSection { Form = form7, Title = "Параметры накала", Order = 1 };
+                var sec7Anode = new FormSection { Form = form7, Title = "Анодные параметры", Order = 2 };
+                var sec7InputPulse = new FormSection { Form = form7, Title = "Параметры входного СВЧ импульса", Order = 3 };
+                var sec7ModulatingPulse = new FormSection { Form = form7, Title = "Параметры импульса моделирующего напряжения", Order = 4 };
+                var sec7SWR = new FormSection { Form = form7, Title = "КСВН", Order = 5 };
+                var sec7Env = new FormSection { Form = form7, Title = "Условия эксплуатации", Order = 6 };
 
-    form7.Sections.AddRange(new[] { sec7Filament, sec7Anode, sec7InputPulse, sec7ModulatingPulse, sec7SWR, sec7Env });
+                form7.Sections.AddRange(new[] { sec7Filament, sec7Anode, sec7InputPulse, sec7ModulatingPulse, sec7SWR, sec7Env });
 
-    var param7 = new List<FormParameter>
+                var param7 = new List<FormParameter>
     {
         // ---- Параметры накала
         new() { Form = form7, Section = sec7Filament, RowNumber = 1,
@@ -462,38 +466,38 @@ public static class DatabaseSeeder
                 Order = 8, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form7.Parameters.AddRange(param7);
+                form7.Parameters.AddRange(param7);
 
-    // Добавляем два столбца: "в схеме" и "по НТД" (как на картинке)
-    form7.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД" (как на картинке)
+                form7.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form7, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form7, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form7);
-    return form7;
-  }
-  private static Form AddForm8(CatalogDbContext db)
-  {
-    // ---- Форма 8: Карта рабочих режимов ламп обратной волны
-    var form8 = new Form
-    {
-      Number = "8",
-      Title = "Карта рабочих режимов ламп обратной волны",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form7);
+                return form7;
+        }
+        private static Form AddForm8(CatalogDbContext db)
+        {
+                // ---- Форма 8: Карта рабочих режимов ламп обратной волны
+                var form8 = new Form
+                {
+                        Number = "8",
+                        Title = "Карта рабочих режимов ламп обратной волны",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var sec8Voltage = new FormSection { Form = form8, Title = "Напряжение", Order = 1 };
-    var sec8Stability = new FormSection { Form = form8, Title = "Стабильность напряжения", Order = 2 };
-    var sec8Ripple = new FormSection { Form = form8, Title = "Пульсация напряжения", Order = 3 };
-    var sec8Other = new FormSection { Form = form8, Title = "Прочие параметры", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var sec8Voltage = new FormSection { Form = form8, Title = "Напряжение", Order = 1 };
+                var sec8Stability = new FormSection { Form = form8, Title = "Стабильность напряжения", Order = 2 };
+                var sec8Ripple = new FormSection { Form = form8, Title = "Пульсация напряжения", Order = 3 };
+                var sec8Other = new FormSection { Form = form8, Title = "Прочие параметры", Order = 4 };
 
-    form8.Sections.AddRange(new[] { sec8Voltage, sec8Stability, sec8Ripple, sec8Other });
+                form8.Sections.AddRange(new[] { sec8Voltage, sec8Stability, sec8Ripple, sec8Other });
 
-    var param8 = new List<FormParameter>
+                var param8 = new List<FormParameter>
     {
         // ---- Напряжение
         new() { Form = form8, Section = sec8Voltage, RowNumber = 1,
@@ -544,39 +548,39 @@ public static class DatabaseSeeder
                 Order = 9, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form8.Parameters.AddRange(param8);
+                form8.Parameters.AddRange(param8);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form8.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form8.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form8, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form8, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form8);
-    return form8;
-  }
-  private static Form AddForm9(CatalogDbContext db) // Или AddFormReflexKlystron, если хотите другое название
-  {
-    // ---- Форма: Карта рабочих режимов отражательных клистров
-    var form = new Form
-    {
-      Number = "9", // Укажите нужный номер формы (возможно, это отдельная форма)
-      Title = "Карта рабочих режимов отражательных клистров",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form8);
+                return form8;
+        }
+        private static Form AddForm9(CatalogDbContext db) // Или AddFormReflexKlystron, если хотите другое название
+        {
+                // ---- Форма: Карта рабочих режимов отражательных клистров
+                var form = new Form
+                {
+                        Number = "9", // Укажите нужный номер формы (возможно, это отдельная форма)
+                        Title = "Карта рабочих режимов отражательных клистров",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
-    var secHeater = new FormSection { Form = form, Title = "Катод-подогреватель", Order = 3 };
-    var secResonator = new FormSection { Form = form, Title = "Резонатор", Order = 4 };
-    var secOther = new FormSection { Form = form, Title = "Прочие параметры", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
+                var secHeater = new FormSection { Form = form, Title = "Катод-подогреватель", Order = 3 };
+                var secResonator = new FormSection { Form = form, Title = "Резонатор", Order = 4 };
+                var secOther = new FormSection { Form = form, Title = "Прочие параметры", Order = 5 };
 
-    form.Sections.AddRange(new[] { secFilament, secTiming, secHeater, secResonator, secOther });
+                form.Sections.AddRange(new[] { secFilament, secTiming, secHeater, secResonator, secOther });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накал
         new() { Form = form, Section = secFilament, RowNumber = 1,
@@ -613,40 +617,40 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Примечание", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return form;
-  }
-  private static Form AddForm13(CatalogDbContext db)
-  {
-    // ---- Форма 13: Карта рабочих режимов защитных устройств СВЧ
-    var form = new Form
-    {
-      Number = "13",
-      Title = "Карта рабочих режимов защитных устройств СВЧ",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return form;
+        }
+        private static Form AddForm13(CatalogDbContext db)
+        {
+                // ---- Форма 13: Карта рабочих режимов защитных устройств СВЧ
+                var form = new Form
+                {
+                        Number = "13",
+                        Title = "Карта рабочих режимов защитных устройств СВЧ",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
-    var secPower = new FormSection { Form = form, Title = "Падающая мощность", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
-    var secControlDC = new FormSection { Form = form, Title = "Управление от источника постоянного напряжения", Order = 4 };
-    var secControlPulse = new FormSection { Form = form, Title = "Управление от источника импульсного напряжения", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
+                var secPower = new FormSection { Form = form, Title = "Падающая мощность", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
+                var secControlDC = new FormSection { Form = form, Title = "Управление от источника постоянного напряжения", Order = 4 };
+                var secControlPulse = new FormSection { Form = form, Title = "Управление от источника импульсного напряжения", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secFrequency, secPower, secPulse, secControlDC, secControlPulse, secEnv });
+                form.Sections.AddRange(new[] { secFrequency, secPower, secPulse, secControlDC, secControlPulse, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Частотный диапазон
         new() { Form = form, Section = secFrequency, RowNumber = 1,
@@ -687,39 +691,39 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return form;
-  }
-  private static Form AddForm14(CatalogDbContext db)
-  {
-    // ---- Форма 14: Карта рабочих режимов защитных устройств СВЧ
-    var form = new Form
-    {
-      Number = "14",
-      Title = "Карта рабочих режимов защитных устройств СВЧ",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return form;
+        }
+        private static Form AddForm14(CatalogDbContext db)
+        {
+                // ---- Форма 14: Карта рабочих режимов защитных устройств СВЧ
+                var form = new Form
+                {
+                        Number = "14",
+                        Title = "Карта рабочих режимов защитных устройств СВЧ",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secPulse = new FormSection { Form = form, Title = "Параметры импульса", Order = 1 };
-    var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 4 };
-    var secOther = new FormSection { Form = form, Title = "Прочие параметры", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secPulse = new FormSection { Form = form, Title = "Параметры импульса", Order = 1 };
+                var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность", Order = 4 };
+                var secOther = new FormSection { Form = form, Title = "Прочие параметры", Order = 5 };
 
-    form.Sections.AddRange(new[] { secPulse, secVoltage, secCurrent, secPower, secOther });
+                form.Sections.AddRange(new[] { secPulse, secVoltage, secCurrent, secPower, secOther });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Параметры импульса
         new() { Form = form, Section = secPulse, RowNumber = 1,
@@ -756,36 +760,36 @@ public static class DatabaseSeeder
                 Order = 4, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return form;
-  }
-  private static Form AddForm15(CatalogDbContext db)
-  {
-    // ---- Форма 15: Карта рабочих режимов ВЧ и СВЧ транзисторов
-    var form = new Form
-    {
-      Number = "15",
-      Title = "Карта рабочих режимов ВЧ и СВЧ транзисторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return form;
+        }
+        private static Form AddForm15(CatalogDbContext db)
+        {
+                // ---- Форма 15: Карта рабочих режимов ВЧ и СВЧ транзисторов
+                var form = new Form
+                {
+                        Number = "15",
+                        Title = "Карта рабочих режимов ВЧ и СВЧ транзисторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secStatic = new FormSection { Form = form, Title = "Статический режим", Order = 1 };
-    var secDynamic = new FormSection { Form = form, Title = "Динамический режим", Order = 2 };
+                // Секции (логическая группировка параметров)
+                var secStatic = new FormSection { Form = form, Title = "Статический режим", Order = 1 };
+                var secDynamic = new FormSection { Form = form, Title = "Динамический режим", Order = 2 };
 
-    form.Sections.AddRange(new[] { secStatic, secDynamic });
+                form.Sections.AddRange(new[] { secStatic, secDynamic });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Статический режим
         new() { Form = form, Section = secStatic, RowNumber = 1,
@@ -818,40 +822,40 @@ public static class DatabaseSeeder
                 Order = 7, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return form;
-  }
-  private static Form AddForm16(CatalogDbContext db)
-  {
-    // ---- Форма 16: Карта рабочих режимов полупроводниковых параметрических усилителей и усилителей на туннельных диодах
-    var form = new Form
-    {
-      Number = "16",
-      Title = "Карта рабочих режимов полупроводниковых параметрических усилителей и усилителей на туннельных диодах",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return form;
+        }
+        private static Form AddForm16(CatalogDbContext db)
+        {
+                // ---- Форма 16: Карта рабочих режимов полупроводниковых параметрических усилителей и усилителей на туннельных диодах
+                var form = new Form
+                {
+                        Number = "16",
+                        Title = "Карта рабочих режимов полупроводниковых параметрических усилителей и усилителей на туннельных диодах",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secBias = new FormSection { Form = form, Title = "Напряжение смещения", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Вход усилителя", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выход усилителя", Order = 3 };
-    var secThermostat = new FormSection { Form = form, Title = "Термостат", Order = 4 };
-    var secPump = new FormSection { Form = form, Title = "Питание генератора накачки", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secBias = new FormSection { Form = form, Title = "Напряжение смещения", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Вход усилителя", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выход усилителя", Order = 3 };
+                var secThermostat = new FormSection { Form = form, Title = "Термостат", Order = 4 };
+                var secPump = new FormSection { Form = form, Title = "Питание генератора накачки", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secBias, secInput, secOutput, secThermostat, secPump, secEnv });
+                form.Sections.AddRange(new[] { secBias, secInput, secOutput, secThermostat, secPump, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение смещения
         new() { Form = form, Section = secBias, RowNumber = 1,
@@ -888,39 +892,39 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return form;
-  }
-  private static Form AddForm17(CatalogDbContext db)
-  {
-    // ---- Форма 17: Карта рабочих режимов генераторов и усилителей на диодах Ганна
-    var form = new Form
-    {
-      Number = "17",
-      Title = "Карта рабочих режимов генераторов и усилителей на диодах Ганна",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return form;
+        }
+        private static Form AddForm17(CatalogDbContext db)
+        {
+                // ---- Форма 17: Карта рабочих режимов генераторов и усилителей на диодах Ганна
+                var form = new Form
+                {
+                        Number = "17",
+                        Title = "Карта рабочих режимов генераторов и усилителей на диодах Ганна",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 3 };
-    var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secPower = new FormSection { Form = form, Title = "Мощность", Order = 3 };
+                var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secPower, secSWR, secEnv });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secPower, secSWR, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -947,38 +951,38 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm19(CatalogDbContext db)
-  {
-    // ---- Форма 19: Карта рабочих режимов приемных и передающих СВЧ модулей
-    var form = new Form
-    {
-      Number = "19",
-      Title = "Карта рабочих режимов приемных и передающих СВЧ модулей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm19(CatalogDbContext db)
+        {
+                // ---- Форма 19: Карта рабочих режимов приемных и передающих СВЧ модулей
+                var form = new Form
+                {
+                        Number = "19",
+                        Title = "Карта рабочих режимов приемных и передающих СВЧ модулей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 1 };
-    var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 2 };
-    var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 1 };
+                var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 2 };
+                var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secInput, secSWR, secSupply, secEnv });
+                form.Sections.AddRange(new[] { secInput, secSWR, secSupply, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Входная мощность
         new() { Form = form, Section = secInput, RowNumber = 1,
@@ -1005,39 +1009,39 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm20(CatalogDbContext db)
-  {
-    // ---- Форма 20: Карта рабочих режимов полупроводниковых фазовращателей, переключателей, аттенюаторов и модуляторов
-    var form = new Form
-    {
-      Number = "20",
-      Title = "Карта рабочих режимов полупроводниковых фазовращателей, переключателей, аттенюаторов и модуляторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm20(CatalogDbContext db)
+        {
+                // ---- Форма 20: Карта рабочих режимов полупроводниковых фазовращателей, переключателей, аттенюаторов и модуляторов
+                var form = new Form
+                {
+                        Number = "20",
+                        Title = "Карта рабочих режимов полупроводниковых фазовращателей, переключателей, аттенюаторов и модуляторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
-    var secInputPower = new FormSection { Form = form, Title = "Входная мощность", Order = 2 };
-    var secControl = new FormSection { Form = form, Title = "Управление", Order = 3 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
+                var secInputPower = new FormSection { Form = form, Title = "Входная мощность", Order = 2 };
+                var secControl = new FormSection { Form = form, Title = "Управление", Order = 3 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
 
-    form.Sections.AddRange(new[] { secFrequency, secInputPower, secControl, secPulse, secEnv });
+                form.Sections.AddRange(new[] { secFrequency, secInputPower, secControl, secPulse, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Частотный диапазон
         new() { Form = form, Section = secFrequency, RowNumber = 1,
@@ -1072,40 +1076,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm21(CatalogDbContext db)
-  {
-    // ---- Форма 21: Карта рабочих режимов ферритовых циркуляторов, вентилей, переключателей и ограничителей
-    var form = new Form
-    {
-      Number = "21",
-      Title = "Карта рабочих режимов ферритовых циркуляторов, вентилей, переключателей и ограничителей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm21(CatalogDbContext db)
+        {
+                // ---- Форма 21: Карта рабочих режимов ферритовых циркуляторов, вентилей, переключателей и ограничителей
+                var form = new Form
+                {
+                        Number = "21",
+                        Title = "Карта рабочих режимов ферритовых циркуляторов, вентилей, переключателей и ограничителей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
-    var secInputPower = new FormSection { Form = form, Title = "Входная мощность", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
-    var secMagnetic = new FormSection { Form = form, Title = "Магнитные параметры", Order = 4 };
-    var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 1 };
+                var secInputPower = new FormSection { Form = form, Title = "Входная мощность", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
+                var secMagnetic = new FormSection { Form = form, Title = "Магнитные параметры", Order = 4 };
+                var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secFrequency, secInputPower, secPulse, secMagnetic, secSWR, secEnv });
+                form.Sections.AddRange(new[] { secFrequency, secInputPower, secPulse, secMagnetic, secSWR, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Частотный диапазон
         new() { Form = form, Section = secFrequency, RowNumber = 1,
@@ -1138,38 +1142,38 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm22(CatalogDbContext db)
-  {
-    // ---- Форма 22: Карта рабочих режимов полупроводниковых генераторов шума
-    var form = new Form
-    {
-      Number = "22",
-      Title = "Карта рабочих режимов полупроводниковых генераторов шума",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm22(CatalogDbContext db)
+        {
+                // ---- Форма 22: Карта рабочих режимов полупроводниковых генераторов шума
+                var form = new Form
+                {
+                        Number = "22",
+                        Title = "Карта рабочих режимов полупроводниковых генераторов шума",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 1 };
-    var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 1 };
+                var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secCurrent, secVoltage, secLoad, secEnv });
+                form.Sections.AddRange(new[] { secCurrent, secVoltage, secLoad, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Ток
         new() { Form = form, Section = secCurrent, RowNumber = 1,
@@ -1192,47 +1196,47 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
-  //TODO: Form23
+        //TODO: Form23
 
-  private static Form AddForm24(CatalogDbContext db)
-  {
-    // ---- Форма 24: Карта рабочих режимов генераторных коаксиально-волноводных модулей СВЧ на металлокерамических лампах непрерывного режима
-    var form = new Form
-    {
-      Number = "24",
-      Title = "Карта рабочих режимов генераторных коаксиально-волноводных модулей СВЧ на металлокерамических лампах непрерывного режима",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm24(CatalogDbContext db)
+        {
+                // ---- Форма 24: Карта рабочих режимов генераторных коаксиально-волноводных модулей СВЧ на металлокерамических лампах непрерывного режима
+                var form = new Form
+                {
+                        Number = "24",
+                        Title = "Карта рабочих режимов генераторных коаксиально-волноводных модулей СВЧ на металлокерамических лампах непрерывного режима",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
-    var secCathode = new FormSection { Form = form, Title = "Катодная цепь", Order = 3 };
-    var secGrid = new FormSection { Form = form, Title = "Сетка", Order = 4 };
-    var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 5 };
-    var secAnode = new FormSection { Form = form, Title = "Анод", Order = 6 };
-    var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 7 };
-    var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 8 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
-    var secNote = new FormSection { Form = form, Title = "Примечание", Order = 10 };
+                // Секции (логическая группировка параметров)
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
+                var secCathode = new FormSection { Form = form, Title = "Катодная цепь", Order = 3 };
+                var secGrid = new FormSection { Form = form, Title = "Сетка", Order = 4 };
+                var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 5 };
+                var secAnode = new FormSection { Form = form, Title = "Анод", Order = 6 };
+                var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 7 };
+                var secFrequency = new FormSection { Form = form, Title = "Частотный диапазон", Order = 8 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
+                var secNote = new FormSection { Form = form, Title = "Примечание", Order = 10 };
 
-    form.Sections.AddRange(new[] { secFilament, secTiming, secCathode, secGrid, secInput, secAnode, secSWR, secFrequency, secEnv, secNote });
+                form.Sections.AddRange(new[] { secFilament, secTiming, secCathode, secGrid, secInput, secAnode, secSWR, secFrequency, secEnv, secNote });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накал
         new() { Form = form, Section = secFilament, RowNumber = 1,
@@ -1283,44 +1287,44 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Примечание", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm25(CatalogDbContext db)
-  {
-    // ---- Форма 25: Карта рабочих режимов генераторных и усилительных коаксиально-волноводных модулей СВЧ на металлокерамических лампах импульсного режима
-    var form = new Form
-    {
-      Number = "25",
-      Title = "Карта рабочих режимов генераторных и усилительных коаксиально-волноводных модулей СВЧ на металлокерамических лампах импульсного режима",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm25(CatalogDbContext db)
+        {
+                // ---- Форма 25: Карта рабочих режимов генераторных и усилительных коаксиально-волноводных модулей СВЧ на металлокерамических лампах импульсного режима
+                var form = new Form
+                {
+                        Number = "25",
+                        Title = "Карта рабочих режимов генераторных и усилительных коаксиально-волноводных модулей СВЧ на металлокерамических лампах импульсного режима",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
-    var secCathode = new FormSection { Form = form, Title = "Катодная цепь", Order = 3 };
-    var secGrid = new FormSection { Form = form, Title = "Сетка", Order = 4 };
-    var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 5 };
-    var secAnode = new FormSection { Form = form, Title = "Анод", Order = 6 };
-    var secModulation = new FormSection { Form = form, Title = "Параметры моделирующих импульсов", Order = 7 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
-    var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 9 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 10 };
+                // Секции (логическая группировка параметров)
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
+                var secCathode = new FormSection { Form = form, Title = "Катодная цепь", Order = 3 };
+                var secGrid = new FormSection { Form = form, Title = "Сетка", Order = 4 };
+                var secInput = new FormSection { Form = form, Title = "Входная мощность", Order = 5 };
+                var secAnode = new FormSection { Form = form, Title = "Анод", Order = 6 };
+                var secModulation = new FormSection { Form = form, Title = "Параметры моделирующих импульсов", Order = 7 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
+                var secSWR = new FormSection { Form = form, Title = "КСВН", Order = 9 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 10 };
 
-    form.Sections.AddRange(new[] { secFilament, secTiming, secCathode, secGrid, secInput, secAnode, secModulation, secEnv, secSWR, secLoad });
+                form.Sections.AddRange(new[] { secFilament, secTiming, secCathode, secGrid, secInput, secAnode, secModulation, secEnv, secSWR, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накал
         new() { Form = form, Section = secFilament, RowNumber = 1,
@@ -1375,37 +1379,37 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm26(CatalogDbContext db)
-  {
-    // ---- Форма 26: Карта рабочих режимов стабилитронов газонаполненных
-    var form = new Form
-    {
-      Number = "26",
-      Title = "Карта рабочих режимов стабилитронов газонаполненных",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm26(CatalogDbContext db)
+        {
+                // ---- Форма 26: Карта рабочих режимов стабилитронов газонаполненных
+                var form = new Form
+                {
+                        Number = "26",
+                        Title = "Карта рабочих режимов стабилитронов газонаполненных",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Источник питания", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток стабилизации", Order = 2 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 3 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Источник питания", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток стабилизации", Order = 2 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 3 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secEnv });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Источник питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -1424,42 +1428,42 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  //TODO: Form27
+                db.Forms.Add(form);
+                return (form);
+        }
+        //TODO: Form27
 
-  private static Form AddForm28(CatalogDbContext db)
-  {
-    // ---- Форма 28: Карта рабочих режимов кенотронов выпрямительных и импульсных
-    var form = new Form
-    {
-      Number = "28",
-      Title = "Карта рабочих режимов кенотронов выпрямительных и импульсных",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm28(CatalogDbContext db)
+        {
+                // ---- Форма 28: Карта рабочих режимов кенотронов выпрямительных и импульсных
+                var form = new Form
+                {
+                        Number = "28",
+                        Title = "Карта рабочих режимов кенотронов выпрямительных и импульсных",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
-    var secHeater = new FormSection { Form = form, Title = "Катод-подогреватель", Order = 3 };
-    var secAnode = new FormSection { Form = form, Title = "Анод", Order = 4 };
-    var secCurrentPulse = new FormSection { Form = form, Title = "Параметры импульса тока", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
+                var secHeater = new FormSection { Form = form, Title = "Катод-подогреватель", Order = 3 };
+                var secAnode = new FormSection { Form = form, Title = "Анод", Order = 4 };
+                var secCurrentPulse = new FormSection { Form = form, Title = "Параметры импульса тока", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secFilament, secTiming, secHeater, secAnode, secCurrentPulse, secEnv });
+                form.Sections.AddRange(new[] { secFilament, secTiming, secHeater, secAnode, secCurrentPulse, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накал
         new() { Form = form, Section = secFilament, RowNumber = 1,
@@ -1506,43 +1510,43 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "В схеме" и "По НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "В схеме" и "По НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "В схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "По НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
-  //TODO:Form29
+        //TODO:Form29
 
-  private static Form AddForm30(CatalogDbContext db)
-  {
-    // ---- Форма 30: Карта рабочих режимов цветных и монохромных кинескопов,
-    // индикаторных и осциллографических цветных и монохромных электроннолучевых трубок
-    var form = new Form
-    {
-      Number = "30",
-      Title = "Карта рабочих режимов цветных и монохромных кинескопов, индикаторных и осциллографических цветных и монохромных электроннолучевых трубок",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm30(CatalogDbContext db)
+        {
+                // ---- Форма 30: Карта рабочих режимов цветных и монохромных кинескопов,
+                // индикаторных и осциллографических цветных и монохромных электроннолучевых трубок
+                var form = new Form
+                {
+                        Number = "30",
+                        Title = "Карта рабочих режимов цветных и монохромных кинескопов, индикаторных и осциллографических цветных и монохромных электроннолучевых трубок",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
-    var secElectrodes = new FormSection { Form = form, Title = "Электроды", Order = 2 };
-    var secVideo = new FormSection { Form = form, Title = "Видеосигнал", Order = 3 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 4 };
-    var secOtherElectrodes = new FormSection { Form = form, Title = "Другие электроды", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 1 };
+                var secElectrodes = new FormSection { Form = form, Title = "Электроды", Order = 2 };
+                var secVideo = new FormSection { Form = form, Title = "Видеосигнал", Order = 3 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 4 };
+                var secOtherElectrodes = new FormSection { Form = form, Title = "Другие электроды", Order = 5 };
 
-    form.Sections.AddRange(new[] { secFilament, secElectrodes, secVideo, secCurrent, secOtherElectrodes });
+                form.Sections.AddRange(new[] { secFilament, secElectrodes, secVideo, secCurrent, secOtherElectrodes });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накал
         new() { Form = form, Section = secFilament, RowNumber = 1,
@@ -1579,38 +1583,38 @@ public static class DatabaseSeeder
                 Order = 4, Name = "Напряжение сетки", Unit = "В", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm31(CatalogDbContext db)
-  {
-    // ---- Форма 31: Карта рабочих режимов индикаторов знакоинтегрирующих вакуумных люминесцентных
-    var form = new Form
-    {
-      Number = "31",
-      Title = "Карта рабочих режимов индикаторов знакоинтегрирующих вакуумных люминесцентных",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm31(CatalogDbContext db)
+        {
+                // ---- Форма 31: Карта рабочих режимов индикаторов знакоинтегрирующих вакуумных люминесцентных
+                var form = new Form
+                {
+                        Number = "31",
+                        Title = "Карта рабочих режимов индикаторов знакоинтегрирующих вакуумных люминесцентных",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secAnode = new FormSection { Form = form, Title = "Напряжение анода (элементов)", Order = 1 };
-    var secGrid = new FormSection { Form = form, Title = "Напряжение сетки", Order = 2 };
-    var secStart = new FormSection { Form = form, Title = "Напряжение начала переменного", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secAnode = new FormSection { Form = form, Title = "Напряжение анода (элементов)", Order = 1 };
+                var secGrid = new FormSection { Form = form, Title = "Напряжение сетки", Order = 2 };
+                var secStart = new FormSection { Form = form, Title = "Напряжение начала переменного", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secAnode, secGrid, secStart, secEnv });
+                form.Sections.AddRange(new[] { secAnode, secGrid, secStart, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение анода (элементов)
         new() { Form = form, Section = secAnode, RowNumber = 1,
@@ -1637,40 +1641,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm32(CatalogDbContext db)
-  {
-    // ---- Форма 32: Карта рабочих режимов индикаторов знакосинтезирующих жидкокристаллических
-    var form = new Form
-    {
-      Number = "32",
-      Title = "Карта рабочих режимов индикаторов знакосинтезирующих жидкокристаллических",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm32(CatalogDbContext db)
+        {
+                // ---- Форма 32: Карта рабочих режимов индикаторов знакосинтезирующих жидкокристаллических
+                var form = new Form
+                {
+                        Number = "32",
+                        Title = "Карта рабочих режимов индикаторов знакосинтезирующих жидкокристаллических",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secIndicatorVoltage = new FormSection { Form = form, Title = "Напряжение на индикаторе", Order = 1 };
-    var secIndicatorFreq = new FormSection { Form = form, Title = "Частота напряжения на индикаторе", Order = 2 };
-    var secDCComponent = new FormSection { Form = form, Title = "Постоянная составляющая", Order = 3 };
-    var secLogicSupply = new FormSection { Form = form, Title = "Питание логической части", Order = 4 };
-    var secOutputSupply = new FormSection { Form = form, Title = "Питание выходных каскадов", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secIndicatorVoltage = new FormSection { Form = form, Title = "Напряжение на индикаторе", Order = 1 };
+                var secIndicatorFreq = new FormSection { Form = form, Title = "Частота напряжения на индикаторе", Order = 2 };
+                var secDCComponent = new FormSection { Form = form, Title = "Постоянная составляющая", Order = 3 };
+                var secLogicSupply = new FormSection { Form = form, Title = "Питание логической части", Order = 4 };
+                var secOutputSupply = new FormSection { Form = form, Title = "Питание выходных каскадов", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secIndicatorVoltage, secIndicatorFreq, secDCComponent, secLogicSupply, secOutputSupply, secEnv });
+                form.Sections.AddRange(new[] { secIndicatorVoltage, secIndicatorFreq, secDCComponent, secLogicSupply, secOutputSupply, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение на индикаторе
         new() { Form = form, Section = secIndicatorVoltage, RowNumber = 1,
@@ -1707,38 +1711,38 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm33(CatalogDbContext db)
-  {
-    // ---- Форма 33: Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных постоянного тока
-    var form = new Form
-    {
-      Number = "33",
-      Title = "Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных постоянного тока",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm33(CatalogDbContext db)
+        {
+                // ---- Форма 33: Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных постоянного тока
+                var form = new Form
+                {
+                        Number = "33",
+                        Title = "Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных постоянного тока",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secAnodeSupply = new FormSection { Form = form, Title = "Напряжение питания на аноде", Order = 1 };
-    var secPulseParams = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
-    var secScanFreq = new FormSection { Form = form, Title = "Частота сканирования", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secAnodeSupply = new FormSection { Form = form, Title = "Напряжение питания на аноде", Order = 1 };
+                var secPulseParams = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
+                var secScanFreq = new FormSection { Form = form, Title = "Частота сканирования", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secAnodeSupply, secPulseParams, secScanFreq, secEnv });
+                form.Sections.AddRange(new[] { secAnodeSupply, secPulseParams, secScanFreq, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания на аноде
         new() { Form = form, Section = secAnodeSupply, RowNumber = 1,
@@ -1765,44 +1769,44 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm34(CatalogDbContext db)
-  {
-    // ---- Форма 34: Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных переменного тока
-    var form = new Form
-    {
-      Number = "34",
-      Title = "Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных переменного тока",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm34(CatalogDbContext db)
+        {
+                // ---- Форма 34: Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных переменного тока
+                var form = new Form
+                {
+                        Number = "34",
+                        Title = "Карта рабочих режимов индикаторов знакосинтезирующих газоразрядных переменного тока",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secReferenceVoltage = new FormSection { Form = form, Title = "Опорное напряжение индикации", Order = 1 };
-    var secReferenceFreq = new FormSection { Form = form, Title = "Частота опорного напряжения", Order = 2 };
-    var secReferenceDuration = new FormSection { Form = form, Title = "Длительность опорного напряжения", Order = 3 };
-    var secWriteVoltage = new FormSection { Form = form, Title = "Превышение напряжения записи", Order = 4 };
-    var secWriteDuration = new FormSection { Form = form, Title = "Длительность напряжения записи", Order = 5 };
-    var secAgingVoltage = new FormSection { Form = form, Title = "Напряжение старения", Order = 6 };
-    var secAgingDuration = new FormSection { Form = form, Title = "Длительность напряжения старения", Order = 7 };
-    var secAuxiliary = new FormSection { Form = form, Title = "Напряжение вспомогательного разряда", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secReferenceVoltage = new FormSection { Form = form, Title = "Опорное напряжение индикации", Order = 1 };
+                var secReferenceFreq = new FormSection { Form = form, Title = "Частота опорного напряжения", Order = 2 };
+                var secReferenceDuration = new FormSection { Form = form, Title = "Длительность опорного напряжения", Order = 3 };
+                var secWriteVoltage = new FormSection { Form = form, Title = "Превышение напряжения записи", Order = 4 };
+                var secWriteDuration = new FormSection { Form = form, Title = "Длительность напряжения записи", Order = 5 };
+                var secAgingVoltage = new FormSection { Form = form, Title = "Напряжение старения", Order = 6 };
+                var secAgingDuration = new FormSection { Form = form, Title = "Длительность напряжения старения", Order = 7 };
+                var secAuxiliary = new FormSection { Form = form, Title = "Напряжение вспомогательного разряда", Order = 8 };
 
-    form.Sections.AddRange(new[] { secReferenceVoltage, secReferenceFreq, secReferenceDuration,
+                form.Sections.AddRange(new[] { secReferenceVoltage, secReferenceFreq, secReferenceDuration,
                                    secWriteVoltage, secWriteDuration, secAgingVoltage,
                                    secAgingDuration, secAuxiliary });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Опорное напряжение индикации
         new() { Form = form, Section = secReferenceVoltage, RowNumber = 1,
@@ -1853,42 +1857,42 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Напряжение вспомогательного разряда (максимальное)", Unit = "В", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  //TODO:35
-  private static Form AddForm36(CatalogDbContext db)
-  {
-    // ---- Форма 36: Карта рабочих режимов диссекторов
-    var form = new Form
-    {
-      Number = "36",
-      Title = "Карта рабочих режимов диссекторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        //TODO:35
+        private static Form AddForm36(CatalogDbContext db)
+        {
+                // ---- Форма 36: Карта рабочих режимов диссекторов
+                var form = new Form
+                {
+                        Number = "36",
+                        Title = "Карта рабочих режимов диссекторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secSupply = new FormSection { Form = form, Title = "Питание общее", Order = 3 };
-    var secElectrodes = new FormSection { Form = form, Title = "Электроды", Order = 4 };
-    var secDivider = new FormSection { Form = form, Title = "Делитель напряжения", Order = 5 };
-    var secFocus = new FormSection { Form = form, Title = "Фокусировка", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secSupply = new FormSection { Form = form, Title = "Питание общее", Order = 3 };
+                var secElectrodes = new FormSection { Form = form, Title = "Электроды", Order = 4 };
+                var secDivider = new FormSection { Form = form, Title = "Делитель напряжения", Order = 5 };
+                var secFocus = new FormSection { Form = form, Title = "Фокусировка", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secSupply, secElectrodes, secDivider, secFocus, secEnv });
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secSupply, secElectrodes, secDivider, secFocus, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -1931,43 +1935,43 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm37(CatalogDbContext db)
-  {
-    // ---- Форма 37: Карта рабочих режимов видиконов
-    var form = new Form
-    {
-      Number = "37",
-      Title = "Карта рабочих режимов видиконов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm37(CatalogDbContext db)
+        {
+                // ---- Форма 37: Карта рабочих режимов видиконов
+                var form = new Form
+                {
+                        Number = "37",
+                        Title = "Карта рабочих режимов видиконов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
-    var secElectrodes = new FormSection { Form = form, Title = "Напряжения на электродах", Order = 4 };
-    var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
-    var secDeflection = new FormSection { Form = form, Title = "Отклоняющие пластины", Order = 6 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 7 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
+                var secElectrodes = new FormSection { Form = form, Title = "Напряжения на электродах", Order = 4 };
+                var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
+                var secDeflection = new FormSection { Form = form, Title = "Отклоняющие пластины", Order = 6 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 7 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
                                    secStability, secDeflection, secTiming, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2022,42 +2026,42 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm38(CatalogDbContext db)
-  {
-    // ---- Форма 38: Карта рабочих режимов супервидиков
-    var form = new Form
-    {
-      Number = "38",
-      Title = "Карта рабочих режимов супервидиков",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm38(CatalogDbContext db)
+        {
+                // ---- Форма 38: Карта рабочих режимов супервидиков
+                var form = new Form
+                {
+                        Number = "38",
+                        Title = "Карта рабочих режимов супервидиков",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
-    var secElectrodes = new FormSection { Form = form, Title = "Постоянные напряжения на электродах", Order = 4 };
-    var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
+                var secElectrodes = new FormSection { Form = form, Title = "Постоянные напряжения на электродах", Order = 4 };
+                var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
                                    secStability, secTiming, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2110,42 +2114,42 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm39(CatalogDbContext db)
-  {
-    // ---- Форма 39: Карта рабочих режимов суперортиконов
-    var form = new Form
-    {
-      Number = "39",
-      Title = "Карта рабочих режимов суперортиконов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm39(CatalogDbContext db)
+        {
+                // ---- Форма 39: Карта рабочих режимов суперортиконов
+                var form = new Form
+                {
+                        Number = "39",
+                        Title = "Карта рабочих режимов суперортиконов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
-    var secElectrodes = new FormSection { Form = form, Title = "Постоянные напряжения на электродах", Order = 4 };
-    var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secFilament = new FormSection { Form = form, Title = "Накал", Order = 3 };
+                var secElectrodes = new FormSection { Form = form, Title = "Постоянные напряжения на электродах", Order = 4 };
+                var secStability = new FormSection { Form = form, Title = "Стабильность и пульсация", Order = 5 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secFilament, secElectrodes,
                                    secStability, secTiming, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2200,41 +2204,41 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm40(CatalogDbContext db)
-  {
-    // ---- Форма 40: Карта рабочих режимов фотоумножителей
-    var form = new Form
-    {
-      Number = "40",
-      Title = "Карта рабочих режимов фотоумножителей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm40(CatalogDbContext db)
+        {
+                // ---- Форма 40: Карта рабочих режимов фотоумножителей
+                var form = new Form
+                {
+                        Number = "40",
+                        Title = "Карта рабочих режимов фотоумножителей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 2 };
-    var secDivider = new FormSection { Form = form, Title = "Делитель напряжения", Order = 3 };
-    var secAnode = new FormSection { Form = form, Title = "Анодный ток", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
-    var secMagnetic = new FormSection { Form = form, Title = "Магнитное поле", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 2 };
+                var secDivider = new FormSection { Form = form, Title = "Делитель напряжения", Order = 3 };
+                var secAnode = new FormSection { Form = form, Title = "Анодный ток", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
+                var secMagnetic = new FormSection { Form = form, Title = "Магнитное поле", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSpectral, secSupply, secDivider, secAnode, secLoad, secMagnetic, secEnv });
+                form.Sections.AddRange(new[] { secSpectral, secSupply, secDivider, secAnode, secLoad, secMagnetic, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2277,39 +2281,39 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm41(CatalogDbContext db)
-  {
-    // ---- Форма 41: Карта рабочих режимов электронно-оптических преобразователей
-    var form = new Form
-    {
-      Number = "41",
-      Title = "Карта рабочих режимов электронно-оптических преобразователей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm41(CatalogDbContext db)
+        {
+                // ---- Форма 41: Карта рабочих режимов электронно-оптических преобразователей
+                var form = new Form
+                {
+                        Number = "41",
+                        Title = "Карта рабочих режимов электронно-оптических преобразователей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 3 };
-    var secProtection = new FormSection { Form = form, Title = "Схема защиты от засветок", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 3 };
+                var secProtection = new FormSection { Form = form, Title = "Схема защиты от засветок", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secSupply, secProtection, secEnv });
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secSupply, secProtection, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2340,49 +2344,49 @@ public static class DatabaseSeeder
                 Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
-  //TODO: Form42
+        //TODO: Form42
 
-  //TODO:Form43
+        //TODO:Form43
 
-  private static Form AddForm44(CatalogDbContext db)
-  {
-    // ---- Форма 44: Карта рабочих режимов фоторезисторов, фотодиодов, фототранзисторов и тепловых приемников излучения
-    var form = new Form
-    {
-      Number = "44",
-      Title = "Карта рабочих режимов фоторезисторов, фотодиодов, фототранзисторов и тепловых приемников излучения",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm44(CatalogDbContext db)
+        {
+                // ---- Форма 44: Карта рабочих режимов фоторезисторов, фотодиодов, фототранзисторов и тепловых приемников излучения
+                var form = new Form
+                {
+                        Number = "44",
+                        Title = "Карта рабочих режимов фоторезисторов, фотодиодов, фототранзисторов и тепловых приемников излучения",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
-    var secOpticalPower = new FormSection { Form = form, Title = "Оптическая мощность", Order = 3 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
-    var secDissipation = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
-    var secTemp = new FormSection { Form = form, Title = "Температурные параметры", Order = 7 };
-    var secCoolant = new FormSection { Form = form, Title = "Охлаждение", Order = 8 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secIllumination = new FormSection { Form = form, Title = "Освещённость", Order = 2 };
+                var secOpticalPower = new FormSection { Form = form, Title = "Оптическая мощность", Order = 3 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
+                var secDissipation = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                var secTemp = new FormSection { Form = form, Title = "Температурные параметры", Order = 7 };
+                var secCoolant = new FormSection { Form = form, Title = "Охлаждение", Order = 8 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
 
-    form.Sections.AddRange(new[] { secSpectral, secIllumination, secOpticalPower, secSupply,
+                form.Sections.AddRange(new[] { secSpectral, secIllumination, secOpticalPower, secSupply,
                                    secDissipation, secLoad, secTemp, secCoolant, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2427,44 +2431,44 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm45(CatalogDbContext db)
-  {
-    // ---- Форма 45: Карта рабочих режимов фотоприемных устройств и тепловых приемных устройств
-    var form = new Form
-    {
-      Number = "45",
-      Title = "Карта рабочих режимов фотоприемных устройств и тепловых приемных устройств",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm45(CatalogDbContext db)
+        {
+                // ---- Форма 45: Карта рабочих режимов фотоприемных устройств и тепловых приемных устройств
+                var form = new Form
+                {
+                        Number = "45",
+                        Title = "Карта рабочих режимов фотоприемных устройств и тепловых приемных устройств",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
-    var secOptical = new FormSection { Form = form, Title = "Параметры оптического излучения", Order = 2 };
-    var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 3 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток потребления", Order = 4 };
-    var secDissipation = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
-    var secTemp = new FormSection { Form = form, Title = "Температурные параметры", Order = 7 };
-    var secCoolant = new FormSection { Form = form, Title = "Охлаждение", Order = 8 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
+                // Секции (логическая группировка параметров)
+                var secSpectral = new FormSection { Form = form, Title = "Спектральная чувствительность", Order = 1 };
+                var secOptical = new FormSection { Form = form, Title = "Параметры оптического излучения", Order = 2 };
+                var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 3 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток потребления", Order = 4 };
+                var secDissipation = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                var secTemp = new FormSection { Form = form, Title = "Температурные параметры", Order = 7 };
+                var secCoolant = new FormSection { Form = form, Title = "Охлаждение", Order = 8 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 9 };
 
-    form.Sections.AddRange(new[] { secSpectral, secOptical, secSupply, secCurrent,
+                form.Sections.AddRange(new[] { secSpectral, secOptical, secSupply, secCurrent,
                                    secDissipation, secLoad, secTemp, secCoolant, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Спектральная чувствительность
         new() { Form = form, Section = secSpectral, RowNumber = 1,
@@ -2517,41 +2521,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm46(CatalogDbContext db)
-  {
-    // ---- Форма 46: Карта рабочих режимов оптоэлектронных приемных устройств
-    var form = new Form
-    {
-      Number = "46",
-      Title = "Карта рабочих режимов оптоэлектронных приемных устройств",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm46(CatalogDbContext db)
+        {
+                // ---- Форма 46: Карта рабочих режимов оптоэлектронных приемных устройств
+                var form = new Form
+                {
+                        Number = "46",
+                        Title = "Карта рабочих режимов оптоэлектронных приемных устройств",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secOptical = new FormSection { Form = form, Title = "Параметры оптического излучения", Order = 1 };
-    var secPulse = new FormSection { Form = form, Title = "Временные параметры импульса", Order = 2 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток потребления", Order = 3 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
-    var secOutput = new FormSection { Form = form, Title = "Выходной ток", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secOptical = new FormSection { Form = form, Title = "Параметры оптического излучения", Order = 1 };
+                var secPulse = new FormSection { Form = form, Title = "Временные параметры импульса", Order = 2 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток потребления", Order = 3 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
+                var secOutput = new FormSection { Form = form, Title = "Выходной ток", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secOptical, secPulse, secCurrent, secSupply, secOutput, secLoad, secEnv });
+                form.Sections.AddRange(new[] { secOptical, secPulse, secCurrent, secSupply, secOutput, secLoad, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Параметры оптического излучения
         new() { Form = form, Section = secOptical, RowNumber = 1,
@@ -2604,38 +2608,38 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm47(CatalogDbContext db)
-  {
-    // ---- Форма 47: Карта рабочих режимов оптопар
-    var form = new Form
-    {
-      Number = "47",
-      Title = "Карта рабочих режимов оптопар",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm47(CatalogDbContext db)
+        {
+                // ---- Форма 47: Карта рабочих режимов оптопар
+                var form = new Form
+                {
+                        Number = "47",
+                        Title = "Карта рабочих режимов оптопар",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secInput = new FormSection { Form = form, Title = "Режим входа (излучатель)", Order = 1 };
-    var secOutput = new FormSection { Form = form, Title = "Режим выхода (фотоприемник)", Order = 2 };
-    var secIsolation = new FormSection { Form = form, Title = "Развязка", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secInput = new FormSection { Form = form, Title = "Режим входа (излучатель)", Order = 1 };
+                var secOutput = new FormSection { Form = form, Title = "Режим выхода (фотоприемник)", Order = 2 };
+                var secIsolation = new FormSection { Form = form, Title = "Развязка", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secInput, secOutput, secIsolation, secEnv });
+                form.Sections.AddRange(new[] { secInput, secOutput, secIsolation, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Режим входа (излучатель - обычно светодиод)
         new() { Form = form, Section = secInput, RowNumber = 1,
@@ -2670,39 +2674,39 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm48(CatalogDbContext db)
-  {
-    // ---- Форма 48: Карта рабочих режимов оптоэлектронных переключателей логического сигнала
-    var form = new Form
-    {
-      Number = "48",
-      Title = "Карта рабочих режимов оптоэлектронных переключателей логического сигнала",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm48(CatalogDbContext db)
+        {
+                // ---- Форма 48: Карта рабочих режимов оптоэлектронных переключателей логического сигнала
+                var form = new Form
+                {
+                        Number = "48",
+                        Title = "Карта рабочих режимов оптоэлектронных переключателей логического сигнала",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secInput = new FormSection { Form = form, Title = "Режим входа", Order = 1 };
-    var secOutput = new FormSection { Form = form, Title = "Режим выхода", Order = 2 };
-    var secIsolation = new FormSection { Form = form, Title = "Развязка", Order = 3 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secInput = new FormSection { Form = form, Title = "Режим входа", Order = 1 };
+                var secOutput = new FormSection { Form = form, Title = "Режим выхода", Order = 2 };
+                var secIsolation = new FormSection { Form = form, Title = "Развязка", Order = 3 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
 
-    form.Sections.AddRange(new[] { secInput, secOutput, secIsolation, secSupply, secEnv });
+                form.Sections.AddRange(new[] { secInput, secOutput, secIsolation, secSupply, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Режим входа
         new() { Form = form, Section = secInput, RowNumber = 1,
@@ -2741,40 +2745,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm49(CatalogDbContext db)
-  {
-    // ---- Форма 49: Карта рабочих режимов газовых лазеров непрерывного и импульсного режима работы
-    var form = new Form
-    {
-      Number = "49",
-      Title = "Карта рабочих режимов газовых лазеров непрерывного и импульсного режима работы",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm49(CatalogDbContext db)
+        {
+                // ---- Форма 49: Карта рабочих режимов газовых лазеров непрерывного и импульсного режима работы
+                var form = new Form
+                {
+                        Number = "49",
+                        Title = "Карта рабочих режимов газовых лазеров непрерывного и импульсного режима работы",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secPump = new FormSection { Form = form, Title = "Накачка", Order = 1 };
-    var secDischarge = new FormSection { Form = form, Title = "Разряд", Order = 2 };
-    var secRadiation = new FormSection { Form = form, Title = "Излучение", Order = 3 };
-    var secBeam = new FormSection { Form = form, Title = "Диаграмма направленности", Order = 4 };
-    var secCooling = new FormSection { Form = form, Title = "Система охлаждения", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secPump = new FormSection { Form = form, Title = "Накачка", Order = 1 };
+                var secDischarge = new FormSection { Form = form, Title = "Разряд", Order = 2 };
+                var secRadiation = new FormSection { Form = form, Title = "Излучение", Order = 3 };
+                var secBeam = new FormSection { Form = form, Title = "Диаграмма направленности", Order = 4 };
+                var secCooling = new FormSection { Form = form, Title = "Система охлаждения", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secPump, secDischarge, secRadiation, secBeam, secCooling, secEnv });
+                form.Sections.AddRange(new[] { secPump, secDischarge, secRadiation, secBeam, secCooling, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Накачка
         new() { Form = form, Section = secPump, RowNumber = 1,
@@ -2817,40 +2821,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm50(CatalogDbContext db)
-  {
-    // ---- Форма 50: Карта рабочих режимов твердотельных лазеров непрерывного и импульсного режима работы
-    var form = new Form
-    {
-      Number = "50",
-      Title = "Карта рабочих режимов твердотельных лазеров непрерывного и импульсного режима работы",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm50(CatalogDbContext db)
+        {
+                // ---- Форма 50: Карта рабочих режимов твердотельных лазеров непрерывного и импульсного режима работы
+                var form = new Form
+                {
+                        Number = "50",
+                        Title = "Карта рабочих режимов твердотельных лазеров непрерывного и импульсного режима работы",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secRadiation = new FormSection { Form = form, Title = "Излучение", Order = 1 };
-    var secPump = new FormSection { Form = form, Title = "Накачка", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
-    var secLamp = new FormSection { Form = form, Title = "Лампа накачки", Order = 4 };
-    var secCooling = new FormSection { Form = form, Title = "Система охлаждения", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secRadiation = new FormSection { Form = form, Title = "Излучение", Order = 1 };
+                var secPump = new FormSection { Form = form, Title = "Накачка", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
+                var secLamp = new FormSection { Form = form, Title = "Лампа накачки", Order = 4 };
+                var secCooling = new FormSection { Form = form, Title = "Система охлаждения", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secRadiation, secPump, secPulse, secLamp, secCooling, secEnv });
+                form.Sections.AddRange(new[] { secRadiation, secPump, secPulse, secLamp, secCooling, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Излучение
         new() { Form = form, Section = secRadiation, RowNumber = 1,
@@ -2889,40 +2893,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm51(CatalogDbContext db)
-  {
-    // ---- Форма 51: Карта рабочих режимов полупроводниковых лазеров непрерывного и импульсного режима работы
-    var form = new Form
-    {
-      Number = "51",
-      Title = "Карта рабочих режимов полупроводниковых лазеров непрерывного и импульсного режима работы",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm51(CatalogDbContext db)
+        {
+                // ---- Форма 51: Карта рабочих режимов полупроводниковых лазеров непрерывного и импульсного режима работы
+                var form = new Form
+                {
+                        Number = "51",
+                        Title = "Карта рабочих режимов полупроводниковых лазеров непрерывного и импульсного режима работы",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 1 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
-    var secWavelength = new FormSection { Form = form, Title = "Спектральные параметры", Order = 3 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток накачки", Order = 4 };
-    var secNonlinearity = new FormSection { Form = form, Title = "Линейность ВАХ", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secPower = new FormSection { Form = form, Title = "Мощность", Order = 1 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
+                var secWavelength = new FormSection { Form = form, Title = "Спектральные параметры", Order = 3 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток накачки", Order = 4 };
+                var secNonlinearity = new FormSection { Form = form, Title = "Линейность ВАХ", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secPower, secPulse, secWavelength, secCurrent, secNonlinearity, secEnv });
+                form.Sections.AddRange(new[] { secPower, secPulse, secWavelength, secCurrent, secNonlinearity, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Мощность
         new() { Form = form, Section = secPower, RowNumber = 1,
@@ -2953,38 +2957,38 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Температура окружающей среды", Unit = "°С", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm52(CatalogDbContext db)
-  {
-    // ---- Форма 52: Карта рабочих режимов полупроводниковых излучающих диодов ИК диапазона
-    var form = new Form
-    {
-      Number = "52",
-      Title = "Карта рабочих режимов полупроводниковых излучающих диодов ИК диапазона",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm52(CatalogDbContext db)
+        {
+                // ---- Форма 52: Карта рабочих режимов полупроводниковых излучающих диодов ИК диапазона
+                var form = new Form
+                {
+                        Number = "52",
+                        Title = "Карта рабочих режимов полупроводниковых излучающих диодов ИК диапазона",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCurrent = new FormSection { Form = form, Title = "Прямой ток", Order = 1 };
-    var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secCurrent = new FormSection { Form = form, Title = "Прямой ток", Order = 1 };
+                var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secCurrent, secReverse, secPulse, secEnv });
+                form.Sections.AddRange(new[] { secCurrent, secReverse, secPulse, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Прямой ток
         new() { Form = form, Section = secCurrent, RowNumber = 1,
@@ -3011,40 +3015,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm53(CatalogDbContext db)
-  {
-    // ---- Форма 53: Карта рабочих режимов полупроводниковых тетродов биполярных (дефензоров)
-    var form = new Form
-    {
-      Number = "53",
-      Title = "Карта рабочих режимов полупроводниковых тетродов биполярных (дефензоров)",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm53(CatalogDbContext db)
+        {
+                // ---- Форма 53: Карта рабочих режимов полупроводниковых тетродов биполярных (дефензоров)
+                var form = new Form
+                {
+                        Number = "53",
+                        Title = "Карта рабочих режимов полупроводниковых тетродов биполярных (дефензоров)",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secAnodeCathode = new FormSection { Form = form, Title = "Анод-катод", Order = 1 };
-    var secHold = new FormSection { Form = form, Title = "Электрод удержания", Order = 2 };
-    var secStart = new FormSection { Form = form, Title = "Электрод запуска", Order = 3 };
-    var secFreq = new FormSection { Form = form, Title = "Рабочая частота", Order = 4 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secAnodeCathode = new FormSection { Form = form, Title = "Анод-катод", Order = 1 };
+                var secHold = new FormSection { Form = form, Title = "Электрод удержания", Order = 2 };
+                var secStart = new FormSection { Form = form, Title = "Электрод запуска", Order = 3 };
+                var secFreq = new FormSection { Form = form, Title = "Рабочая частота", Order = 4 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secAnodeCathode, secHold, secStart, secFreq, secPower, secEnv });
+                form.Sections.AddRange(new[] { secAnodeCathode, secHold, secStart, secFreq, secPower, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Анод-катод
         new() { Form = form, Section = secAnodeCathode, RowNumber = 1,
@@ -3091,38 +3095,38 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm54(CatalogDbContext db)
-  {
-    // ---- Форма 54: Карта рабочих режимов полупроводниковых ограничителей напряжения
-    var form = new Form
-    {
-      Number = "54",
-      Title = "Карта рабочих режимов полупроводниковых ограничителей напряжения",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm54(CatalogDbContext db)
+        {
+                // ---- Форма 54: Карта рабочих режимов полупроводниковых ограничителей напряжения
+                var form = new Form
+                {
+                        Number = "54",
+                        Title = "Карта рабочих режимов полупроводниковых ограничителей напряжения",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secNormalReverse = new FormSection { Form = form, Title = "Режим при отсутствии импульсов перегрузки (обратное напряжение)", Order = 1 };
-    var secNormalForward = new FormSection { Form = form, Title = "Режим при отсутствии импульсов перегрузки (прямое напряжение)", Order = 2 };
-    var secOverload = new FormSection { Form = form, Title = "Режим во время воздействия импульсов перегрузки", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secNormalReverse = new FormSection { Form = form, Title = "Режим при отсутствии импульсов перегрузки (обратное напряжение)", Order = 1 };
+                var secNormalForward = new FormSection { Form = form, Title = "Режим при отсутствии импульсов перегрузки (прямое напряжение)", Order = 2 };
+                var secOverload = new FormSection { Form = form, Title = "Режим во время воздействия импульсов перегрузки", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secNormalReverse, secNormalForward, secOverload, secEnv });
+                form.Sections.AddRange(new[] { secNormalReverse, secNormalForward, secOverload, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Режим при отсутствии импульсов перегрузки (обратное напряжение)
         new() { Form = form, Section = secNormalReverse, RowNumber = 1,
@@ -3155,41 +3159,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm55(CatalogDbContext db)
-  {
-    // ---- Форма 55: Карта рабочих режимов диодов (выпрямительных, импульсных, универсальных), варикапов и диодных сборок
-    var form = new Form
-    {
-      Number = "55",
-      Title = "Карта рабочих режимов диодов (выпрямительных, импульсных, универсальных), варикапов и диодных сборок",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm55(CatalogDbContext db)
+        {
+                // ---- Форма 55: Карта рабочих режимов диодов (выпрямительных, импульсных, универсальных), варикапов и диодных сборок
+                var form = new Form
+                {
+                        Number = "55",
+                        Title = "Карта рабочих режимов диодов (выпрямительных, импульсных, универсальных), варикапов и диодных сборок",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secRectifier = new FormSection { Form = form, Title = "Выпрямительный режим", Order = 1 };
-    var secOverload = new FormSection { Form = form, Title = "Перегрузка", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсный режим", Order = 3 };
-    var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 4 };
-    var secFreq = new FormSection { Form = form, Title = "Частота", Order = 5 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secRectifier = new FormSection { Form = form, Title = "Выпрямительный режим", Order = 1 };
+                var secOverload = new FormSection { Form = form, Title = "Перегрузка", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсный режим", Order = 3 };
+                var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 4 };
+                var secFreq = new FormSection { Form = form, Title = "Частота", Order = 5 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secRectifier, secOverload, secPulse, secReverse, secFreq, secPower, secEnv });
+                form.Sections.AddRange(new[] { secRectifier, secOverload, secPulse, secReverse, secFreq, secPower, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Выпрямительный режим
         new() { Form = form, Section = secRectifier, RowNumber = 1,
@@ -3226,40 +3230,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm56(CatalogDbContext db)
-  {
-    // ---- Форма 56: Карта рабочих режимов полупроводниковых стабилитронов и стабисторов
-    var form = new Form
-    {
-      Number = "56",
-      Title = "Карта рабочих режимов полупроводниковых стабилитронов и стабисторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm56(CatalogDbContext db)
+        {
+                // ---- Форма 56: Карта рабочих режимов полупроводниковых стабилитронов и стабисторов
+                var form = new Form
+                {
+                        Number = "56",
+                        Title = "Карта рабочих режимов полупроводниковых стабилитронов и стабисторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCurrent = new FormSection { Form = form, Title = "Ток стабилизации", Order = 1 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
-    var secForward = new FormSection { Form = form, Title = "Прямой ток", Order = 3 };
-    var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 4 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secCurrent = new FormSection { Form = form, Title = "Ток стабилизации", Order = 1 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 2 };
+                var secForward = new FormSection { Form = form, Title = "Прямой ток", Order = 3 };
+                var secReverse = new FormSection { Form = form, Title = "Обратное напряжение", Order = 4 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secCurrent, secPulse, secForward, secReverse, secPower, secEnv });
+                form.Sections.AddRange(new[] { secCurrent, secPulse, secForward, secReverse, secPower, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Ток стабилизации
         new() { Form = form, Section = secCurrent, RowNumber = 1,
@@ -3296,38 +3300,38 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm57(CatalogDbContext db)
-  {
-    // ---- Форма 57: Карта рабочих режимов туннельных и обращенных диодов
-    var form = new Form
-    {
-      Number = "57",
-      Title = "Карта рабочих режимов туннельных и обращенных диодов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm57(CatalogDbContext db)
+        {
+                // ---- Форма 57: Карта рабочих режимов туннельных и обращенных диодов
+                var form = new Form
+                {
+                        Number = "57",
+                        Title = "Карта рабочих режимов туннельных и обращенных диодов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secForward = new FormSection { Form = form, Title = "Прямой ток", Order = 1 };
-    var secReverse = new FormSection { Form = form, Title = "Обратный ток", Order = 2 };
-    var secVoltage = new FormSection { Form = form, Title = "Прямое напряжение", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secForward = new FormSection { Form = form, Title = "Прямой ток", Order = 1 };
+                var secReverse = new FormSection { Form = form, Title = "Обратный ток", Order = 2 };
+                var secVoltage = new FormSection { Form = form, Title = "Прямое напряжение", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secForward, secReverse, secVoltage, secEnv });
+                form.Sections.AddRange(new[] { secForward, secReverse, secVoltage, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Прямой ток
         new() { Form = form, Section = secForward, RowNumber = 1,
@@ -3352,41 +3356,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  // TODO:Form58
+                db.Forms.Add(form);
+                return (form);
+        }
+        // TODO:Form58
 
-  private static Form AddForm59(CatalogDbContext db)
-  {
-    // ---- Форма 59: Карта рабочих режимов однопереходных транзисторов
-    var form = new Form
-    {
-      Number = "59",
-      Title = "Карта рабочих режимов однопереходных транзисторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm59(CatalogDbContext db)
+        {
+                // ---- Форма 59: Карта рабочих режимов однопереходных транзисторов
+                var form = new Form
+                {
+                        Number = "59",
+                        Title = "Карта рабочих режимов однопереходных транзисторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secBase = new FormSection { Form = form, Title = "Межбазовые параметры", Order = 1 };
-    var secEmitter = new FormSection { Form = form, Title = "Параметры эмиттера", Order = 2 };
-    var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secBase = new FormSection { Form = form, Title = "Межбазовые параметры", Order = 1 };
+                var secEmitter = new FormSection { Form = form, Title = "Параметры эмиттера", Order = 2 };
+                var secPulse = new FormSection { Form = form, Title = "Импульсные параметры", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
 
-    form.Sections.AddRange(new[] { secBase, secEmitter, secPulse, secPower, secEnv });
+                form.Sections.AddRange(new[] { secBase, secEmitter, secPulse, secPower, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Межбазовые параметры
         new() { Form = form, Section = secBase, RowNumber = 1,
@@ -3417,41 +3421,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
-  //TODO:Form60
+        //TODO:Form60
 
-  private static Form AddForm61(CatalogDbContext db)
-  {
-    // ---- Форма 61: Карта рабочих режимов полупроводниковых транзисторных усилителей
-    var form = new Form
-    {
-      Number = "61",
-      Title = "Карта рабочих режимов полупроводниковых транзисторных усилителей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm61(CatalogDbContext db)
+        {
+                // ---- Форма 61: Карта рабочих режимов полупроводниковых транзисторных усилителей
+                var form = new Form
+                {
+                        Number = "61",
+                        Title = "Карта рабочих режимов полупроводниковых транзисторных усилителей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Напряжение источника питания", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Вход усилителя", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выход усилителя", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Напряжение источника питания", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Вход усилителя", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выход усилителя", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
 
-    form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secEnv });
+                form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение источника питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -3478,45 +3482,45 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
-  //TODO:62
+        //TODO:62
 
 
-  //TODO: Проверить WithPins
-  private static Form AddForm63(CatalogDbContext db)
-  {
-    // ---- Форма 63: Карта рабочих режимов аналоговых функциональных узлов (модулей, микромодулей, микросхем)
-    var form = new Form
-    {
-      Number = "63",
-      Title = "Карта рабочих режимов аналоговых функциональных узлов (модулей, микромодулей, микросхем)",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        //TODO: Проверить WithPins
+        private static Form AddForm63(CatalogDbContext db)
+        {
+                // ---- Форма 63: Карта рабочих режимов аналоговых функциональных узлов (модулей, микромодулей, микросхем)
+                var form = new Form
+                {
+                        Number = "63",
+                        Title = "Карта рабочих режимов аналоговых функциональных узлов (модулей, микромодулей, микросхем)",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
+                form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Цепи питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -3557,40 +3561,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем столбцы с учётом указания номеров выводов (№ выводов)
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем столбцы с учётом указания номеров выводов (№ выводов)
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm64(CatalogDbContext db)
-  {
-    // ---- Форма 64: Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)
-    var form = new Form
-    {
-      Number = "64",
-      Title = "Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm64(CatalogDbContext db)
+        {
+                // ---- Форма 64: Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)
+                var form = new Form
+                {
+                        Number = "64",
+                        Title = "Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
+                form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Цепи питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -3639,41 +3643,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем столбцы с учётом номеров выводов (№ выводов)
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем столбцы с учётом номеров выводов (№ выводов)
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm65(CatalogDbContext db)
-  {
-    // ---- Форма 65: Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем)
-    var form = new Form
-    {
-      Number = "65",
-      Title = "Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем)",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm65(CatalogDbContext db)
+        {
+                // ---- Форма 65: Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем)
+                var form = new Form
+                {
+                        Number = "65",
+                        Title = "Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем)",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
-    var secNote = new FormSection { Form = form, Title = "Примечание", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                var secNote = new FormSection { Form = form, Title = "Примечание", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad, secNote });
+                form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad, secNote });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Цепи питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -3726,37 +3730,37 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Примечание", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm65A(CatalogDbContext db)
-  {
-    // ---- Форма 65А: Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем) по временным параметрам
-    var form = new Form
-    {
-      Number = "65А",
-      Title = "Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем) по временным параметрам",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm65A(CatalogDbContext db)
+        {
+                // ---- Форма 65А: Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем) по временным параметрам
+                var form = new Form
+                {
+                        Number = "65А",
+                        Title = "Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем) по временным параметрам",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secPinInfo = new FormSection { Form = form, Title = "Информация о выводе", Order = 1 };
-    var secSignal = new FormSection { Form = form, Title = "Параметры сигнала", Order = 2 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 3 };
+                // Секции (логическая группировка параметров)
+                var secPinInfo = new FormSection { Form = form, Title = "Информация о выводе", Order = 1 };
+                var secSignal = new FormSection { Form = form, Title = "Параметры сигнала", Order = 2 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 3 };
 
-    form.Sections.AddRange(new[] { secPinInfo, secSignal, secTiming });
+                form.Sections.AddRange(new[] { secPinInfo, secSignal, secTiming });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Информация о выводе
         new() { Form = form, Section = secPinInfo, RowNumber = 1,
@@ -3789,41 +3793,41 @@ public static class DatabaseSeeder
                 Order = 7, Name = "Временной параметр 7", Unit = "нс", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm66(CatalogDbContext db)
-  {
-    // ---- Форма 66: Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)
-    // Пример заполнения для БИС АЦП
-    var form = new Form
-    {
-      Number = "66",
-      Title = "Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем). Пример заполнения для БИС АЦП",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm66(CatalogDbContext db)
+        {
+                // ---- Форма 66: Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем)
+                // Пример заполнения для БИС АЦП
+                var form = new Form
+                {
+                        Number = "66",
+                        Title = "Карта рабочих режимов цифровых функциональных узлов (модулей, микромодулей, микросхем). Пример заполнения для БИС АЦП",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
-    var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Цепи питания", Order = 1 };
+                var secInput = new FormSection { Form = form, Title = "Входные цепи", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выходные цепи", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность рассеивания", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
+                form.Sections.AddRange(new[] { secSupply, secInput, secOutput, secPower, secEnv, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Цепи питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -3862,35 +3866,35 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm67(CatalogDbContext db)
-  {
-    // ── 2. Форма 67 ───────────────────────────────────────────────────────
-    var form67 = new Form
-    {
-      Number = "67",
-      Title = "Карта рабочих режимов конденсаторов, конденсаторных сборок, помехоподавляющих фильтров и ионисторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup,
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm67(CatalogDbContext db)
+        {
+                // ── 2. Форма 67 ───────────────────────────────────────────────────────
+                var form67 = new Form
+                {
+                        Number = "67",
+                        Title = "Карта рабочих режимов конденсаторов, конденсаторных сборок, помехоподавляющих фильтров и ионисторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup,
+                };
 
-    var sec67V = new FormSection { Form = form67, Title = "Напряжение, В", Order = 1 };
-    var sec67I = new FormSection { Form = form67, Title = "Максимальный ток, А", Order = 2 };
-    var sec67O = new FormSection { Form = form67, Title = "Прочие параметры", Order = 3 };
-    form67.Sections.AddRange(new[] { sec67V, sec67I, sec67O });
+                var sec67V = new FormSection { Form = form67, Title = "Напряжение, В", Order = 1 };
+                var sec67I = new FormSection { Form = form67, Title = "Максимальный ток, А", Order = 2 };
+                var sec67O = new FormSection { Form = form67, Title = "Прочие параметры", Order = 3 };
+                form67.Sections.AddRange(new[] { sec67V, sec67I, sec67O });
 
-    var params67 = new List<FormParameter>
+                var params67 = new List<FormParameter>
         {
     new() { Form = form67, Section = sec67V, RowNumber =  1, Order = 1,
             Name = "Постоянное",                      Unit = "В",
@@ -3928,32 +3932,32 @@ public static class DatabaseSeeder
 
 
         };
-    form67.Parameters.AddRange(params67);
-    form67.ValueColumns.AddRange(new[]
-    {
+                form67.Parameters.AddRange(params67);
+                form67.ValueColumns.AddRange(new[]
+                {
             new FormValueColumn { Form = form67, Key = "scheme", Title = "В схеме", Source = ColumnSource.ManualScheme, Order = 1 },
             new FormValueColumn { Form = form67, Key = "ntd",    Title = "По НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
         });
-    db.Forms.Add(form67);
-    return (form67);
-  }
-  private static Form AddForm68(CatalogDbContext db)
-  {
-    // ---- 2. Форма 68
-    var form68 = new Form
-    {
-      Number = "68",
-      Title = "Карта рабочих режимов резисторов, резисторных сборок, терморезисторов, поглотителей и потенциометров",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form67);
+                return (form67);
+        }
+        private static Form AddForm68(CatalogDbContext db)
+        {
+                // ---- 2. Форма 68
+                var form68 = new Form
+                {
+                        Number = "68",
+                        Title = "Карта рабочих режимов резисторов, резисторных сборок, терморезисторов, поглотителей и потенциометров",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    var sec68V = new FormSection { Form = form68, Title = "Напряжение, В", Order = 1 };
-    var sec68I = new FormSection { Form = form68, Title = "Импульсный режим", Order = 2 };
-    var sec68O = new FormSection { Form = form68, Title = "Прочие параметры", Order = 3 };
-    form68.Sections.AddRange(new[] { sec68V, sec68I, sec68O });
+                var sec68V = new FormSection { Form = form68, Title = "Напряжение, В", Order = 1 };
+                var sec68I = new FormSection { Form = form68, Title = "Импульсный режим", Order = 2 };
+                var sec68O = new FormSection { Form = form68, Title = "Прочие параметры", Order = 3 };
+                form68.Sections.AddRange(new[] { sec68V, sec68I, sec68O });
 
-    var param68 = new List<FormParameter>
+                var param68 = new List<FormParameter>
     {
       new() {Form = form68, Section = sec68V, RowNumber = 1,
              Order = 1, Name = "Постоянное напряжение", Unit = "В", IsRequired = false},
@@ -3988,40 +3992,40 @@ public static class DatabaseSeeder
              Order = 6, Name = "Коэффициент нагрузки", Unit = null, IsRequired = true},
     };
 
-    form68.Parameters.AddRange(param68);
-    form68.ValueColumns.AddRange(new[]
-    {
+                form68.Parameters.AddRange(param68);
+                form68.ValueColumns.AddRange(new[]
+                {
             new FormValueColumn { Form = form68, Key = "scheme", Title = "В схеме", Source = ColumnSource.ManualScheme, Order = 1 },
             new FormValueColumn { Form = form68, Key = "ntd",    Title = "По НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
         });
-    db.Forms.Add(form68);
-    return (form68);
-  }
-  private static Form AddForm69(CatalogDbContext db)
-  {
-    // ---- Форма 69: Карта рабочих режимов кварцевых резонаторов, кварцевых микрогенераторов,
-    // пьезоэлектрических и электромеханических фильтров и линий задержки на поверхностных акустических волнах
-    var form = new Form
-    {
-      Number = "69",
-      Title = "Карта рабочих режимов кварцевых резонаторов, кварцевых микрогенераторов, пьезоэлектрических и электромеханических фильтров и линий задержки на поверхностных акустических волнах",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form68);
+                return (form68);
+        }
+        private static Form AddForm69(CatalogDbContext db)
+        {
+                // ---- Форма 69: Карта рабочих режимов кварцевых резонаторов, кварцевых микрогенераторов,
+                // пьезоэлектрических и электромеханических фильтров и линий задержки на поверхностных акустических волнах
+                var form = new Form
+                {
+                        Number = "69",
+                        Title = "Карта рабочих режимов кварцевых резонаторов, кварцевых микрогенераторов, пьезоэлектрических и электромеханических фильтров и линий задержки на поверхностных акустических волнах",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secPower = new FormSection { Form = form, Title = "Мощность резонатора", Order = 1 };
-    var secLoadCap = new FormSection { Form = form, Title = "Нагрузочная ёмкость", Order = 2 };
-    var secResonance = new FormSection { Form = form, Title = "Резонанс", Order = 3 };
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
-    var secInput = new FormSection { Form = form, Title = "Вход", Order = 5 };
-    var secInputLoad = new FormSection { Form = form, Title = "Нагрузка на входе", Order = 6 };
-    var secOutputLoad = new FormSection { Form = form, Title = "Нагрузка на выходе", Order = 7 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secPower = new FormSection { Form = form, Title = "Мощность резонатора", Order = 1 };
+                var secLoadCap = new FormSection { Form = form, Title = "Нагрузочная ёмкость", Order = 2 };
+                var secResonance = new FormSection { Form = form, Title = "Резонанс", Order = 3 };
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 4 };
+                var secInput = new FormSection { Form = form, Title = "Вход", Order = 5 };
+                var secInputLoad = new FormSection { Form = form, Title = "Нагрузка на входе", Order = 6 };
+                var secOutputLoad = new FormSection { Form = form, Title = "Нагрузка на выходе", Order = 7 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 8 };
 
-    form.Sections.AddRange(new[] { secPower, secLoadCap, secResonance, secSupply, secInput, secInputLoad, secOutputLoad, secEnv });
+                form.Sections.AddRange(new[] { secPower, secLoadCap, secResonance, secSupply, secInput, secInputLoad, secOutputLoad, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Мощность, рассеиваемая на резонаторе
         new() { Form = form, Section = secPower, RowNumber = 1,
@@ -4064,41 +4068,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm70(CatalogDbContext db)
-  {
-    // ---- Форма 70: Карта рабочих режимов двигателей постоянного и переменного тока,
-    // электромагнитных муфт и электровентиляторов
-    var form = new Form
-    {
-      Number = "70",
-      Title = "Карта рабочих режимов двигателей постоянного и переменного тока, электромагнитных муфт и электровентиляторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm70(CatalogDbContext db)
+        {
+                // ---- Форма 70: Карта рабочих режимов двигателей постоянного и переменного тока,
+                // электромагнитных муфт и электровентиляторов
+                var form = new Form
+                {
+                        Number = "70",
+                        Title = "Карта рабочих режимов двигателей постоянного и переменного тока, электромагнитных муфт и электровентиляторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
-    var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
+                var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secTemp, secMode, secLoad });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secTemp, secMode, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4143,40 +4147,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки (пусковой)", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm71(CatalogDbContext db)
-  {
-    // ---- Форма 71: Карта рабочих режимов шаговых электродвигателей электромашинного типа
-    var form = new Form
-    {
-      Number = "71",
-      Title = "Карта рабочих режимов шаговых электродвигателей электромашинного типа",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm71(CatalogDbContext db)
+        {
+                // ---- Форма 71: Карта рабочих режимов шаговых электродвигателей электромашинного типа
+                var form = new Form
+                {
+                        Number = "71",
+                        Title = "Карта рабочих режимов шаговых электродвигателей электромашинного типа",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secFrequency = new FormSection { Form = form, Title = "Частота", Order = 3 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
-    var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Напряжение питания", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secFrequency = new FormSection { Form = form, Title = "Частота", Order = 3 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
+                var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secFrequency, secTemp, secMode, secLoad });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secFrequency, secTemp, secMode, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4207,41 +4211,41 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm72(CatalogDbContext db)
-  {
-    // ---- Форма 72: Карта рабочих режимов тахогенераторов и двигателей-генераторов
-    var form = new Form
-    {
-      Number = "72",
-      Title = "Карта рабочих режимов тахогенераторов и двигателей-генераторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm72(CatalogDbContext db)
+        {
+                // ---- Форма 72: Карта рабочих режимов тахогенераторов и двигателей-генераторов
+                var form = new Form
+                {
+                        Number = "72",
+                        Title = "Карта рабочих режимов тахогенераторов и двигателей-генераторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток потребляемый", Order = 2 };
-    var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 4 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 5 };
-    var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 6 };
-    var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток потребляемый", Order = 2 };
+                var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 4 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 5 };
+                var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 6 };
+                var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secLoad, secTemp, secMode, secCoeff });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secLoad, secTemp, secMode, secCoeff });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4288,42 +4292,42 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm73(CatalogDbContext db)
-  {
-    // ---- Форма 73: Карта рабочих режимов сельсинов, вращающихся трансформаторов и фазовращателей
-    var form = new Form
-    {
-      Number = "73",
-      Title = "Карта рабочих режимов сельсинов, вращающихся трансформаторов и фазовращателей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm73(CatalogDbContext db)
+        {
+                // ---- Форма 73: Карта рабочих режимов сельсинов, вращающихся трансформаторов и фазовращателей
+                var form = new Form
+                {
+                        Number = "73",
+                        Title = "Карта рабочих режимов сельсинов, вращающихся трансформаторов и фазовращателей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Питание обмотки возбуждения", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
-    var secReceivers = new FormSection { Form = form, Title = "Приёмники", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 6 };
-    var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 7 };
-    var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Питание обмотки возбуждения", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 3 };
+                var secReceivers = new FormSection { Form = form, Title = "Приёмники", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 6 };
+                var secMode = new FormSection { Form = form, Title = "Режим работы", Order = 7 };
+                var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
 
-    form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secReceivers, secLoad, secTemp, secMode, secCoeff });
+                form.Sections.AddRange(new[] { secSupply, secCurrent, secSpeed, secReceivers, secLoad, secTemp, secMode, secCoeff });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания обмотки возбуждения
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4362,40 +4366,40 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm74(CatalogDbContext db)
-  {
-    // ---- Форма 74: Карта рабочих режимов цифровых преобразователей угла
-    var form = new Form
-    {
-      Number = "74",
-      Title = "Карта рабочих режимов цифровых преобразователей угла",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm74(CatalogDbContext db)
+        {
+                // ---- Форма 74: Карта рабочих режимов цифровых преобразователей угла
+                var form = new Form
+                {
+                        Number = "74",
+                        Title = "Карта рабочих режимов цифровых преобразователей угла",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
-    var secControl = new FormSection { Form = form, Title = "Параметры управляющих сигналов (опрос)", Order = 2 };
-    var secLogic = new FormSection { Form = form, Title = "Логические уровни", Order = 3 };
-    var secLoad = new FormSection { Form = form, Title = "Параметры нагрузки", Order = 4 };
-    var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Температура", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
+                var secControl = new FormSection { Form = form, Title = "Параметры управляющих сигналов (опрос)", Order = 2 };
+                var secLogic = new FormSection { Form = form, Title = "Логические уровни", Order = 3 };
+                var secLoad = new FormSection { Form = form, Title = "Параметры нагрузки", Order = 4 };
+                var secSpeed = new FormSection { Form = form, Title = "Частота вращения", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Температура", Order = 6 };
 
-    form.Sections.AddRange(new[] { secSupply, secControl, secLogic, secLoad, secSpeed, secEnv });
+                form.Sections.AddRange(new[] { secSupply, secControl, secLogic, secLoad, secSpeed, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Напряжение питания
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4438,48 +4442,48 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Температура окружающей среды", Unit = "°С", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
 
-  // TODO: Form75
+        // TODO: Form75
 
-  // TODO:Form76
+        // TODO:Form76
 
-  private static Form AddForm77(CatalogDbContext db)
-  {
-    // ---- Форма 77: Карта рабочих режимов электромагнитных реле, контакторов,
-    // вакуумных выключателей и переключателей, магнитоуправляемых контактов
-    var form = new Form
-    {
-      Number = "77",
-      Title = "Карта рабочих режимов электромагнитных реле, контакторов, вакуумных выключателей и переключателей, магнитоуправляемых контактов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+        private static Form AddForm77(CatalogDbContext db)
+        {
+                // ---- Форма 77: Карта рабочих режимов электромагнитных реле, контакторов,
+                // вакуумных выключателей и переключателей, магнитоуправляемых контактов
+                var form = new Form
+                {
+                        Number = "77",
+                        Title = "Карта рабочих режимов электромагнитных реле, контакторов, вакуумных выключателей и переключателей, магнитоуправляемых контактов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCoil = new FormSection { Form = form, Title = "Параметры катушки", Order = 1 };
-    var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 2 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
-    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secCoil = new FormSection { Form = form, Title = "Параметры катушки", Order = 1 };
+                var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 2 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
+                var secPower = new FormSection { Form = form, Title = "Мощность", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 5 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
 
-    form.Sections.AddRange(new[] { secCoil, secSwitching, secCurrent, secPower, secLoad, secTiming, secEnv });
+                form.Sections.AddRange(new[] { secCoil, secSwitching, secCurrent, secPower, secLoad, secTiming, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Параметры катушки
         new() { Form = form, Section = secCoil, RowNumber = 1,
@@ -4532,37 +4536,37 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm78(CatalogDbContext db)
-  {
-    // ---- Форма 78: Карта рабочих режимов электромагнитных реле максимального тока и электротепловых токовых реле
-    var form = new Form
-    {
-      Number = "78",
-      Title = "Карта рабочих режимов электромагнитных реле максимального тока и электротепловых токовых реле",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm78(CatalogDbContext db)
+        {
+                // ---- Форма 78: Карта рабочих режимов электромагнитных реле максимального тока и электротепловых токовых реле
+                var form = new Form
+                {
+                        Number = "78",
+                        Title = "Карта рабочих режимов электромагнитных реле максимального тока и электротепловых токовых реле",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secMainCircuit = new FormSection { Form = form, Title = "Режим работы главной цепи", Order = 1 };
-    var secContacts = new FormSection { Form = form, Title = "Режим работы контактов", Order = 2 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 3 };
+                // Секции (логическая группировка параметров)
+                var secMainCircuit = new FormSection { Form = form, Title = "Режим работы главной цепи", Order = 1 };
+                var secContacts = new FormSection { Form = form, Title = "Режим работы контактов", Order = 2 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 3 };
 
-    form.Sections.AddRange(new[] { secMainCircuit, secContacts, secEnv });
+                form.Sections.AddRange(new[] { secMainCircuit, secContacts, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Режим работы главной цепи
         new() { Form = form, Section = secMainCircuit, RowNumber = 1,
@@ -4601,40 +4605,40 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm79(CatalogDbContext db)
-  {
-    // ---- Форма 79: Карта рабочих режимов реле времени
-    var form = new Form
-    {
-      Number = "79",
-      Title = "Карта рабочих режимов реле времени",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm79(CatalogDbContext db)
+        {
+                // ---- Форма 79: Карта рабочих режимов реле времени
+                var form = new Form
+                {
+                        Number = "79",
+                        Title = "Карта рабочих режимов реле времени",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCoil = new FormSection { Form = form, Title = "Параметры катушки", Order = 1 };
-    var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
-    var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 3 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 4 };
-    var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secCoil = new FormSection { Form = form, Title = "Параметры катушки", Order = 1 };
+                var secTiming = new FormSection { Form = form, Title = "Временные параметры", Order = 2 };
+                var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 3 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 4 };
+                var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secCoil, secTiming, secSwitching, secLoad, secReliability, secEnv });
+                form.Sections.AddRange(new[] { secCoil, secTiming, secSwitching, secLoad, secReliability, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Параметры катушки
         new() { Form = form, Section = secCoil, RowNumber = 1,
@@ -4687,41 +4691,41 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm80(CatalogDbContext db)
-  {
-    // ---- Форма 80: Карта рабочих режимов бесконтактных коммутационных устройств
-    var form = new Form
-    {
-      Number = "80",
-      Title = "Карта рабочих режимов бесконтактных коммутационных устройств",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm80(CatalogDbContext db)
+        {
+                // ---- Форма 80: Карта рабочих режимов бесконтактных коммутационных устройств
+                var form = new Form
+                {
+                        Number = "80",
+                        Title = "Карта рабочих режимов бесконтактных коммутационных устройств",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
-    var secControl = new FormSection { Form = form, Title = "Сигнал управления", Order = 2 };
-    var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 3 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка и защита", Order = 4 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 6 };
-    var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 7 };
+                // Секции (логическая группировка параметров)
+                var secSupply = new FormSection { Form = form, Title = "Питание", Order = 1 };
+                var secControl = new FormSection { Form = form, Title = "Сигнал управления", Order = 2 };
+                var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 3 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка и защита", Order = 4 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 5 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 6 };
+                var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 7 };
 
-    form.Sections.AddRange(new[] { secSupply, secControl, secSwitching, secLoad, secPower, secTemp, secCoeff });
+                form.Sections.AddRange(new[] { secSupply, secControl, secSwitching, secLoad, secPower, secTemp, secCoeff });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Питание
         new() { Form = form, Section = secSupply, RowNumber = 1,
@@ -4770,41 +4774,41 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm81(CatalogDbContext db)
-  {
-    // ---- Форма 81: Карта рабочих режимов микровыключателей и микропереключателей,
-    // тумблеров, кнопок, кнопочных, движковых, поворотных и пакетных переключателей
-    var form = new Form
-    {
-      Number = "81",
-      Title = "Карта рабочих режимов микровыключателей и микропереключателей, тумблеров, кнопок, кнопочных, движковых, поворотных и пакетных переключателей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm81(CatalogDbContext db)
+        {
+                // ---- Форма 81: Карта рабочих режимов микровыключателей и микропереключателей,
+                // тумблеров, кнопок, кнопочных, движковых, поворотных и пакетных переключателей
+                var form = new Form
+                {
+                        Number = "81",
+                        Title = "Карта рабочих режимов микровыключателей и микропереключателей, тумблеров, кнопок, кнопочных, движковых, поворотных и пакетных переключателей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secGeneral = new FormSection { Form = form, Title = "Общие параметры", Order = 1 };
-    var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 2 };
-    var secLoad = new FormSection { Form = form, Title = "Параметры нагрузки", Order = 3 };
-    var secMechanical = new FormSection { Form = form, Title = "Механические параметры", Order = 4 };
-    var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 5 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secGeneral = new FormSection { Form = form, Title = "Общие параметры", Order = 1 };
+                var secSwitching = new FormSection { Form = form, Title = "Коммутируемые параметры", Order = 2 };
+                var secLoad = new FormSection { Form = form, Title = "Параметры нагрузки", Order = 3 };
+                var secMechanical = new FormSection { Form = form, Title = "Механические параметры", Order = 4 };
+                var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 5 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
 
-    form.Sections.AddRange(new[] { secGeneral, secSwitching, secLoad, secMechanical, secReliability, secEnv });
+                form.Sections.AddRange(new[] { secGeneral, secSwitching, secLoad, secMechanical, secReliability, secEnv });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Общие параметры
         new() { Form = form, Section = secGeneral, RowNumber = 1,
@@ -4847,42 +4851,42 @@ public static class DatabaseSeeder
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm82(CatalogDbContext db)
-  {
-    // ---- Форма 82: Карта рабочих режимов линейных интегральных стабилизаторов напряжения
-    var form = new Form
-    {
-      Number = "82",
-      Title = "Карта рабочих режимов линейных интегральных стабилизаторов напряжения",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm82(CatalogDbContext db)
+        {
+                // ---- Форма 82: Карта рабочих режимов линейных интегральных стабилизаторов напряжения
+                var form = new Form
+                {
+                        Number = "82",
+                        Title = "Карта рабочих режимов линейных интегральных стабилизаторов напряжения",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secInput = new FormSection { Form = form, Title = "Входное напряжение", Order = 1 };
-    var secControlSupply = new FormSection { Form = form, Title = "Питание схемы управления", Order = 2 };
-    var secOutput = new FormSection { Form = form, Title = "Выходное напряжение", Order = 3 };
-    var secLoad = new FormSection { Form = form, Title = "Ток нагрузки", Order = 4 };
-    var secDivider = new FormSection { Form = form, Title = "Делитель", Order = 5 };
-    var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 6 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
-    var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secInput = new FormSection { Form = form, Title = "Входное напряжение", Order = 1 };
+                var secControlSupply = new FormSection { Form = form, Title = "Питание схемы управления", Order = 2 };
+                var secOutput = new FormSection { Form = form, Title = "Выходное напряжение", Order = 3 };
+                var secLoad = new FormSection { Form = form, Title = "Ток нагрузки", Order = 4 };
+                var secDivider = new FormSection { Form = form, Title = "Делитель", Order = 5 };
+                var secPower = new FormSection { Form = form, Title = "Рассеиваемая мощность", Order = 6 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+                var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
 
-    form.Sections.AddRange(new[] { secInput, secControlSupply, secOutput, secLoad, secDivider, secPower, secEnv, secCoeff });
+                form.Sections.AddRange(new[] { secInput, secControlSupply, secOutput, secLoad, secDivider, secPower, secEnv, secCoeff });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Входное напряжение (первый вход)
         new() { Form = form, Section = secInput, RowNumber = 1,
@@ -4935,42 +4939,42 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm83(CatalogDbContext db)
-  {
-    // ---- Форма 83: Карта рабочих режимов вторичных источников питания
-    var form = new Form
-    {
-      Number = "83",
-      Title = "Карта рабочих режимов вторичных источников питания",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm83(CatalogDbContext db)
+        {
+                // ---- Форма 83: Карта рабочих режимов вторичных источников питания
+                var form = new Form
+                {
+                        Number = "83",
+                        Title = "Карта рабочих режимов вторичных источников питания",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secInput = new FormSection { Form = form, Title = "Входные параметры", Order = 1 };
-    var secOutput = new FormSection { Form = form, Title = "Выходные параметры", Order = 2 };
-    var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 3 };
-    var secProtection = new FormSection { Form = form, Title = "Защита", Order = 4 };
-    var secRipple = new FormSection { Form = form, Title = "Пульсации", Order = 5 };
-    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 6 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 7 };
-    var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
+                // Секции (логическая группировка параметров)
+                var secInput = new FormSection { Form = form, Title = "Входные параметры", Order = 1 };
+                var secOutput = new FormSection { Form = form, Title = "Выходные параметры", Order = 2 };
+                var secLoad = new FormSection { Form = form, Title = "Нагрузка", Order = 3 };
+                var secProtection = new FormSection { Form = form, Title = "Защита", Order = 4 };
+                var secRipple = new FormSection { Form = form, Title = "Пульсации", Order = 5 };
+                var secPower = new FormSection { Form = form, Title = "Мощность", Order = 6 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 7 };
+                var secCoeff = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 8 };
 
-    form.Sections.AddRange(new[] { secInput, secOutput, secLoad, secProtection, secRipple, secPower, secTemp, secCoeff });
+                form.Sections.AddRange(new[] { secInput, secOutput, secLoad, secProtection, secRipple, secPower, secTemp, secCoeff });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Входные параметры
         new() { Form = form, Section = secInput, RowNumber = 1,
@@ -5021,39 +5025,39 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm84(CatalogDbContext db)
-  {
-    // ---- Форма 84: Карта рабочих режимов силовых трансформаторов
-    var form = new Form
-    {
-      Number = "84",
-      Title = "Карта рабочих режимов силовых трансформаторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm84(CatalogDbContext db)
+        {
+                // ---- Форма 84: Карта рабочих режимов силовых трансформаторов
+                var form = new Form
+                {
+                        Number = "84",
+                        Title = "Карта рабочих режимов силовых трансформаторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFrequency = new FormSection { Form = form, Title = "Частота", Order = 1 };
-    var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secFrequency = new FormSection { Form = form, Title = "Частота", Order = 1 };
+                var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 2 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 3 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
 
-    form.Sections.AddRange(new[] { secFrequency, secVoltage, secCurrent, secTemp, secLoad });
+                form.Sections.AddRange(new[] { secFrequency, secVoltage, secCurrent, secTemp, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Частота питающего напряжения
         new() { Form = form, Section = secFrequency, RowNumber = 1,
@@ -5080,39 +5084,39 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm85(CatalogDbContext db)
-  {
-    // ---- Форма 85: Карта рабочих режимов импульсных трансформаторов
-    var form = new Form
-    {
-      Number = "85",
-      Title = "Карта рабочих режимов импульсных трансформаторов",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm85(CatalogDbContext db)
+        {
+                // ---- Форма 85: Карта рабочих режимов импульсных трансформаторов
+                var form = new Form
+                {
+                        Number = "85",
+                        Title = "Карта рабочих режимов импульсных трансформаторов",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secCurrent = new FormSection { Form = form, Title = "Импульсный ток", Order = 1 };
-    var secPulseParams = new FormSection { Form = form, Title = "Параметры импульса на первичной обмотке", Order = 2 };
-    var secVoltSec = new FormSection { Form = form, Title = "Произведение U·τ", Order = 3 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secCurrent = new FormSection { Form = form, Title = "Импульсный ток", Order = 1 };
+                var secPulseParams = new FormSection { Form = form, Title = "Параметры импульса на первичной обмотке", Order = 2 };
+                var secVoltSec = new FormSection { Form = form, Title = "Произведение U·τ", Order = 3 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
 
-    form.Sections.AddRange(new[] { secCurrent, secPulseParams, secVoltSec, secEnv, secLoad });
+                form.Sections.AddRange(new[] { secCurrent, secPulseParams, secVoltSec, secEnv, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Импульсный ток
         new() { Form = form, Section = secCurrent, RowNumber = 1,
@@ -5139,39 +5143,39 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm86(CatalogDbContext db)
-  {
-    // ---- Форма 86: Карта рабочих режимов дросселей фильтров
-    var form = new Form
-    {
-      Number = "86",
-      Title = "Карта рабочих режимов дросселей фильтров",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm86(CatalogDbContext db)
+        {
+                // ---- Форма 86: Карта рабочих режимов дросселей фильтров
+                var form = new Form
+                {
+                        Number = "86",
+                        Title = "Карта рабочих режимов дросселей фильтров",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secFreq = new FormSection { Form = form, Title = "Частота", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 3 };
-    var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
+                // Секции (логическая группировка параметров)
+                var secFreq = new FormSection { Form = form, Title = "Частота", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secVoltage = new FormSection { Form = form, Title = "Напряжение", Order = 3 };
+                var secTemp = new FormSection { Form = form, Title = "Температура", Order = 4 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 5 };
 
-    form.Sections.AddRange(new[] { secFreq, secCurrent, secVoltage, secTemp, secLoad });
+                form.Sections.AddRange(new[] { secFreq, secCurrent, secVoltage, secTemp, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Частота тока
         new() { Form = form, Section = secFreq, RowNumber = 1,
@@ -5202,40 +5206,40 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
-  private static Form AddForm87(CatalogDbContext db)
-  {
-    // ---- Форма 87: Карта рабочих режимов предохранителей и держателей предохранителей
-    var form = new Form
-    {
-      Number = "87",
-      Title = "Карта рабочих режимов предохранителей и держателей предохранителей",
-      IsUniversal = false,
-      ColumnGrouping = ColumnGrouping.PerRegimeGroup
-    };
+                db.Forms.Add(form);
+                return (form);
+        }
+        private static Form AddForm87(CatalogDbContext db)
+        {
+                // ---- Форма 87: Карта рабочих режимов предохранителей и держателей предохранителей
+                var form = new Form
+                {
+                        Number = "87",
+                        Title = "Карта рабочих режимов предохранителей и держателей предохранителей",
+                        IsUniversal = false,
+                        ColumnGrouping = ColumnGrouping.PerRegimeGroup
+                };
 
-    // Секции (логическая группировка параметров)
-    var secGeneral = new FormSection { Form = form, Title = "Общие параметры", Order = 1 };
-    var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
-    var secTime = new FormSection { Form = form, Title = "Временные параметры", Order = 3 };
-    var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 4 };
-    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
-    var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
+                // Секции (логическая группировка параметров)
+                var secGeneral = new FormSection { Form = form, Title = "Общие параметры", Order = 1 };
+                var secCurrent = new FormSection { Form = form, Title = "Ток", Order = 2 };
+                var secTime = new FormSection { Form = form, Title = "Временные параметры", Order = 3 };
+                var secReliability = new FormSection { Form = form, Title = "Надёжность", Order = 4 };
+                var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+                var secLoad = new FormSection { Form = form, Title = "Коэффициент нагрузки", Order = 6 };
 
-    form.Sections.AddRange(new[] { secGeneral, secCurrent, secTime, secReliability, secEnv, secLoad });
+                form.Sections.AddRange(new[] { secGeneral, secCurrent, secTime, secReliability, secEnv, secLoad });
 
-    var parameters = new List<FormParameter>
+                var parameters = new List<FormParameter>
     {
         // ---- Общие параметры
         new() { Form = form, Section = secGeneral, RowNumber = 1,
@@ -5268,18 +5272,18 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
     };
 
-    form.Parameters.AddRange(parameters);
+                form.Parameters.AddRange(parameters);
 
-    // Добавляем два столбца: "в схеме" и "по НТД"
-    form.ValueColumns.AddRange(new[]
-    {
+                // Добавляем два столбца: "в схеме" и "по НТД"
+                form.ValueColumns.AddRange(new[]
+                {
         new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
         new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
     });
 
-    db.Forms.Add(form);
-    return (form);
-  }
+                db.Forms.Add(form);
+                return (form);
+        }
 
 
 

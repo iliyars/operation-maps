@@ -1,0 +1,206 @@
+Folder PATH listing for volume Data
+Volume serial number is 08E4-C6D1
+D:.
+¦   DependencyInjection.cs
+¦   OperationMaps.Infrastructure.csproj
+¦   tree.txt
+¦   
++---bin
+¦   L---Debug
+¦       L---net10.0
+¦           ¦   OperationMaps.Application.dll
+¦           ¦   OperationMaps.Application.pdb
+¦           ¦   OperationMaps.Domain.dll
+¦           ¦   OperationMaps.Domain.pdb
+¦           ¦   OperationMaps.Infrastructure.deps.json
+¦           ¦   OperationMaps.Infrastructure.dll
+¦           ¦   OperationMaps.Infrastructure.pdb
+¦           ¦   OperationMaps.Infrastructure.runtimeconfig.json
+¦           ¦   
+¦           +---BuildHost-net472
+¦           ¦   ¦   Microsoft.Build.Locator.dll
+¦           ¦   ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe
+¦           ¦   ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.exe.config
+¦           ¦   ¦   Microsoft.IO.Redist.dll
+¦           ¦   ¦   Newtonsoft.Json.dll
+¦           ¦   ¦   System.Buffers.dll
+¦           ¦   ¦   System.Collections.Immutable.dll
+¦           ¦   ¦   System.CommandLine.dll
+¦           ¦   ¦   System.Memory.dll
+¦           ¦   ¦   System.Numerics.Vectors.dll
+¦           ¦   ¦   System.Runtime.CompilerServices.Unsafe.dll
+¦           ¦   ¦   System.Threading.Tasks.Extensions.dll
+¦           ¦   ¦   
+¦           ¦   +---cs
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---de
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---es
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---fr
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---it
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---ja
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---ko
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---pl
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---pt-BR
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---ru
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---tr
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   +---zh-Hans
+¦           ¦   ¦       System.CommandLine.resources.dll
+¦           ¦   ¦       
+¦           ¦   L---zh-Hant
+¦           ¦           System.CommandLine.resources.dll
+¦           ¦           
+¦           L---BuildHost-netcore
+¦               ¦   Microsoft.Build.Locator.dll
+¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.deps.json
+¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.dll
+¦               ¦   Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.runtimeconfig.json
+¦               ¦   Newtonsoft.Json.dll
+¦               ¦   System.Collections.Immutable.dll
+¦               ¦   System.CommandLine.dll
+¦               ¦   
+¦               +---cs
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---de
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---es
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---fr
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---it
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---ja
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---ko
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---pl
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---pt-BR
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---ru
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---tr
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               +---zh-Hans
+¦               ¦       System.CommandLine.resources.dll
+¦               ¦       
+¦               L---zh-Hant
+¦                       System.CommandLine.resources.dll
+¦                       
++---Importing
+¦       Pe3XmlImporter.cs
+¦       PositionExpander.cs
+¦       
++---obj
+¦   ¦   OperationMaps.Infrastructure.csproj.nuget.dgspec.json
+¦   ¦   OperationMaps.Infrastructure.csproj.nuget.g.props
+¦   ¦   OperationMaps.Infrastructure.csproj.nuget.g.targets
+¦   ¦   project.assets.json
+¦   ¦   project.nuget.cache
+¦   ¦   
+¦   L---Debug
+¦       L---net10.0
+¦           ¦   .NETCoreApp,Version=v10.0.AssemblyAttributes.cs
+¦           ¦   Operatio.2F30F70D.Up2Date
+¦           ¦   OperationMaps.Infrastructure.AssemblyInfo.cs
+¦           ¦   OperationMaps.Infrastructure.AssemblyInfoInputs.cache
+¦           ¦   OperationMaps.Infrastructure.assets.cache
+¦           ¦   OperationMaps.Infrastructure.csproj.AssemblyReference.cache
+¦           ¦   OperationMaps.Infrastructure.csproj.BuildWithSkipAnalyzers
+¦           ¦   OperationMaps.Infrastructure.csproj.CoreCompileInputs.cache
+¦           ¦   OperationMaps.Infrastructure.csproj.FileListAbsolute.txt
+¦           ¦   OperationMaps.Infrastructure.dll
+¦           ¦   OperationMaps.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+¦           ¦   OperationMaps.Infrastructure.genruntimeconfig.cache
+¦           ¦   OperationMaps.Infrastructure.GlobalUsings.g.cs
+¦           ¦   OperationMaps.Infrastructure.pdb
+¦           ¦   OperationMaps.Infrastructure.sourcelink.json
+¦           ¦   
+¦           +---ref
+¦           ¦       OperationMaps.Infrastructure.dll
+¦           ¦       
+¦           L---refint
+¦                   OperationMaps.Infrastructure.dll
+¦                   
++---Persistence
+¦   ¦   CatalogDbContext.cs
+¦   ¦   CatalogDbContextFactory.cs
+¦   ¦   DatabaseSeeder.cs
+¦   ¦   ProjectDbContext.cs
+¦   ¦   ProjectDbContextFactory.cs
+¦   ¦   
+¦   +---Configuration
+¦   ¦       CatalogConfiguration.cs
+¦   ¦       Form4NoteConfiguration.cs
+¦   ¦       FormConfiguration.cs
+¦   ¦       ProjectConfiguration.cs
+¦   ¦       UserConfiguration.cs
+¦   ¦       
+¦   L---Migrations
+¦       +---Catalog
+¦       ¦       20260601120540_InitialCatalog.cs
+¦       ¦       20260601120540_InitialCatalog.Designer.cs
+¦       ¦       20260601125521_AddComponentOwnForm.cs
+¦       ¦       20260601125521_AddComponentOwnForm.Designer.cs
+¦       ¦       20260602132122_AddFormParameterFormula.cs
+¦       ¦       20260602132122_AddFormParameterFormula.Designer.cs
+¦       ¦       20260602203000_AddFormParameterIsRequired.cs
+¦       ¦       20260602203000_AddFormParameterIsRequired.Designer.cs
+¦       ¦       CatalogDbContextModelSnapshot.cs
+¦       ¦       
+¦       L---Project
+¦               20260530234046_InitialProject.cs
+¦               20260530234046_InitialProject.Designer.cs
+¦               ProjectDbContextModelSnapshot.cs
+¦               
++---Services
+¦       ComponentMatcher.cs
+¦       ComponentNameParser.cs
+¦       
+L---Word
+    ¦   WordDocumentHelper.cs
+    ¦   WordFormMap.cs
+    ¦   WordFormMapLoader.cs
+    ¦   WordService.cs
+    ¦   
+    L---Resources
+        +---Form4
+        ¦       map.json
+        ¦       
+        +---Form67
+        ¦       map.json
+        ¦       
+        L---Form68
+                map.json
+                

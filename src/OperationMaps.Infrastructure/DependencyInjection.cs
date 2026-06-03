@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Services;
 using OperationMaps.Infrastructure.Importing;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Services;
@@ -27,6 +28,8 @@ public static class DependencyInjection
     services.AddSingleton<IComponentListImporter, Pe3XmlImporter>();
     services.AddScoped<IComponentNameParser, ComponentNameParser>();
     services.AddScoped<IComponentMatcher, ComponentMatcher>();
+
+
 
     return services;
 

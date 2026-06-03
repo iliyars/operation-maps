@@ -134,8 +134,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand]
     private void SelectColumn(FormColumnVm column)
     {
-      if (SelectedColumn is not null)
-        SelectedColumn.IsSelected = false;
+      if (SelectedItem is not null)
+        SelectedItem.IsSelected = false;
 
       SelectedColumn = column;
       // Find and select the list item

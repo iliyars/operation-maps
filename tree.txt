@@ -276,6 +276,7 @@ C:.
 ¦   ¦   ¦   ¦       FormEntities.cs
 ¦   ¦   ¦   ¦       
 ¦   ¦   ¦   +---Projects
+¦   ¦   ¦   ¦       Form4Note.cs
 ¦   ¦   ¦   ¦       ProjectEntities.cs
 ¦   ¦   ¦   ¦       
 ¦   ¦   ¦   L---Users
@@ -465,27 +466,36 @@ C:.
 ¦   ¦   ¦                   OperationMaps.Infrastructure.dll
 ¦   ¦   ¦                   
 ¦   ¦   +---Persistence
+¦   ¦   ¦   ¦   CatalogDbContext.cs
+¦   ¦   ¦   ¦   CatalogDbContextFactory.cs
 ¦   ¦   ¦   ¦   DatabaseSeeder.cs
-¦   ¦   ¦   ¦   OperationMapsDbContext.cs
-¦   ¦   ¦   ¦   OperationMapsDbContextFactory.cs
+¦   ¦   ¦   ¦   ProjectDbContext.cs
+¦   ¦   ¦   ¦   ProjectDbContextFactory.cs
 ¦   ¦   ¦   ¦   
 ¦   ¦   ¦   +---Configuration
 ¦   ¦   ¦   ¦       CatalogConfiguration.cs
+¦   ¦   ¦   ¦       Form4NoteConfiguration.cs
 ¦   ¦   ¦   ¦       FormConfiguration.cs
 ¦   ¦   ¦   ¦       ProjectConfiguration.cs
 ¦   ¦   ¦   ¦       UserConfiguration.cs
 ¦   ¦   ¦   ¦       
 ¦   ¦   ¦   L---Migrations
-¦   ¦   ¦           20260525215600_InitialCreate.cs
-¦   ¦   ¦           20260525215600_InitialCreate.Designer.cs
-¦   ¦   ¦           20260526192954_AddDetectedCategory.cs
-¦   ¦   ¦           20260526192954_AddDetectedCategory.Designer.cs
-¦   ¦   ¦           20260527120620_AddNotes.cs
-¦   ¦   ¦           20260527120620_AddNotes.Designer.cs
-¦   ¦   ¦           20260527125958_AddNotesAndCellNotes.cs
-¦   ¦   ¦           20260527125958_AddNotesAndCellNotes.Designer.cs
-¦   ¦   ¦           OperationMapsDbContextModelSnapshot.cs
-¦   ¦   ¦           
+¦   ¦   ¦       +---Catalog
+¦   ¦   ¦       ¦       20260601120540_InitialCatalog.cs
+¦   ¦   ¦       ¦       20260601120540_InitialCatalog.Designer.cs
+¦   ¦   ¦       ¦       20260601125521_AddComponentOwnForm.cs
+¦   ¦   ¦       ¦       20260601125521_AddComponentOwnForm.Designer.cs
+¦   ¦   ¦       ¦       20260602132122_AddFormParameterFormula.cs
+¦   ¦   ¦       ¦       20260602132122_AddFormParameterFormula.Designer.cs
+¦   ¦   ¦       ¦       20260602203000_AddFormParameterIsRequired.cs
+¦   ¦   ¦       ¦       20260602203000_AddFormParameterIsRequired.Designer.cs
+¦   ¦   ¦       ¦       CatalogDbContextModelSnapshot.cs
+¦   ¦   ¦       ¦       
+¦   ¦   ¦       L---Project
+¦   ¦   ¦               20260530234046_InitialProject.cs
+¦   ¦   ¦               20260530234046_InitialProject.Designer.cs
+¦   ¦   ¦               ProjectDbContextModelSnapshot.cs
+¦   ¦   ¦               
 ¦   ¦   L---Services
 ¦   ¦           ComponentMatcher.cs
 ¦   ¦           ComponentNameParser.cs
@@ -503,6 +513,7 @@ C:.
 ¦       ¦   L---Debug
 ¦       ¦       L---net10.0-windows
 ¦       ¦           ¦   appsettings.json
+¦       ¦           ¦   catalog.db
 ¦       ¦           ¦   ClosedXML.dll
 ¦       ¦           ¦   ClosedXML.Parser.dll
 ¦       ¦           ¦   CommunityToolkit.Mvvm.dll
@@ -570,6 +581,10 @@ C:.
 ¦       ¦           ¦       operationmaps-20260527.log
 ¦       ¦           ¦       operationmaps-20260528.log
 ¦       ¦           ¦       operationmaps-20260529.log
+¦       ¦           ¦       operationmaps-20260601.log
+¦       ¦           ¦       operationmaps-20260601_001.log
+¦       ¦           ¦       operationmaps-20260602.log
+¦       ¦           ¦       operationmaps-20260603.log
 ¦       ¦           ¦       
 ¦       ¦           L---runtimes
 ¦       ¦               +---browser-wasm
@@ -665,7 +680,72 @@ C:.
 ¦       ¦                   L---native
 ¦       ¦                           e_sqlite3.dll
 ¦       ¦                           
+¦       +---Features
+¦       ¦   +---Catalog
+¦       ¦   ¦       CatalogViewModel.cs
+¦       ¦   ¦       ComponentTypeVm.cs
+¦       ¦   ¦       FamilyNoteVm.cs
+¦       ¦   ¦       FamilyVm.cs
+¦       ¦   ¦       NtdRowVm.cs
+¦       ¦   ¦       
+¦       ¦   +---Components
+¦       ¦   ¦   ¦   ComponentMatchStatus.cs
+¦       ¦   ¦   ¦   ComponentsView.xaml
+¦       ¦   ¦   ¦   ComponentsView.xaml.cs
+¦       ¦   ¦   ¦   ComponentsViewModel.cs
+¦       ¦   ¦   ¦   NtdParameterVm.cs
+¦       ¦   ¦   ¦   ProjectComponentVm.cs
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   L---Commands
+¦       ¦   ¦           MergeComponentsCommand.cs
+¦       ¦   ¦           PositionComparer.cs
+¦       ¦   ¦           SplitComponentCommand.cs
+¦       ¦   ¦           
+¦       ¦   +---Form4
+¦       ¦   ¦       Form4Group.cs
+¦       ¦   ¦       Form4NoteVm.cs
+¦       ¦   ¦       Form4View.xaml
+¦       ¦   ¦       Form4View.xaml.cs
+¦       ¦   ¦       Form4ViewModel.cs
+¦       ¦   ¦       ParameterRowVm.cs
+¦       ¦   ¦       
+¦       ¦   +---OwnForm
+¦       ¦   ¦   ¦   ColumnListItemVm.cs
+¦       ¦   ¦   ¦   FormColumnVm.cs
+¦       ¦   ¦   ¦   FormParameterRowVm.cs
+¦       ¦   ¦   ¦   OwnFormNoteVm.cs
+¦       ¦   ¦   ¦   OwnFormView.xaml
+¦       ¦   ¦   ¦   OwnFormView.xaml.cs
+¦       ¦   ¦   ¦   OwnFormViewModel.cs
+¦       ¦   ¦   ¦   ParameterDetailVm.cs
+¦       ¦   ¦   ¦   
+¦       ¦   ¦   +---Commands
+¦       ¦   ¦   ¦       MergeColumnsCommand.cs
+¦       ¦   ¦   ¦       MultiSplitColumnCommand.cs
+¦       ¦   ¦   ¦       SplitColumnCommand.cs
+¦       ¦   ¦   ¦       
+¦       ¦   ¦   L---SplitDialog
+¦       ¦   ¦           PositionItemVm.cs
+¦       ¦   ¦           SplitDialog.xaml
+¦       ¦   ¦           SplitDialog.xaml.cs
+¦       ¦   ¦           SplitDialogViewModel.cs
+¦       ¦   ¦           SplitGroupVm.cs
+¦       ¦   ¦           
+¦       ¦   +---Unresolved
+¦       ¦   ¦       UnresolvedView.xaml
+¦       ¦   ¦       UnresolvedView.xaml.cs
+¦       ¦   ¦       UnresolvedViewModel.cs
+¦       ¦   ¦       
+¦       ¦   L---Welcome
+¦       ¦           WelcomeView.xaml
+¦       ¦           WelcomeView.xaml.cs
+¦       ¦           WelcomeViewModel.cs
+¦       ¦           
 ¦       +---Infrastructure
+¦       ¦   +---Commands
+¦       ¦   ¦       IUndoableCommand.cs
+¦       ¦   ¦       UndoRedoStack.cs
+¦       ¦   ¦       
 ¦       ¦   +---Navigation
 ¦       ¦   ¦       INavigationService.cs
 ¦       ¦   ¦       IScreen.cs
@@ -673,7 +753,7 @@ C:.
 ¦       ¦   ¦       NavigationLifecycle.cs
 ¦       ¦   ¦       NavigationService.cs
 ¦       ¦   ¦       
-¦       ¦   +---ViewLoacation
+¦       ¦   +---ViewLocation
 ¦       ¦   ¦       ViewTemplateRegistrar.cs
 ¦       ¦   ¦       
 ¦       ¦   L---ViewModels
@@ -688,21 +768,63 @@ C:.
 ¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_1laapu3o_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_1laapu3o_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_1laapu3o_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_k14qzuca_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_k14qzuca_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_k14qzuca_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.csproj.nuget.g.targets
+¦       ¦   ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.csproj.nuget.dgspec.json
+¦       ¦   ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.csproj.nuget.g.props
+¦       ¦   ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.csproj.nuget.g.targets
 ¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.dgspec.json
 ¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.g.props
 ¦       ¦   ¦   OperationMaps.Wpf_w1d0ws4v_wpftmp.csproj.nuget.g.targets
@@ -736,6 +858,13 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf.pdb
 ¦       ¦           ¦   OperationMaps.Wpf.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_01whyabl_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.assets.cache
@@ -743,6 +872,31 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_0qts0dpt_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_131ch2c1_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_1laapu3o_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_2lpkrwqf_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_35ec1jkt_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_3b0ireyj_wpftmp.assets.cache
@@ -781,6 +935,33 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_5jfjrau4_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_5n23s2tk_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_akyed15k_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_bacq2vy3_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_belg5bna_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.assets.cache
@@ -788,6 +969,37 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_bfg0fxkm_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_bfiru3rd_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_bh5bdjri_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_cnxg30tu_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_cqajimcv_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_d1afgw0q_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_d3a3bq1i_wpftmp.assets.cache
@@ -808,6 +1020,31 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_dok4odsg_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_dqpnt2vw_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_drtnu0nn_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_ds54h2h5_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_e2tl4yo3_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_ehsiwauz_wpftmp.assets.cache
@@ -820,12 +1057,38 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_f1mxn4rd_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_fddpzl2m_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_ffjwrdks_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_gj2tj1ui_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.assets.cache
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_gpf1dqph_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_gtkr3r1u_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_h4bpcvol_wpftmp.assets.cache
@@ -844,6 +1107,18 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_hhtzskto_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_hnmw0fey_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_i35m45ck_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_iu4sbdyo_wpftmp.assets.cache
@@ -856,6 +1131,30 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_iu5sn0bn_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_jk4x4q1c_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_jqchyc5k_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_k14qzuca_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_k2p2iqbx_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_lutcyy1z_wpftmp.assets.cache
@@ -870,6 +1169,7 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_m0nkwjkt_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.cache
 ¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.i.cache
+¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.i.lref
 ¦       ¦           ¦   OperationMaps.Wpf_MarkupCompile.lref
 ¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_mrwpn1s2_wpftmp.AssemblyInfoInputs.cache
@@ -884,6 +1184,40 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_mubu0nmb_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_myph1445_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_nrpsad0y_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_ojqe1ukp_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_oy4hdkho_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_pj0aj1qf_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.assets.cache
@@ -891,6 +1225,40 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_pjxw2th4_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_pnvyhaen_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_priajsgm_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_pyaiyqxo_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_qfayjf24_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_qilwbhtl_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_reyt53jd_wpftmp.assets.cache
@@ -905,6 +1273,12 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_rllrlgpk_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_rs2nqc21_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_s4xrzdhc_wpftmp.assets.cache
@@ -918,12 +1292,38 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_s5qs3bzt_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_sgnc1mxc_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.assets.cache
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_srdfb1ec_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_svvpjale_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_sz0erp5t_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_tqwulhzj_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_u2rm5fyb_wpftmp.assets.cache
@@ -955,6 +1355,19 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_w42sbwow_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_wyprzhgr_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_xfajwjnq_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_xmpp10jb_wpftmp.assets.cache
@@ -974,6 +1387,19 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_ymkliber_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_yqaveyx5_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_z5zt01ox_wpftmp.sourcelink.json
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.AssemblyInfo.cs
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.AssemblyInfoInputs.cache
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.assets.cache
@@ -981,7 +1407,45 @@ C:.
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.GlobalUsings.g.cs
 ¦       ¦           ¦   OperationMaps.Wpf_zhagucnj_wpftmp.sourcelink.json
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.AssemblyInfo.cs
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.AssemblyInfoInputs.cache
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.assets.cache
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.csproj.BuildWithSkipAnalyzers
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.GeneratedMSBuildEditorConfig.editorconfig
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.GlobalUsings.g.cs
+¦       ¦           ¦   OperationMaps.Wpf_zns1lcld_wpftmp.sourcelink.json
 ¦       ¦           ¦   
+¦       ¦           +---Features
+¦       ¦           ¦   +---Components
+¦       ¦           ¦   ¦       ComponentsView.baml
+¦       ¦           ¦   ¦       ComponentsView.g.cs
+¦       ¦           ¦   ¦       ComponentsView.g.i.cs
+¦       ¦           ¦   ¦       
+¦       ¦           ¦   +---Form4
+¦       ¦           ¦   ¦       Form4View.baml
+¦       ¦           ¦   ¦       Form4View.g.cs
+¦       ¦           ¦   ¦       Form4View.g.i.cs
+¦       ¦           ¦   ¦       
+¦       ¦           ¦   +---OwnForm
+¦       ¦           ¦   ¦   ¦   OwnFormView.baml
+¦       ¦           ¦   ¦   ¦   OwnFormView.g.cs
+¦       ¦           ¦   ¦   ¦   OwnFormView.g.i.cs
+¦       ¦           ¦   ¦   ¦   
+¦       ¦           ¦   ¦   L---SplitDialog
+¦       ¦           ¦   ¦           SplitDialog.baml
+¦       ¦           ¦   ¦           SplitDialog.g.cs
+¦       ¦           ¦   ¦           SplitDialog.g.i.cs
+¦       ¦           ¦   ¦           
+¦       ¦           ¦   +---Unresolved
+¦       ¦           ¦   ¦       UnresolvedView.baml
+¦       ¦           ¦   ¦       UnresolvedView.g.cs
+¦       ¦           ¦   ¦       UnresolvedView.g.i.cs
+¦       ¦           ¦   ¦       
+¦       ¦           ¦   L---Welcome
+¦       ¦           ¦           WelcomeView.baml
+¦       ¦           ¦           WelcomeView.g.cs
+¦       ¦           ¦           WelcomeView.g.i.cs
+¦       ¦           ¦           
 ¦       ¦           +---Infrastructure
 ¦       ¦           ¦       MainWindow.g.cs
 ¦       ¦           ¦       MainWindow.g.i.cs
@@ -998,8 +1462,19 @@ C:.
 ¦       ¦           ¦       OperationMaps.Wpf.dll
 ¦       ¦           ¦       
 ¦       ¦           +---Shared
-¦       ¦           ¦   L---Converters
-¦       ¦           ¦           Converters.baml
+¦       ¦           ¦   ¦   AppStyles.baml
+¦       ¦           ¦   ¦   
+¦       ¦           ¦   +---Converters
+¦       ¦           ¦   +---Styles
+¦       ¦           ¦   ¦       ButtonStyles.baml
+¦       ¦           ¦   ¦       ConverterStyles.baml
+¦       ¦           ¦   ¦       InputStyles.baml
+¦       ¦           ¦   ¦       ListStyles.baml
+¦       ¦           ¦   ¦       TextStyles.baml
+¦       ¦           ¦   ¦       
+¦       ¦           ¦   L---Themes
+¦       ¦           ¦           DarkTheme.baml
+¦       ¦           ¦           LightTheme.baml
 ¦       ¦           ¦           
 ¦       ¦           +---Shell
 ¦       ¦           ¦   ¦   ShellView.baml
@@ -1008,18 +1483,12 @@ C:.
 ¦       ¦           ¦   ¦   
 ¦       ¦           ¦   L---Features
 ¦       ¦           ¦       +---Components
-¦       ¦           ¦       ¦       ComponentsView.baml
-¦       ¦           ¦       ¦       ComponentsView.g.cs
 ¦       ¦           ¦       ¦       ComponentsView.g.i.cs
 ¦       ¦           ¦       ¦       
 ¦       ¦           ¦       +---Unresolved
-¦       ¦           ¦       ¦       UnresolvedView.baml
-¦       ¦           ¦       ¦       UnresolvedView.g.cs
 ¦       ¦           ¦       ¦       UnresolvedView.g.i.cs
 ¦       ¦           ¦       ¦       
 ¦       ¦           ¦       L---Welcome
-¦       ¦           ¦               WelcomeView.baml
-¦       ¦           ¦               WelcomeView.g.cs
 ¦       ¦           ¦               WelcomeView.g.i.cs
 ¦       ¦           ¦               
 ¦       ¦           L---Views
@@ -1028,46 +1497,43 @@ C:.
 ¦       ¦                   ShellView.g.i.cs
 ¦       ¦                   WelcomeView.g.i.cs
 ¦       ¦                   
-¦       +---Service
+¦       +---Services
 ¦       ¦       FilePicker.cs
 ¦       ¦       
 ¦       +---Shared
-¦       ¦   L---Converters
-¦       ¦           BoolToNavFgConverter.cs
-¦       ¦           Converters.xaml
+¦       ¦   ¦   AppStyles.xaml
+¦       ¦   ¦   
+¦       ¦   +---Converters
+¦       ¦   ¦       BoolToNavFgConverter.cs
+¦       ¦   ¦       CornerVisibilityConverter.cs
+¦       ¦   ¦       FractionToWidthConverter .cs
+¦       ¦   ¦       InverseBoolToVisibilityConverter.cs
+¦       ¦   ¦       NotNullToVisibilityConverter.cs
+¦       ¦   ¦       NullToVisibilityConverter.cs
+¦       ¦   ¦       
+¦       ¦   +---Styles
+¦       ¦   ¦       ButtonStyles.xaml
+¦       ¦   ¦       ConverterStyles.xaml
+¦       ¦   ¦       InputStyles.xaml
+¦       ¦   ¦       ListStyles.xaml
+¦       ¦   ¦       TextStyles.xaml
+¦       ¦   ¦       
+¦       ¦   L---Themes
+¦       ¦           DarkTheme.xaml
+¦       ¦           LightTheme.xaml
+¦       ¦           ThemeManager.cs
 ¦       ¦           
 ¦       +---Shell
-¦       ¦   ¦   NavItemTemplateSelector.cs
-¦       ¦   ¦   NavItemViewModel.cs
-¦       ¦   ¦   ShellView.xaml
-¦       ¦   ¦   ShellView.xaml.cs
-¦       ¦   ¦   ShellViewModel.cs
-¦       ¦   ¦   
-¦       ¦   L---Features
-¦       ¦       +---Catalog
-¦       ¦       ¦       CatalogViewModel.cs
-¦       ¦       ¦       
-¦       ¦       +---Components
-¦       ¦       ¦       ComponentsView.xaml
-¦       ¦       ¦       ComponentsView.xaml.cs
-¦       ¦       ¦       ComponentsViewModel.cs
-¦       ¦       ¦       
-¦       ¦       +---Unresolved
-¦       ¦       ¦       UnresolvedView.xaml
-¦       ¦       ¦       UnresolvedView.xaml.cs
-¦       ¦       ¦       UnresolvedViewModel.cs
-¦       ¦       ¦       
-¦       ¦       L---Welcome
-¦       ¦               WelcomeView.xaml
-¦       ¦               WelcomeView.xaml.cs
-¦       ¦               WelcomeViewModel.cs
-¦       ¦               
+¦       ¦       NavItemTemplateSelector.cs
+¦       ¦       NavItemViewModel.cs
+¦       ¦       ShellView.xaml
+¦       ¦       ShellView.xaml.cs
+¦       ¦       ShellViewModel.cs
+¦       ¦       
+¦       +---Stores
+¦       ¦       ProjectStore.cs
+¦       ¦       
 ¦       L---ViewModels
-¦               ComponentTypeVm.cs
-¦               FamilyNoteVm.cs
-¦               FamilyVm.cs
-¦               NtdRowVm.cs
-¦               
 L---tests
     L---OperationMaps.Tests
         ¦   OperationMaps.Tests.csproj

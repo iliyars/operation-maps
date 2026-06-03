@@ -9,6 +9,8 @@ namespace OperationMaps.Wpf.Shell
 {
   public sealed partial class NavItemViewModel : ObservableObject
   {
+
+    public int? FormId { get; init; }
     // ── Display ──────────────────────────────────────────────────────────────
 
     [ObservableProperty] private string _label = string.Empty;

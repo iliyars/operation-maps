@@ -6,94 +6,15 @@
              xmlns:comp="clr-namespace:OperationMaps.Wpf.Features.Components"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Form4"
              mc:Ignorable="d"
-             Background="White">
+             Background="{DynamicResource BgAppBrush}">
   <UserControl.Resources>
-
-    <!-- Section header style -->
-    <Style x:Key="SectionHeader"
-           TargetType="TextBlock">
-      <Setter Property="FontSize"
-              Value="10"/>
-      <Setter Property="FontWeight"
-              Value="SemiBold"/>
-      <Setter Property="Foreground"
-              Value="#888888"/>
-      <Setter Property="Margin"
-              Value="0,16,0,4"/>
+    <Style TargetType="ItemsControl">
+      <Setter Property="FocusVisualStyle"
+              Value="{x:Null}"/>
+      <Setter Property="Focusable"
+              Value="False"/>
     </Style>
-
-    <!-- Parameter label style -->
-    <Style x:Key="ParamLabel"
-           TargetType="TextBlock">
-      <Setter Property="FontSize"
-              Value="12"/>
-      <Setter Property="Foreground"
-              Value="#666666"/>
-      <Setter Property="TextWrapping"
-              Value="Wrap"/>
-      <Setter Property="Margin"
-              Value="0,8,0,1"/>
-    </Style>
-
-    <!-- Parameter value style -->
-    <Style x:Key="ParamValue"
-           TargetType="TextBlock">
-      <Setter Property="FontSize"
-              Value="14"/>
-      <Setter Property="FontWeight"
-              Value="Medium"/>
-      <Setter Property="FontFamily"
-              Value="Consolas"/>
-      <Setter Property="Foreground"
-              Value="#2B579A"/>
-    </Style>
-
-    <!-- List item style -->
-    <Style TargetType="ListViewItem">
-      <Setter Property="HorizontalContentAlignment"
-              Value="Stretch"/>
-      <Setter Property="Padding"
-              Value="0"/>
-      <Setter Property="BorderThickness"
-              Value="0,0,0,1"/>
-      <Setter Property="BorderBrush"
-              Value="#F0F0F0"/>
-      <Setter Property="Background"
-              Value="Transparent"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="ListViewItem">
-            <Border x:Name="Bd"
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}">
-              <ContentPresenter/>
-            </Border>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsMouseOver"
-                       Value="True">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#F5F7FF"/>
-              </Trigger>
-              <Trigger Property="IsSelected"
-                       Value="True">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#EBF0FB"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
-        <Style TargetType="ItemsControl">
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Focusable"        Value="False"/>
-        </Style>
-
-    </UserControl.Resources>
+  </UserControl.Resources>
 
   <Grid>
     <Grid.RowDefinitions>
@@ -103,19 +24,15 @@
 
     <!-- Header -->
     <Border Grid.Row="0"
-            Background="#FAFAFA"
-            BorderBrush="#EEEEEE"
+            Background="{DynamicResource BgPanelBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}"
             BorderThickness="0,0,0,1"
             Padding="16,10">
       <StackPanel>
         <TextBlock Text="Форма 4"
-                   FontSize="15"
-                   FontWeight="SemiBold"
-                   Foreground="#1A1A2E"/>
+                   Style="{StaticResource TitleText}"/>
         <TextBlock Text="Карта оценки номенклатуры ЭРИ"
-                   FontSize="11"
-                   Foreground="#888888"
-                   Margin="0,2,0,0"/>
+                   Style="{StaticResource SubtitleText}"/>
       </StackPanel>
     </Border>
 
@@ -125,8 +42,8 @@
                 HorizontalAlignment="Center"
                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
       <TextBlock Text="Загрузка..."
-                 FontSize="14"
-                 Foreground="#AAAAAA"/>
+                 Style="{StaticResource MutedText}"
+                 FontSize="14"/>
     </StackPanel>
 
     <!-- Content -->
@@ -142,13 +59,13 @@
 
       <!-- Groups list -->
       <ScrollViewer Grid.Column="0"
-                    Background="#FAFAFA"
+                    Background="{DynamicResource BgSidebarBrush}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
         <ItemsControl ItemsSource="{Binding Groups}">
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="{x:Type local:Form4Group}">
-              <Border BorderBrush="#F0F0F0"
+              <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
                       BorderThickness="0,0,0,1"
                       Cursor="Hand">
                 <Border.InputBindings>
@@ -165,12 +82,12 @@
                       <Trigger Property="IsMouseOver"
                                Value="True">
                         <Setter Property="Background"
-                                Value="#F0F4FF"/>
+                                Value="{DynamicResource BgHoverBrush}"/>
                       </Trigger>
                       <DataTrigger Binding="{Binding IsSelected}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="#EBF0FB"/>
+                                Value="{DynamicResource BgActiveBrush}"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
@@ -184,13 +101,10 @@
                     <TextBlock Text="{Binding DisplayName}"
                                FontSize="13"
                                FontWeight="Medium"
-                               Foreground="#1A1A2E"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding Positions}"
-                               FontFamily="Consolas"
-                               FontSize="10"
-                               Foreground="#999999"
-                               TextWrapping="Wrap"
+                               Style="{StaticResource PositionsText}"
                                Margin="0,3,0,0"/>
                   </StackPanel>
                   <Ellipse Grid.Column="1"
@@ -201,12 +115,12 @@
                     <Ellipse.Style>
                       <Style TargetType="Ellipse">
                         <Setter Property="Fill"
-                                Value="#F9A825"/>
+                                Value="{DynamicResource StatusWarningBrush}"/>
                         <Style.Triggers>
                           <DataTrigger Binding="{Binding HasNtdValues}"
                                        Value="True">
                             <Setter Property="Fill"
-                                    Value="#34A853"/>
+                                    Value="{DynamicResource StatusSuccessBrush}"/>
                           </DataTrigger>
                         </Style.Triggers>
                       </Style>
@@ -221,10 +135,11 @@
 
       <!-- Divider -->
       <Border Grid.Column="1"
-              Background="#E0E0E0"/>
+              Background="{DynamicResource BorderDefaultBrush}"/>
 
       <!-- Detail panel -->
-      <Grid Grid.Column="2">
+      <Grid Grid.Column="2"
+            Background="{DynamicResource BgAppBrush}">
 
         <!-- Empty state -->
         <StackPanel VerticalAlignment="Center"
@@ -232,13 +147,11 @@
                     Visibility="{Binding SelectedGroup,
                                 Converter={StaticResource NotNullToVis}}">
           <TextBlock Text="&#xE9D9;"
-                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                     FontSize="40"
-                     Foreground="#DDDDDD"
-                     HorizontalAlignment="Center"/>
+                     Style="{StaticResource IconTextMuted}"
+                     FontSize="40"/>
           <TextBlock Text="Выберите компонент из списка"
-                     Foreground="#BBBBBB"
-                     FontSize="13"
+                     Style="{StaticResource MutedText}"
+                     HorizontalAlignment="Center"
                      Margin="0,10,0,0"/>
         </StackPanel>
 
@@ -250,24 +163,19 @@
                                   Converter={StaticResource NullToVis}}">
           <StackPanel DataContext="{Binding SelectedGroup}">
 
-            <!-- Component name -->
             <TextBlock Text="{Binding DisplayName}"
                        FontSize="16"
                        FontWeight="SemiBold"
-                       Foreground="#1A1A2E"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        TextWrapping="Wrap"/>
 
-            <!-- Positions -->
             <TextBlock Text="{Binding Positions}"
-                       FontFamily="Consolas"
-                       FontSize="11"
-                       Foreground="#999999"
-                       TextWrapping="Wrap"
+                       Style="{StaticResource PositionsText}"
                        Margin="0,4,0,0"/>
 
             <!-- No NTD warning -->
-            <Border Background="#FFFBEB"
-                    BorderBrush="#FDE68A"
+            <Border Background="{DynamicResource StatusWarningBgBrush}"
+                    BorderBrush="{DynamicResource StatusWarningBrush}"
                     BorderThickness="1"
                     CornerRadius="6"
                     Padding="12,10"
@@ -276,19 +184,19 @@
                                     Converter={StaticResource InverseBoolToVis}}">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Text="&#xE7BA;"
-                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           Style="{StaticResource IconText}"
                            FontSize="16"
-                           Foreground="#D97706"
+                           Foreground="{DynamicResource StatusWarningBrush}"
                            VerticalAlignment="Center"
                            Margin="0,0,10,0"/>
                 <StackPanel>
                   <TextBlock Text="Параметры не найдены"
                              FontSize="13"
                              FontWeight="Medium"
-                             Foreground="#92400E"/>
+                             Foreground="{DynamicResource StatusWarningBrush}"/>
                   <TextBlock Text="Компонент отсутствует в каталоге ЭРИ"
                              FontSize="11"
-                             Foreground="#B45309"
+                             Foreground="{DynamicResource StatusWarningBrush}"
                              Margin="0,2,0,0"/>
                 </StackPanel>
               </StackPanel>
@@ -297,11 +205,10 @@
             <!-- NTD parameters -->
             <StackPanel Visibility="{Binding HasNtdValues,
                                         Converter={StaticResource BoolToVis}}">
-
               <ItemsControl ItemsSource="{Binding NtdValues}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="{x:Type comp:NtdParameterVm}">
-                    <Border BorderBrush="#F0F0F0"
+                    <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
                             BorderThickness="0,0,0,1"
                             Padding="0,10,0,10">
                       <StackPanel>
@@ -325,9 +232,8 @@
                             <ItemsControl.ItemTemplate>
                               <DataTemplate>
                                 <TextBlock Text="{Binding Marker}"
+                                           Style="{StaticResource NoteMarker}"
                                            FontSize="10"
-                                           Foreground="#2B579A"
-                                           VerticalAlignment="Top"
                                            Margin="1,0,0,0"/>
                               </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -347,26 +253,18 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding Marker}"
-                                           FontSize="11"
-                                           Foreground="#2B579A"
-                                           VerticalAlignment="Top"
-                                           Margin="0,0,4,0"/>
+                                           Style="{StaticResource NoteMarker}"/>
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding NoteText}"
-                                           FontSize="11"
-                                           Foreground="#444444"
-                                           TextWrapping="Wrap"/>
+                                           Style="{StaticResource NoteText}"/>
                                 <Button Grid.Column="2"
                                         Command="{Binding DeleteCommand}"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Cursor="Hand"
-                                        Padding="4,0"
+                                        Style="{StaticResource IconButton}"
                                         ToolTip="Удалить примечание">
                                   <TextBlock Text="&#xE711;"
-                                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                             Style="{StaticResource IconText}"
                                              FontSize="10"
-                                             Foreground="#AAAAAA"/>
+                                             Foreground="{DynamicResource TextMutedBrush}"/>
                                 </Button>
                               </Grid>
                             </DataTemplate>
@@ -375,7 +273,6 @@
 
                         <!-- Add note input -->
                         <Grid Margin="0,6,0,0"
-                              
                               Visibility="{Binding IsAddingNote,
                                                           Converter={StaticResource BoolToVis}}">
                           <Grid.ColumnDefinitions>
@@ -383,16 +280,11 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                           </Grid.ColumnDefinitions>
-                          <TextBox
-                            Grid.Column="0"
-                            Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
-                            FontSize="12"
-                            Padding="6,4"
-                            BorderBrush="#DCDCDC"
-                            BorderThickness="1"
-                            TextWrapping="Wrap"
-                            AcceptsReturn="False"
-                            IsVisibleChanged="NoteInputBox_IsVisibleChanged">
+                          <TextBox Grid.Column="0"
+                                   Text="{Binding PendingNoteText,
+                                                                 UpdateSourceTrigger=PropertyChanged}"
+                                   AcceptsReturn="False"
+                                   IsVisibleChanged="NoteInputBox_IsVisibleChanged">
                             <TextBox.InputBindings>
                               <KeyBinding Key="Enter"
                                           Command="{Binding ConfirmAddNoteCommand}"/>
@@ -402,51 +294,41 @@
                           </TextBox>
                           <Button Grid.Column="1"
                                   Command="{Binding ConfirmAddNoteCommand}"
+                                  Style="{StaticResource PrimaryButton}"
                                   Margin="4,0,0,0"
-                                  FocusVisualStyle="{x:Null}"
-                                  Padding="8,4"
-                                  Background="#2B579A"
-                                  Foreground="White"
-                                  BorderThickness="0"
-                                  Cursor="Hand"
-                                  FontSize="12">
+                                  Height="Auto"
+                                  Padding="8,4">
                             <TextBlock Text="ОК"/>
                           </Button>
                           <Button Grid.Column="2"
                                   Command="{Binding CancelAddNoteCommand}"
+                                  Style="{StaticResource OutlineButton}"
                                   Margin="4,0,0,0"
-                                  FocusVisualStyle="{x:Null}"
-                                  Padding="8,4"
-                                  Background="Transparent"
-                                  BorderBrush="#DCDCDC"
-                                  BorderThickness="1"
-                                  Cursor="Hand"
-                                  FontSize="12">
+                                  Height="Auto"
+                                  Padding="8,4">
                             <TextBlock Text="✕"
-                                       Foreground="#666666"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                           </Button>
                         </Grid>
 
                         <!-- Add note button -->
                         <Button Command="{Binding StartAddNoteCommand}"
-                                Background="Transparent"
-                                BorderThickness="0"
+                                Style="{StaticResource GhostButton}"
                                 HorizontalAlignment="Left"
-                                Cursor="Hand"
                                 Padding="0"
                                 Margin="0,4,0,0"
                                 Visibility="{Binding IsAddingNote,
                                                             Converter={StaticResource InverseBoolToVis}}">
                           <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE710;"
-                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Style="{StaticResource IconText}"
                                        FontSize="10"
-                                       Foreground="#AAAAAA"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        VerticalAlignment="Center"
                                        Margin="0,0,4,0"/>
                             <TextBlock Text="Добавить примечание"
                                        FontSize="11"
-                                       Foreground="#AAAAAA"/>
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
                           </StackPanel>
                         </Button>
 
@@ -455,7 +337,6 @@
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>
-
             </StackPanel>
 
           </StackPanel>

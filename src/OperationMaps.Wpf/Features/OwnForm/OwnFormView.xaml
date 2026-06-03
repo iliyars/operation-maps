@@ -6,79 +6,14 @@
              xmlns:converters="clr-namespace:OperationMaps.Wpf.Shared.Converters"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.OwnForm"
              mc:Ignorable="d"
-             Background="White">
+             Background="{DynamicResource BgAppBrush}">
   <UserControl.Resources>
-
-    <Style x:Key="ToolbarButton"
-           TargetType="Button">
-      <Setter Property="Background"
-              Value="Transparent"/>
-      <Setter Property="BorderThickness"
-              Value="1"/>
-      <Setter Property="BorderBrush"
-              Value="#DCDCDC"/>
-      <Setter Property="Padding"
-              Value="10,5"/>
-      <Setter Property="FontSize"
-              Value="12"/>
-      <Setter Property="Cursor"
-              Value="Hand"/>
-      <Setter Property="Height"
-              Value="30"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="Button">
-            <Border x:Name="Bd"
-                    Background="{TemplateBinding Background}"
-                    BorderBrush="{TemplateBinding BorderBrush}"
-                    BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="5"
-                    Padding="{TemplateBinding Padding}">
-              <ContentPresenter HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
-            </Border>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsMouseOver"
-                       Value="True">
-                <Setter TargetName="Bd"
-                        Property="Background"
-                        Value="#F0F0F0"/>
-              </Trigger>
-              <Trigger Property="IsEnabled"
-                       Value="False">
-                <Setter Property="Opacity"
-                        Value="0.4"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
-    <Style x:Key="ParamLabel"
-           TargetType="TextBlock">
-      <Setter Property="FontSize"
-              Value="12"/>
-      <Setter Property="Foreground"
-              Value="#666666"/>
-      <Setter Property="TextWrapping"
-              Value="Wrap"/>
-      <Setter Property="Margin"
-              Value="0,8,0,1"/>
-    </Style>
-
     <Style TargetType="ItemsControl">
       <Setter Property="FocusVisualStyle"
               Value="{x:Null}"/>
       <Setter Property="Focusable"
               Value="False"/>
     </Style>
-
-    <Style TargetType="ScrollViewer">
-      <Setter Property="Focusable"
-              Value="False"/>
-    </Style>
-
   </UserControl.Resources>
 
   <Grid>
@@ -90,68 +25,69 @@
 
     <!-- Header -->
     <Border Grid.Row="0"
-            Background="#FAFAFA"
-            BorderBrush="#EEEEEE"
+            Background="{DynamicResource BgPanelBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}"
             BorderThickness="0,0,0,1"
             Padding="16,10">
       <StackPanel>
         <TextBlock Text="{Binding FormTitle}"
-                   FontSize="15"
-                   FontWeight="SemiBold"
-                   Foreground="#1A1A2E"
-                   TextWrapping="Wrap"/>
+                   Style="{StaticResource TitleText}"/>
         <TextBlock Text="{Binding FormNumber, StringFormat='Форма {0}'}"
-                   FontSize="11"
-                   Foreground="#888888"
-                   Margin="0,2,0,0"/>
+                   Style="{StaticResource SubtitleText}"/>
       </StackPanel>
     </Border>
 
     <!-- Toolbar -->
     <Border Grid.Row="1"
-            Background="#FAFAFA"
-            BorderBrush="#EEEEEE"
+            Background="{DynamicResource BgPanelBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}"
             BorderThickness="0,0,0,1"
-            Padding="12,6">
+            Padding="8,4">
       <StackPanel Orientation="Horizontal">
-        <Button Style="{StaticResource ToolbarButton}"
+        <Button Style="{StaticResource GhostButton}"
                 Command="{Binding UndoCommand}"
-                Margin="0,0,4,0"
+                Margin="0,0,2,0"
                 ToolTip="Отменить">
           <TextBlock Text="&#xE7A7;"
-                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                     FontSize="13"/>
+                     Style="{StaticResource IconText}"
+                     FontSize="13"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
         </Button>
-        <Button Style="{StaticResource ToolbarButton}"
+        <Button Style="{StaticResource GhostButton}"
                 Command="{Binding RedoCommand}"
-                Margin="0,0,12,0"
+                Margin="0,0,8,0"
                 ToolTip="Повторить">
           <TextBlock Text="&#xE7A6;"
-                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                     FontSize="13"/>
+                     Style="{StaticResource IconText}"
+                     FontSize="13"
+                     Foreground="{DynamicResource TextPrimaryBrush}"/>
         </Button>
-        <Button Style="{StaticResource ToolbarButton}"
+        <Button Style="{StaticResource OutlineButton}"
                 Command="{Binding SplitCommand}"
                 Margin="0,0,4,0">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xF547;"
-                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       Style="{StaticResource IconText}"
                        FontSize="13"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        VerticalAlignment="Center"
                        Margin="0,0,5,0"/>
             <TextBlock Text="Разбить"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        VerticalAlignment="Center"/>
           </StackPanel>
         </Button>
-        <Button Style="{StaticResource ToolbarButton}"
+        <Button Style="{StaticResource OutlineButton}"
                 Command="{Binding MergeCommand}">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xF546;"
-                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                       Style="{StaticResource IconText}"
                        FontSize="13"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        VerticalAlignment="Center"
                        Margin="0,0,5,0"/>
             <TextBlock Text="Объединить"
+                       Foreground="{DynamicResource TextPrimaryBrush}"
                        VerticalAlignment="Center"/>
           </StackPanel>
         </Button>
@@ -164,8 +100,8 @@
                 HorizontalAlignment="Center"
                 Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
       <TextBlock Text="Загрузка..."
-                 FontSize="14"
-                 Foreground="#AAAAAA"/>
+                 Style="{StaticResource MutedText}"
+                 FontSize="14"/>
     </StackPanel>
 
     <!-- Content -->
@@ -179,21 +115,21 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
-      <!-- Left: columns list with fill status -->
+      <!-- Left: columns list -->
       <ScrollViewer Grid.Column="0"
-                    Background="#FAFAFA"
+                    Background="{DynamicResource BgSidebarBrush}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
         <ItemsControl ItemsSource="{Binding ColumnItems}">
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="{x:Type local:ColumnListItemVm}">
-              <Border BorderBrush="#F0F0F0"
+              <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
                       BorderThickness="0,0,0,1"
                       Cursor="Hand">
                 <Border.InputBindings>
                   <MouseBinding MouseAction="LeftClick"
                                 Command="{Binding DataContext.SelectColumnCommand,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      RelativeSource={RelativeSource AncestorType=UserControl}}"
                                 CommandParameter="{Binding Column}"/>
                 </Border.InputBindings>
                 <Border.Style>
@@ -204,12 +140,12 @@
                       <Trigger Property="IsMouseOver"
                                Value="True">
                         <Setter Property="Background"
-                                Value="#F5F7FF"/>
+                                Value="{DynamicResource BgHoverBrush}"/>
                       </Trigger>
                       <DataTrigger Binding="{Binding IsSelected}"
                                    Value="True">
                         <Setter Property="Background"
-                                Value="#EBF0FB"/>
+                                Value="{DynamicResource BgActiveBrush}"/>
                       </DataTrigger>
                     </Style.Triggers>
                   </Style>
@@ -233,7 +169,7 @@
                              Text="{Binding Name}"
                              FontSize="12"
                              FontWeight="Medium"
-                             Foreground="#1A1A2E"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
                              TextWrapping="Wrap"/>
 
                   <!-- Status badge -->
@@ -249,17 +185,17 @@
                           <DataTrigger Binding="{Binding FillStatus}"
                                        Value="Complete">
                             <Setter Property="Background"
-                                    Value="#E6F4EA"/>
+                                    Value="{DynamicResource StatusSuccessBgBrush}"/>
                           </DataTrigger>
                           <DataTrigger Binding="{Binding FillStatus}"
                                        Value="Partial">
                             <Setter Property="Background"
-                                    Value="#FFF8E1"/>
+                                    Value="{DynamicResource StatusWarningBgBrush}"/>
                           </DataTrigger>
                           <DataTrigger Binding="{Binding FillStatus}"
                                        Value="Empty">
                             <Setter Property="Background"
-                                    Value="#F5F5F5"/>
+                                    Value="{DynamicResource BgHoverBrush}"/>
                           </DataTrigger>
                         </Style.Triggers>
                       </Style>
@@ -273,17 +209,17 @@
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Complete">
                               <Setter Property="Foreground"
-                                      Value="#1E7E34"/>
+                                      Value="{DynamicResource StatusSuccessBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Partial">
                               <Setter Property="Foreground"
-                                      Value="#B45309"/>
+                                      Value="{DynamicResource StatusWarningBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Empty">
                               <Setter Property="Foreground"
-                                      Value="#999999"/>
+                                      Value="{DynamicResource TextMutedBrush}"/>
                             </DataTrigger>
                           </Style.Triggers>
                         </Style>
@@ -296,10 +232,7 @@
                              Grid.Column="0"
                              Grid.ColumnSpan="2"
                              Text="{Binding Positions}"
-                             FontFamily="Consolas"
-                             FontSize="10"
-                             Foreground="#999999"
-                             TextWrapping="Wrap"
+                             Style="{StaticResource PositionsText}"
                              Margin="0,2,0,6"/>
 
                   <!-- Progress bar -->
@@ -307,7 +240,7 @@
                         Grid.Column="0"
                         Grid.ColumnSpan="2"
                         Height="4">
-                    <Border Background="#EEEEEE"
+                    <Border Background="{DynamicResource BorderDefaultBrush}"
                             CornerRadius="2"/>
                     <Border CornerRadius="2"
                             HorizontalAlignment="Left">
@@ -317,26 +250,23 @@
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Complete">
                               <Setter Property="Background"
-                                      Value="#34A853"/>
+                                      Value="{DynamicResource StatusSuccessBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Partial">
                               <Setter Property="Background"
-                                      Value="#F9A825"/>
+                                      Value="{DynamicResource StatusWarningBrush}"/>
                             </DataTrigger>
                             <DataTrigger Binding="{Binding FillStatus}"
                                          Value="Empty">
                               <Setter Property="Background"
-                                      Value="#CCCCCC"/>
+                                      Value="{DynamicResource TextMutedBrush}"/>
                             </DataTrigger>
                           </Style.Triggers>
                         </Style>
                       </Border.Style>
                       <Border.Width>
-                        <MultiBinding>
-                          <MultiBinding.Converter>
-                            <converters:FractionToWidthConverter/>
-                          </MultiBinding.Converter>
+                        <MultiBinding Converter="{StaticResource FractionToWidth}">
                           <Binding Path="ProgressFraction"/>
                           <Binding Path="ActualWidth"
                                    RelativeSource="{RelativeSource AncestorType=Grid}"/>
@@ -350,8 +280,8 @@
                              Grid.Column="0"
                              Grid.ColumnSpan="2"
                              Text="{Binding ProgressText}"
+                             Style="{StaticResource MutedText}"
                              FontSize="10"
-                             Foreground="#AAAAAA"
                              Margin="0,3,0,0"/>
                 </Grid>
               </Border>
@@ -362,23 +292,22 @@
 
       <!-- Divider -->
       <Border Grid.Column="1"
-              Background="#E0E0E0"/>
+              Background="{DynamicResource BorderDefaultBrush}"/>
 
       <!-- Right: detail panel -->
-      <Grid Grid.Column="2">
+      <Grid Grid.Column="2"
+            Background="{DynamicResource BgAppBrush}">
 
         <!-- Empty state -->
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
                     Visibility="{Binding SelectedColumn, Converter={StaticResource NotNullToVis}}">
           <TextBlock Text="&#xE9D9;"
-                     FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                     FontSize="40"
-                     Foreground="#DDDDDD"
-                     HorizontalAlignment="Center"/>
+                     Style="{StaticResource IconTextMuted}"
+                     FontSize="40"/>
           <TextBlock Text="Выберите компонент из списка"
-                     Foreground="#BBBBBB"
-                     FontSize="13"
+                     Style="{StaticResource MutedText}"
+                     HorizontalAlignment="Center"
                      Margin="0,10,0,0"/>
         </StackPanel>
 
@@ -397,39 +326,36 @@
               <TextBlock Text="{Binding Name}"
                          FontSize="16"
                          FontWeight="SemiBold"
-                         Foreground="#1A1A2E"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
                          TextWrapping="Wrap"/>
               <TextBlock Text="{Binding Positions}"
-                         FontFamily="Consolas"
-                         FontSize="11"
-                         Foreground="#999999"
-                         TextWrapping="Wrap"
+                         Style="{StaticResource PositionsText}"
                          Margin="0,4,0,16"/>
 
               <ItemsControl ItemsSource="{Binding DataContext.ParameterDetails,
-                  RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                RelativeSource={RelativeSource AncestorType=UserControl}}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="{x:Type local:ParameterDetailVm}">
-                    <Border BorderBrush="#F0F0F0"
+                    <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
                             BorderThickness="0,0,0,1"
                             Padding="0,10,0,10">
                       <StackPanel>
 
-                        <!-- Parameter name + required marker -->
+                        <!-- Parameter name + required -->
                         <StackPanel Orientation="Horizontal"
-                            Margin="0,8,0,1">
+                                    Margin="0,8,0,1">
                           <TextBlock Text="{Binding DisplayName}"
-                                     FontSize="12"
-                                     Foreground="#666666"
-                                     TextWrapping="Wrap"/>
+                                     Style="{StaticResource ParamLabel}"
+                                     Margin="0"/>
                           <TextBlock Text=" *"
                                      FontSize="12"
-                                     Foreground="#E53935"
+                                     Foreground="{DynamicResource StatusRequiredBrush}"
                                      VerticalAlignment="Top"
                                      Visibility="{Binding IsRequired,
-                       Converter={StaticResource BoolToVis}}"/>
+                                                                   Converter={StaticResource BoolToVis}}"/>
                         </StackPanel>
 
+                        <!-- в схеме + по НТД -->
                         <Grid Margin="0,4,0,0">
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -440,29 +366,25 @@
                           <StackPanel Grid.Column="0"
                                       Margin="0,0,8,0">
                             <TextBlock Text="в схеме"
-                                       FontSize="10"
-                                       Foreground="#2B579A"
-                                       FontWeight="Medium"
-                                       Margin="0,0,0,3"/>
-                            <TextBox Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="13"
-                                     Padding="6,4"
-                                     BorderBrush="#DCDCDC"
-                                     BorderThickness="1"
-                                     Background="White"
-                                     Visibility="{Binding IsDerived, Converter={StaticResource InverseBoolToVis}}"/>
-                            <Border Background="#F5F5F5"
-                                    BorderBrush="#DCDCDC"
+                                       Style="{StaticResource SectionLabel}"
+                                       Foreground="{DynamicResource AccentBrush}"/>
+                            <TextBox Text="{Binding SchemeValue,
+                                                                     UpdateSourceTrigger=PropertyChanged}"
+                                     Visibility="{Binding IsDerived,
+                                                                     Converter={StaticResource InverseBoolToVis}}"/>
+                            <Border Background="{DynamicResource BgDerivedBrush}"
+                                    BorderBrush="{DynamicResource BorderInputBrush}"
                                     BorderThickness="1"
                                     Padding="6,4"
-                                    Visibility="{Binding IsDerived, Converter={StaticResource BoolToVis}}">
+                                    Visibility="{Binding IsDerived,
+                                                                    Converter={StaticResource BoolToVis}}">
                               <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding SchemeValue}"
                                            FontSize="13"
-                                           Foreground="#444444"/>
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock Text=" (авто)"
                                            FontSize="10"
-                                           Foreground="#AAAAAA"
+                                           Foreground="{DynamicResource TextMutedBrush}"
                                            VerticalAlignment="Center"/>
                               </StackPanel>
                             </Border>
@@ -471,14 +393,10 @@
                           <!-- по НТД -->
                           <StackPanel Grid.Column="1">
                             <TextBlock Text="по НТД"
-                                       FontSize="10"
-                                       Foreground="#888888"
-                                       FontWeight="Medium"
-                                       Margin="0,0,0,3"/>
+                                       Style="{StaticResource SectionLabel}"/>
                             <TextBlock Text="{Binding NtdValue}"
+                                       Style="{StaticResource ParamValue}"
                                        FontSize="13"
-                                       FontFamily="Consolas"
-                                       Foreground="#2B579A"
                                        Padding="0,4"/>
                           </StackPanel>
                         </Grid>
@@ -496,26 +414,18 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding Marker}"
-                                           FontSize="11"
-                                           Foreground="#2B579A"
-                                           VerticalAlignment="Top"
-                                           Margin="0,0,4,0"/>
+                                           Style="{StaticResource NoteMarker}"/>
                                 <TextBlock Grid.Column="1"
                                            Text="{Binding NoteText}"
-                                           FontSize="11"
-                                           Foreground="#444444"
-                                           TextWrapping="Wrap"/>
+                                           Style="{StaticResource NoteText}"/>
                                 <Button Grid.Column="2"
                                         Command="{Binding DeleteCommand}"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        FocusVisualStyle="{x:Null}"
-                                        Cursor="Hand"
-                                        Padding="4,0">
+                                        Style="{StaticResource IconButton}"
+                                        FocusVisualStyle="{x:Null}">
                                   <TextBlock Text="&#xE711;"
-                                             FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                             Style="{StaticResource IconText}"
                                              FontSize="10"
-                                             Foreground="#AAAAAA"/>
+                                             Foreground="{DynamicResource TextMutedBrush}"/>
                                 </Button>
                               </Grid>
                             </DataTemplate>
@@ -524,18 +434,16 @@
 
                         <!-- Add note input -->
                         <Grid Margin="0,6,0,0"
-                              Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
+                              Visibility="{Binding IsAddingNote,
+                                                          Converter={StaticResource BoolToVis}}">
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                           </Grid.ColumnDefinitions>
                           <TextBox Grid.Column="0"
-                                   Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
-                                   FontSize="12"
-                                   Padding="6,4"
-                                   BorderBrush="#DCDCDC"
-                                   BorderThickness="1"
+                                   Text="{Binding PendingNoteText,
+                                                                 UpdateSourceTrigger=PropertyChanged}"
                                    AcceptsReturn="False"
                                    IsVisibleChanged="NoteInputBox_IsVisibleChanged">
                             <TextBox.InputBindings>
@@ -547,51 +455,41 @@
                           </TextBox>
                           <Button Grid.Column="1"
                                   Command="{Binding ConfirmAddNoteCommand}"
-                                  FocusVisualStyle="{x:Null}"
+                                  Style="{StaticResource PrimaryButton}"
                                   Margin="4,0,0,0"
-                                  Padding="8,4"
-                                  Background="#2B579A"
-                                  Foreground="White"
-                                  BorderThickness="0"
-                                  Cursor="Hand"
-                                  FontSize="12">
+                                  Height="Auto"
+                                  Padding="8,4">
                             <TextBlock Text="ОК"/>
                           </Button>
                           <Button Grid.Column="2"
                                   Command="{Binding CancelAddNoteCommand}"
-                                  FocusVisualStyle="{x:Null}"
+                                  Style="{StaticResource OutlineButton}"
                                   Margin="4,0,0,0"
-                                  Padding="8,4"
-                                  Background="Transparent"
-                                  BorderBrush="#DCDCDC"
-                                  BorderThickness="1"
-                                  Cursor="Hand"
-                                  FontSize="12">
+                                  Height="Auto"
+                                  Padding="8,4">
                             <TextBlock Text="✕"
-                                       Foreground="#666666"/>
+                                       Foreground="{DynamicResource TextSecondaryBrush}"/>
                           </Button>
                         </Grid>
 
                         <!-- Add note button -->
                         <Button Command="{Binding StartAddNoteCommand}"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                FocusVisualStyle="{x:Null}"
+                                Style="{StaticResource GhostButton}"
                                 HorizontalAlignment="Left"
-                                Cursor="Hand"
                                 Padding="0"
                                 Margin="0,4,0,0"
-                                Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
+                                Visibility="{Binding IsAddingNote,
+                                                            Converter={StaticResource InverseBoolToVis}}">
                           <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE710;"
-                                       FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                       Style="{StaticResource IconText}"
                                        FontSize="10"
-                                       Foreground="#AAAAAA"
+                                       Foreground="{DynamicResource TextMutedBrush}"
                                        VerticalAlignment="Center"
                                        Margin="0,0,4,0"/>
                             <TextBlock Text="Добавить примечание"
                                        FontSize="11"
-                                       Foreground="#AAAAAA"/>
+                                       Foreground="{DynamicResource TextMutedBrush}"/>
                           </StackPanel>
                         </Button>
 
@@ -606,45 +504,23 @@
 
           <!-- Save button -->
           <Border Grid.Row="1"
-                  Background="#FAFAFA"
-                  BorderBrush="#EEEEEE"
+                  Background="{DynamicResource BgPanelBrush}"
+                  BorderBrush="{DynamicResource BorderDefaultBrush}"
                   BorderThickness="0,1,0,0"
                   Padding="16,10">
             <Button Command="{Binding SaveColumnCommand}"
+                    Style="{StaticResource PrimaryButton}"
                     HorizontalAlignment="Right"
                     Height="36"
-                    Padding="20,0"
-                    Background="#2B579A"
-                    Foreground="White"
-                    BorderThickness="0"
-                    Cursor="Hand"
-                    FontSize="13">
-              <Button.Template>
-                <ControlTemplate TargetType="Button">
-                  <Border x:Name="Bd"
-                          Background="{TemplateBinding Background}"
-                          CornerRadius="6"
-                          Padding="{TemplateBinding Padding}">
-                    <ContentPresenter HorizontalAlignment="Center"
-                                      VerticalAlignment="Center"/>
-                  </Border>
-                  <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver"
-                             Value="True">
-                      <Setter TargetName="Bd"
-                              Property="Background"
-                              Value="#1E4A8A"/>
-                    </Trigger>
-                  </ControlTemplate.Triggers>
-                </ControlTemplate>
-              </Button.Template>
+                    Padding="20,0">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Text="&#xE74E;"
-                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           Style="{StaticResource IconTextOnAccent}"
                            FontSize="13"
                            VerticalAlignment="Center"
                            Margin="0,0,6,0"/>
                 <TextBlock Text="Сохранить"
+                           Foreground="{DynamicResource AccentTextBrush}"
                            VerticalAlignment="Center"/>
               </StackPanel>
             </Button>

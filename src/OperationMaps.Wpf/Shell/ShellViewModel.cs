@@ -34,8 +34,24 @@ namespace OperationMaps.Wpf.Shell
     {
       CurrentScreen = e.CurrentScreen;
 
+      // Получить formId текущего экрана если это OwnFormViewModel
+      int? activeFormId = null;
+      if (e.CurrentScreen is OwnFormViewModel ownForm)
+        activeFormId = ownForm.FormId;
+
       foreach (var item in NavItems)
-        item.IsActive = item.ScreenType == e.CurrentScreen?.GetType();
+      {
+        if (item.IsSeparator) continue;
+
+        if (item.ScreenType == typeof(OwnFormViewModel))
+        {
+          item.IsActive = activeFormId.HasValue && item.FormId == activeFormId;
+        }
+        else
+        {
+          item.IsActive = item.ScreenType == e.CurrentScreen?.GetType();
+        }
+      }
     }
 
     // ── Nav items ─────────────────────────────────────────────────────────────
@@ -180,6 +196,7 @@ namespace OperationMaps.Wpf.Shell
           IsVisible = true,
           IsDynamic = true,
           ScreenType = typeof(OwnFormViewModel),
+          FormId = formId,
           Command = new AsyncRelayCommand(
                 () => _navigation.NavigateAsync<OwnFormViewModel>(
                     parameter: formId)),

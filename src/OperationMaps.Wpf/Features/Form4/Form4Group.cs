@@ -10,6 +10,9 @@ public sealed partial class Form4Group : ObservableObject
   public IReadOnlyList<NtdParameterVm> NtdValues { get; init; } = [];
   public IReadOnlyList<ProjectComponentVm> SourceComponents { get; init; } = [];
 
+  public int PositionCount => SourceComponents
+    .Sum(c => c.Entry.Imported.Positions.Count);
+
   public bool HasNtdValues => NtdValues.Count > 0;
 
   [ObservableProperty] private bool _isSelected;

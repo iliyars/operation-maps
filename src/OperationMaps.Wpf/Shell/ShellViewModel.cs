@@ -9,50 +9,101 @@ using OperationMaps.Wpf.Features.Unresolved;
 using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm;
+using OperationMaps.Wpf.Stores;
+using OperationMaps.Infrastructure.Word;
+using OperationMaps.Application.Word;
+using System.IO;
 
 namespace OperationMaps.Wpf.Shell
 {
   public sealed partial class ShellViewModel : ObservableObject
   {
-    private readonly INavigationService _navigation;
 
-    [ObservableProperty]
-    private IScreen? _currentScreen;
+    private readonly INavigationService _navigation;
+    private readonly ProjectStore _store;
+    private readonly WordReportBuilder _reportBuilder;
+    private readonly WordFormMapLoader _mapLoader;
+
+    // Keeps references to dynamic form ViewModels so we can call
+    // BuildWordFormData() on each during report export.
+    // Populated in OnProjectLoaded, cleared on next project load.
+    private readonly List<(string FormNumber, Func<WordFormData> BuildData)> _formBuilders = [];
+
+    [ObservableProperty] private IScreen? _currentScreen;
+    [ObservableProperty] private bool _isExportingReport;
+    [ObservableProperty] private string _themeIcon = "\uE708";
+    [ObservableProperty] private string _themeLabel = "Тёмная тема";
 
     public ObservableCollection<NavItemViewModel> NavItems { get; } = [];
 
-    public ShellViewModel(INavigationService navigation)
+    public ShellViewModel(
+        INavigationService navigation,
+        ProjectStore store,
+        WordReportBuilder reportBuilder,
+        WordFormMapLoader mapLoader)
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
+      _store = store ?? throw new ArgumentNullException(nameof(store));
+      _reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
+      _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
 
       _navigation.CurrentScreenChanged += OnCurrentScreenChanged;
 
       BuildNavItems();
     }
 
+    // ── Navigation ────────────────────────────────────────────────────────────
+
     private void OnCurrentScreenChanged(object? sender, NavigationChangedEventArgs e)
     {
       CurrentScreen = e.CurrentScreen;
 
-      // Получить formId текущего экрана если это OwnFormViewModel
-      int? activeFormId = null;
-      if (e.CurrentScreen is OwnFormViewModel ownForm)
-        activeFormId = ownForm.FormId;
+      int? activeFormId = e.CurrentScreen is OwnFormViewModel own ? own.FormId : null;
 
       foreach (var item in NavItems)
       {
         if (item.IsSeparator) continue;
 
-        if (item.ScreenType == typeof(OwnFormViewModel))
-        {
-          item.IsActive = activeFormId.HasValue && item.FormId == activeFormId;
-        }
-        else
-        {
-          item.IsActive = item.ScreenType == e.CurrentScreen?.GetType();
-        }
+        item.IsActive = item.ScreenType == typeof(OwnFormViewModel)
+            ? activeFormId.HasValue && item.FormId == activeFormId
+            : item.ScreenType == e.CurrentScreen?.GetType();
       }
     }
+
+    // ── Export Report command ─────────────────────────────────────────────────
+
+    [RelayCommand(CanExecute = nameof(CanExportReport))]
+    private async Task ExportReportAsync(CancellationToken ct = default)
+    {
+      var formsFolder = _store.FormsFolder;
+      var outputPath = _store.ReportDocumentPath;
+      if (formsFolder is null || outputPath is null) return;
+
+      Directory.CreateDirectory(formsFolder);
+
+      IsExportingReport = true;
+      try
+      {
+        var coverPath = _mapLoader.GetTemplatePath("Cover");
+
+        // Build (data, templatePath) for each form in order
+        var forms = _formBuilders
+            .Select(f => (f.BuildData(), _mapLoader.GetTemplatePath(f.FormNumber)))
+            .ToList();
+
+        var bytes = await _reportBuilder.BuildAsync(coverPath, forms, ct);
+        await File.WriteAllBytesAsync(outputPath, bytes, ct);
+      }
+      finally
+      {
+        IsExportingReport = false;
+      }
+    }
+
+    private bool CanExportReport => _store.HasProject && !IsExportingReport;
+
+    partial void OnIsExportingReportChanged(bool value)
+        => ExportReportCommand.NotifyCanExecuteChanged();
 
     // ── Nav items ─────────────────────────────────────────────────────────────
 
@@ -104,11 +155,11 @@ namespace OperationMaps.Wpf.Shell
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Экспорт Word",
+        Label = "Итоговый документ",
         Icon = "\uE8A5",
         IsVisible = false,
         ScreenType = null,
-        Command = new AsyncRelayCommand(() => Task.CompletedTask),
+        Command = ExportReportCommand,
       });
 
       NavItems.Add(NavItemViewModel.Separator("СИСТЕМА"));
@@ -124,53 +175,40 @@ namespace OperationMaps.Wpf.Shell
       });
     }
 
-
-    // ── Admin visibility (called from ShellView code-behind) ──────────────────
-
-    public void ApplyAdminMode(bool isAdmin)
-    {
-      foreach (var item in NavItems)
-      {
-        if (item.ScreenType == typeof(CatalogViewModel))
-          item.IsVisible = isAdmin;
-      }
-    }
-
-    // ── Project loaded (called after XML import on Step В) ───────────────────
+    // ── Project loaded ────────────────────────────────────────────────────────
 
     public void OnProjectLoaded(string projectName, ProjectMatchResult matchResult)
     {
+      // Reset form builders from previous project
+      _formBuilders.Clear();
+
+      // Make nav items visible
       foreach (var item in NavItems)
       {
         switch (item.ScreenType?.Name)
         {
           case nameof(ComponentsViewModel):
-            item.IsVisible = true;
-            break;
           case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;
-          case null when item.Label is "Сохранить .omaps" or "Экспорт Word":
+          case null when item.Label is "Сохранить .omaps" or "Итоговый документ":
             item.IsVisible = true;
             break;
         }
       }
 
-      var formsSection = NavItems
-        .FirstOrDefault(i => i.IsSeparator && i.Label == "ФОРМЫ");
+      // Register Form 4 builder
+      _formBuilders.Add(("4", BuildForm4Data));
 
+      // Dynamic own-form nav items
+      var formsSection = NavItems.FirstOrDefault(i => i.IsSeparator && i.Label == "ФОРМЫ");
       if (formsSection is null) return;
 
-      var formsIndex = NavItems.IndexOf(formsSection);
+      var insertIndex = NavItems.IndexOf(formsSection) + 2;
 
-      // Remove previously added dynamic form items
-      var dynamicItems = NavItems
-          .Where(i => i.IsDynamic)
-          .ToList();
-      foreach (var item in dynamicItems)
+      foreach (var item in NavItems.Where(i => i.IsDynamic).ToList())
         NavItems.Remove(item);
 
-      // Collect unique forms from match result (excluding Form 4)
       var forms = matchResult.Matched
           .Concat(matchResult.Unresolved)
           .SelectMany(e => e.MatchResult.RequiredForms)
@@ -178,46 +216,73 @@ namespace OperationMaps.Wpf.Shell
           .DistinctBy(f => f.Id)
           .OrderBy(f => f.Number);
 
-      System.Diagnostics.Debug.WriteLine($"Dynamic forms count: {forms.Count()}");
-      foreach (var f in forms)
-        System.Diagnostics.Debug.WriteLine($"  Form: {f.Number} - {f.Title}");
-
-      int insertIndex = formsIndex + 2;
-
       foreach (var form in forms)
       {
         var formId = form.Id;
-        var formLabel = $"Форма {form.Number}";
+        var formNumber = form.Number;
 
-        var navItem = new NavItemViewModel
+        NavItems.Insert(insertIndex++, new NavItemViewModel
         {
-          Label = formLabel,
+          Label = $"Форма {formNumber}",
           Icon = "\uE9D9",
           IsVisible = true,
           IsDynamic = true,
           ScreenType = typeof(OwnFormViewModel),
           FormId = formId,
           Command = new AsyncRelayCommand(
-                () => _navigation.NavigateAsync<OwnFormViewModel>(
-                    parameter: formId)),
-        };
+                () => _navigation.NavigateAsync<OwnFormViewModel>(parameter: formId)),
+        });
 
-        NavItems.Insert(insertIndex++, navItem);
+        // Register own-form builder — captured by lambda when ViewModel is active
+        // We use a deferred lookup: at export time the current screen may already
+        // hold the populated ViewModel. If not navigated yet, data will be empty
+        // (the user hasn't opened that form). This is fine — WordService writes
+        // empty strings into those slots, and the user can always re-export.
+        _formBuilders.Add((formNumber, () => BuildOwnFormData(formNumber, formId)));
       }
+
+      ExportReportCommand.NotifyCanExecuteChanged();
     }
 
-    // 1. Поля:
-    [ObservableProperty] private string _themeIcon = "\uE708"; // луна
-    [ObservableProperty] private string _themeLabel = "Тёмная тема";
+    // ── Data builders (called at export time) ─────────────────────────────────
 
-    // 2. Команда:
+    private WordFormData BuildForm4Data()
+    {
+      // If Form4ViewModel is currently active — use its builder directly
+      if (_navigation.CurrentScreen is Form4ViewModel form4)
+        return form4.BuildWordFormData();
+
+      // Not navigated yet — return empty data with the correct FormNumber
+      // so WordService fills blank pages (preserves template structure)
+      return new WordFormData { FormNumber = "4" };
+    }
+
+    private WordFormData BuildOwnFormData(string formNumber, int formId)
+    {
+      if (_navigation.CurrentScreen is OwnFormViewModel own && own.FormId == formId)
+        return own.BuildWordFormData();
+
+      return new WordFormData { FormNumber = formNumber };
+    }
+
+    // ── Theme ─────────────────────────────────────────────────────────────────
+
     [RelayCommand]
     private void ToggleTheme()
     {
       Shared.Themes.ThemeManager.Instance.Toggle();
       var isDark = Shared.Themes.ThemeManager.Instance.Current == Shared.Themes.AppTheme.Dark;
-      ThemeIcon = isDark ? "\uE706" : "\uE708"; // солнце : луна
+      ThemeIcon = isDark ? "\uE706" : "\uE708";
       ThemeLabel = isDark ? "Светлая тема" : "Тёмная тема";
+    }
+
+    // ── Admin visibility ──────────────────────────────────────────────────────
+
+    public void ApplyAdminMode(bool isAdmin)
+    {
+      foreach (var item in NavItems)
+        if (item.ScreenType == typeof(CatalogViewModel))
+          item.IsVisible = isAdmin;
     }
 
 

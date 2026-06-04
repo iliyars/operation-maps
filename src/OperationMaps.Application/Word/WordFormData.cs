@@ -7,33 +7,81 @@ namespace OperationMaps.Application.Word
 {
   public sealed class WordFormData
   {
-    public string FormNumber { get; init; } = "";
+    /// <summary>Form number as a string, e.g. "4", "67", "68".</summary>
+    public required string FormNumber { get; init; }
+
+    /// <summary>
+    /// Document designation (обозначение документа).
+    /// Written into the header via the <c>{{designation}}</c> placeholder.
+    /// </summary>
     public string DocumentDesignation { get; init; } = "";
-    public int SheetNumber { get; init; } = 1;
-    public int TotalSheets { get; init; } = 1;
-
-    // ── Table cells ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// All cell values keyed by (row, col) — zero-based coordinates.
-    /// Matches the physical table structure in the .docx template.
+    /// Field values substituted into header/footer placeholders.
+    /// Keys must match the values in <c>map.json → headerReplacements</c>.
+    /// Standard keys: <c>sheetNumber</c>, <c>totalSheets</c>, <c>designation</c>.
     /// </summary>
-    public Dictionary<(int Row, int Col), string> Cells { get; init; } = new();
-
-    // ── Header/footer fields ──────────────────────────────────────────────────
+    public IReadOnlyDictionary<string, string> HeaderFields { get; init; }
+        = new Dictionary<string, string>();
 
     /// <summary>
-    /// Key-value pairs for header/footer placeholders.
-    /// Keys match bookmark names or content control tags in the template.
+    /// Ordered list of components to fill into the form.
+    /// The export service paginates this list automatically using
+    /// <c>componentsPerPage</c> from the map.
     /// </summary>
-    public Dictionary<string, string> HeaderFields { get; init; } = new();
+    public IReadOnlyList<WordComponentData> Components { get; init; } = [];
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Whether this form contains a dynamically inserted optional row.
+    /// When true, the export service calls InsertRowBefore for each component
+    /// that has <see cref="WordComponentData.HasOptionalRow"/> set.
+    /// </summary>
+    public bool HasOptionalRows { get; init; }
+  }
 
-    public string GetCell(int row, int col)
-        => Cells.TryGetValue((row, col), out var v) ? v : "";
+  /// <summary>Data for one component slot in the form.</summary>
+  public sealed class WordComponentData
+  {
+    /// <summary>Component name / family name.</summary>
+    public string Name { get; init; } = "";
 
-    public void SetCell(int row, int col, string value)
-        => Cells[(row, col)] = value;
+    /// <summary>Designation string, e.g. "С1, С2–С5".</summary>
+    public string Designation { get; init; } = "";
+
+    /// <summary>Total quantity across all positions.</summary>
+    public string Quantity { get; init; } = "";
+
+    /// <summary>
+    /// NTD values from the catalog keyed by <c>FormParameter.RowNumber</c>.
+    /// Used by Form 4 (read-only NTD columns).
+    /// Empty for forms that only have scheme values.
+    /// </summary>
+    public IReadOnlyDictionary<int, string> NtdValues { get; init; }
+        = new Dictionary<int, string>();
+
+    /// <summary>
+    /// User-entered "in-circuit" values keyed by <c>FormParameter.RowNumber</c>.
+    /// Used by Form 67, 68, and other own-forms.
+    /// Empty for Form 4.
+    /// </summary>
+    public IReadOnlyDictionary<int, string> SchemeValues { get; init; }
+        = new Dictionary<int, string>();
+
+    /// <summary>
+    /// Formatted note string for the note cell, e.g. "* Обеспечивается конструкцией".
+    /// Already concatenated and ordered — the export service writes it as-is.
+    /// </summary>
+    public string Note { get; init; } = "";
+
+    /// <summary>
+    /// When true, the export service inserts an optional row for this component
+    /// before filling the slot. Only relevant for the one dynamic form.
+    /// </summary>
+    public bool HasOptionalRow { get; init; }
+
+    /// <summary>
+    /// Value for the optional row cell (when <see cref="HasOptionalRow"/> is true).
+    /// </summary>
+    public string OptionalRowValue { get; init; } = "";
   }
 }

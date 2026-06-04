@@ -65,14 +65,16 @@ namespace OperationMaps.Wpf.Features.Welcome
             importResult.Components, cancellationToken);
 
       var projectName = Path.GetFileNameWithoutExtension(path);
+      var projectFolderPath = Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
 
-      _store.Load(projectName, matchResult);
+      _store.Load(projectName, projectFolderPath, matchResult);
 
       _shell.OnProjectLoaded(projectName, matchResult);
 
       await _navigation.NavigateAsync<ComponentsViewModel>(
             parameter: matchResult,
-            addToHistory: false, cancellationToken);
+            addToHistory: false,
+            cancellationToken);
     }
   }
 }

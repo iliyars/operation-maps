@@ -15,10 +15,11 @@ using OperationMaps.Wpf.Stores;
 
 namespace OperationMaps.Wpf.Features.Form4;
 
-/// <summary>
+// <summary>
 /// ViewModel for the Form 4 table.
 /// Groups project components by family (RLC) or full name (others),
 /// loads NTD values from the catalog, and presents a read-only table.
+/// Supports export to Word via <see cref="ExportWordCommand"/>.
 /// </summary>
 public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 {
@@ -33,16 +34,20 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
   [ObservableProperty] private Form4Group? _selectedGroup;
   [ObservableProperty] private IReadOnlyList<ParameterRowVm> _parameters = [];
 
+  public OperatingConditionsViewModel Conditions { get; }
+
   public Form4ViewModel(
       ProjectStore store,
       CatalogDbContext db,
       IWordService wordService,
-      WordFormMapLoader mapLoader)
+      WordFormMapLoader mapLoader,
+      IOperatingConditionsService conditionsService)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
     _db = db ?? throw new ArgumentNullException(nameof(db));
     _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
     _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
+    Conditions = new OperatingConditionsViewModel(store, conditionsService);
   }
 
   // ── Navigation ────────────────────────────────────────────────────────────
@@ -82,20 +87,26 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     var formsFolder = _store.FormsFolder;
     if (formsFolder is null) return;
 
-    // Ensure Forms/ folder exists
     Directory.CreateDirectory(formsFolder);
 
     var outputPath = _store.GetFormDocumentPath("4")!;
+    var templatePath = _mapLoader.GetTemplatePath("4");
 
     IsExporting = true;
     try
     {
-      var templatePath = _mapLoader.GetTemplatePath("4");
       var data = BuildWordFormData();
-
-
       var bytes = await _wordService.ExportAsync(data, templatePath, ct);
-      await File.WriteAllBytesAsync(outputPath, bytes, ct);
+
+      // Write to a temp file first, then replace — avoids IOException
+      // if the output file is currently open in Word.
+      var tmpPath = outputPath + ".tmp";
+      await File.WriteAllBytesAsync(tmpPath, bytes, ct);
+
+      if (File.Exists(outputPath))
+        File.Delete(outputPath);
+
+      File.Move(tmpPath, outputPath);
     }
     finally
     {
@@ -127,6 +138,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       FormNumber = "4",
       DocumentDesignation = _store.DocumentNumber ?? _store.ProjectName ?? "",
       Components = components,
+      OperatingConditions = _store.Conditions,
       HeaderFields = new Dictionary<string, string>
       {
         ["sheetNumber"] = "1",
@@ -137,28 +149,22 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
   private static WordComponentData BuildComponentData(Form4Group group)
   {
-    // NTD parameter values keyed by RowNumber
     var ntdValues = group.NtdValues
         .ToDictionary(p => p.RowNumber, p => p.Value);
 
-    // Collect notes from all parameters in sequential order (*, **, ***)
-    // Notes are already ordered by Order after RecalculateNoteOrders()
     var noteLines = group.NtdValues
         .SelectMany(p => p.Notes)
         .OrderBy(n => n.Order)
         .Select(n => $"{n.Marker} {n.NoteText.Trim()}")
         .ToList();
 
-    var noteText = string.Join("\n", noteLines);
-
     return new WordComponentData
     {
       Name = group.DisplayName,
-      Designation = group.Positions,
       ComponentTypeName = group.ComponentTypeName,
       Quantity = group.PositionCount.ToString(),
       NtdValues = ntdValues,
-      Note = noteText,
+      Note = string.Join("\n", noteLines),
     };
   }
 
@@ -217,18 +223,12 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     foreach (var group in otherComponents)
     {
       var components = group.ToList();
-      var first = components.First();
-      var positions = components
-    .SelectMany(c => c.Entry.Imported.Positions)
-    .OrderBy(p => p, PositionComparer.Instance)
-    .ToList();
 
       var otherGroup = new Form4Group
       {
         DisplayName = group.Key,
-        Positions = string.Join(", ", positions),
+        ComponentTypeName = components.First().ComponentTypeName,
         NtdValues = [],
-        ComponentTypeName = first.ComponentTypeName,
         SourceComponents = components,
       };
 

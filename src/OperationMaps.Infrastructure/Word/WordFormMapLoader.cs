@@ -86,6 +86,14 @@ namespace OperationMaps.Infrastructure.Word
           if (value?.GetValue<string>() is string v)
             headerReplacements[key] = v;
 
+      var operatingConditionCells = new Dictionary<string, CellCoord>();
+      if (root["operatingConditionCells"] is JsonObject ocObj)
+        foreach (var (key, value) in ocObj)
+        {
+          if (key == "comment" || value is null) continue;
+          operatingConditionCells[key] = ParseCoord(value, -1, key, mapPath);
+        }
+
       return new WordFormMap
       {
         FormNumber = formNumber,
@@ -93,6 +101,7 @@ namespace OperationMaps.Infrastructure.Word
         ComponentsPerPage = componentsPerPage,
         ComponentSlots = slots,
         HeaderReplacements = headerReplacements,
+        OperatingConditionCells = operatingConditionCells,
         OptionalRowInsertIndex = optionalRowInsertIndex,
         OptionalRowTemplateIndex = optionalRowTemplateIndex,
       };

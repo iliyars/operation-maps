@@ -89,6 +89,36 @@ namespace OperationMaps.Infrastructure.Word
         WordTableHelper.RemoveTrailingParagraphsAfterTable(
             doc, originalTable);
 
+        // Fill operating conditions into the original table BEFORE cloning —
+        // they will be copied to all subsequent pages automatically.
+        if (map.OperatingConditionCells.Count > 0 && data.OperatingConditions is not null)
+        {
+          var oc = data.OperatingConditions;
+          var ocValues = new Dictionary<string, string?>
+          {
+            ["resource"] = oc.Resource,
+            ["serviceLife"] = oc.ServiceLife,
+            ["storageLife"] = oc.StorageLife,
+            ["acousticNoiseFreq"] = oc.AcousticNoiseFrequency,
+            ["acousticNoisePressure"] = oc.AcousticNoisePressure,
+            ["linearAcceleration"] = oc.LinearAcceleration,
+            ["pressureLow"] = oc.PressureLow,
+            ["pressureHigh"] = oc.PressureHigh,
+            ["temperatureLow"] = oc.TemperatureLow,
+            ["temperatureHigh"] = oc.TemperatureHigh,
+            ["humidity"] = oc.Humidity,
+            ["humidityTemperature"] = oc.HumidityTemperature,
+          };
+
+          foreach (var (key, coord) in map.OperatingConditionCells)
+          {
+            if (!ocValues.TryGetValue(key, out var val)) continue;
+            var cell = WordTableHelper.TryGetCell(originalTable, coord.Row, coord.Col);
+            if (cell is not null)
+              WordTableHelper.SetCellText(cell, val ?? "—");
+          }
+        }
+
         var pageTables = new List<Table> { originalTable };
 
         for (int page = 1; page < totalPages; page++)
@@ -106,7 +136,7 @@ namespace OperationMaps.Infrastructure.Word
           Dbg($"Component[{i}] '{component.Name}' page={pageIndex} slot={slotIndex} NTD={component.NtdValues.Count}");
 
           DebugFill(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name, "name");
-          DebugFill(table, slot.MetaCells, MetaCellKey.ComponentTypeName, component.ComponentTypeName, "componentType");
+          DebugFill(table, slot.MetaCells, MetaCellKey.ComponentType, component.ComponentTypeName, "componentType");
           DebugFill(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity, "quantity");
 
           foreach (var (rowKey, coord) in slot.ParameterCells)
@@ -178,7 +208,7 @@ namespace OperationMaps.Infrastructure.Word
 
           anyOnThisTable = true;
 
-          string typeName = ReadCoord(table, slot.MetaCells, MetaCellKey.ComponentTypeName);
+          string typeName = ReadCoord(table, slot.MetaCells, MetaCellKey.ComponentType);
           string quantity = ReadCoord(table, slot.MetaCells, MetaCellKey.Quantity);
 
           var ntdValues = new Dictionary<int, string>();

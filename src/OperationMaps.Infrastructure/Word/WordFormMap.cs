@@ -39,6 +39,14 @@ namespace OperationMaps.Infrastructure.Word
         = new Dictionary<string, string>();
 
     /// <summary>
+    /// Coordinates of the operating conditions cells (колонка "В аппаратуре" Формы 4).
+    /// Key: property name from <see cref="OperatingConditions"/> (camelCase).
+    /// One cell per parameter — same coordinates on every page.
+    /// </summary>
+    public IReadOnlyDictionary<string, CellCoord> OperatingConditionCells { get; init; }
+        = new Dictionary<string, CellCoord>();
+
+    /// <summary>
     /// Optional: zero-based row index BEFORE which a dynamic row is inserted.
     /// Null means no dynamic row for this form.
     /// </summary>
@@ -84,8 +92,7 @@ namespace OperationMaps.Infrastructure.Word
   public static class MetaCellKey
   {
     public const string ComponentName = "componentName";
-    public const string ComponentTypeName = "componentType";
-    public const string Designation = "designation";
+    public const string ComponentType = "componentType";
     public const string Quantity = "quantity";
   }
 

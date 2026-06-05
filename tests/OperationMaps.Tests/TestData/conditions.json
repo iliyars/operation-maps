@@ -1,0 +1,14 @@
+{
+  "resource": "1",
+  "serviceLife": "2",
+  "storageLife": "3",
+  "acousticNoiseFrequency": "4",
+  "acousticNoisePressure": "5",
+  "linearAcceleration": "6",
+  "pressureLow": "7",
+  "pressureHigh": "8",
+  "temperatureLow": "9",
+  "temperatureHigh": "10",
+  "humidity": "11",
+  "humidityTemperature": "12"
+}

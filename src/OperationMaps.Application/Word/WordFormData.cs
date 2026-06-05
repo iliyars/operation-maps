@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OperationMaps.Application.Models;
 
 namespace OperationMaps.Application.Word
 {
@@ -30,6 +31,13 @@ namespace OperationMaps.Application.Word
     /// <c>componentsPerPage</c> from the map.
     /// </summary>
     public IReadOnlyList<WordComponentData> Components { get; init; } = [];
+
+    /// <summary>
+    /// Operating conditions for the "В аппаратуре" column of Form 4.
+    /// Null for forms that do not have this column.
+    /// </summary>
+    public OperatingConditions? OperatingConditions { get; init; }
+
 
     /// <summary>
     /// Whether this form contains a dynamically inserted optional row.

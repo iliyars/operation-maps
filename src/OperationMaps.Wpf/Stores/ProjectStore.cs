@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Models;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Components.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
@@ -75,6 +76,15 @@ public sealed partial class ProjectStore : ObservableObject
       ? null
       : Path.Combine(FormsFolder, "Report.docx");
 
+  /// <summary>
+  /// Path to the operating conditions JSON file: <c>{ProjectFolderPath}/conditions.json</c>.
+  /// </summary>
+  public string? ConditionsFilePath => ProjectFolderPath is null
+      ? null
+      : Path.Combine(ProjectFolderPath, "conditions.json");
+
+  /// <summary>Current operating conditions for this project.</summary>
+  [ObservableProperty] private OperatingConditions _conditions = new();
   // ----- Components --------------------
 
   public ObservableCollection<ProjectComponentVm> Components { get; } = [];

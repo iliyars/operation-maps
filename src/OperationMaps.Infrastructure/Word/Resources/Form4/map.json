@@ -2,6 +2,20 @@
   "formNumber": "4",
   "tableIndex": 0,
   "componentsPerPage": 4,
+  "operatingConditionCells": {
+    "resource": { "row": 7, "col": 2 },
+    "serviceLife": { "row": 8, "col": 2 },
+    "storageLife": { "row": 9, "col": 2 },
+    "acousticNoiseFreq": { "row": 10, "col": 2 },
+    "acousticNoisePressure": { "row": 11, "col": 2 },
+    "linearAcceleration": { "row": 12, "col": 2 },
+    "pressureLow": { "row": 13, "col": 2 },
+    "pressureHigh": { "row": 14, "col": 2 },
+    "temperatureLow": { "row": 15, "col": 2 },
+    "temperatureHigh": { "row": 16, "col": 2 },
+    "humidity": { "row": 17, "col": 2 },
+    "humidityTemperature": { "row": 18, "col": 2 }
+  },
   "componentSlots": [
     {
       "comment": "Slot 0 — первый компонент (col 1)",
@@ -92,7 +106,7 @@
     },
     {
       "comment": "Slot 1 — второй компонент (col 2)",
-       "metaCells": {
+      "metaCells": {
         "componentName": {
           "row": 2,
           "col": 3
@@ -106,7 +120,7 @@
           "col": 3
         }
       },
-       "parameterCells": {
+      "parameterCells": {
         "1": {
           "row": 5,
           "col": 4
@@ -179,7 +193,7 @@
     },
     {
       "comment": "Slot 2 — третий компонент (col 3)",
-       "metaCells": {
+      "metaCells": {
         "componentName": {
           "row": 2,
           "col": 4

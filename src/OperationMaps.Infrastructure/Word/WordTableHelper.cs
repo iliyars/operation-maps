@@ -172,6 +172,39 @@ namespace OperationMaps.Infrastructure.Word
     // ── Table cloning (pagination for full-table forms) ───────────────────────
 
     /// <summary>
+    /// Removes all empty paragraphs that appear between <paramref name="table"/>
+    /// and the next table or <see cref="SectionProperties"/> in the document body.
+    /// Templates often contain trailing paragraphs that cause a blank page.
+    /// </summary>
+    public static void RemoveTrailingParagraphsAfterTable(
+        WordprocessingDocument doc, Table table)
+    {
+      var body = doc.MainDocumentPart!.Document.Body!;
+
+      var toRemove = new List<Paragraph>();
+      bool pastTable = false;
+
+      foreach (var child in body.ChildElements)
+      {
+        if (!pastTable)
+        {
+          if (child == table) pastTable = true;
+          continue;
+        }
+
+        // Stop at next table or sectPr
+        if (child is Table || child is SectionProperties)
+          break;
+
+        if (child is Paragraph p)
+          toRemove.Add(p);
+      }
+
+      foreach (var p in toRemove)
+        p.Remove();
+    }
+
+    /// <summary>
     /// Clones the entire <paramref name="table"/> and inserts the clone
     /// after it in the document body, preceded by a page break paragraph.
     /// All cell text in the clone is cleared so the new page starts empty.

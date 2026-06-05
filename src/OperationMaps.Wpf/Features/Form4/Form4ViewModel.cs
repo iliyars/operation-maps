@@ -125,7 +125,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     return new WordFormData
     {
       FormNumber = "4",
-      DocumentDesignation = _store.ProjectName ?? "",
+      DocumentDesignation = _store.DocumentNumber ?? _store.ProjectName ?? "",
       Components = components,
       HeaderFields = new Dictionary<string, string>
       {
@@ -217,20 +217,20 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     foreach (var group in otherComponents)
     {
       var components = group.ToList();
-            var first = components.First();
-            var positions = components
-          .SelectMany(c => c.Entry.Imported.Positions)
-          .OrderBy(p => p, PositionComparer.Instance)
-          .ToList();
+      var first = components.First();
+      var positions = components
+    .SelectMany(c => c.Entry.Imported.Positions)
+    .OrderBy(p => p, PositionComparer.Instance)
+    .ToList();
 
-            var otherGroup = new Form4Group
-            {
-                DisplayName = group.Key,
-                Positions = string.Join(", ", positions),
-                NtdValues = [],
-                ComponentTypeName = first.ComponentTypeName,
-                SourceComponents = components,
-            };
+      var otherGroup = new Form4Group
+      {
+        DisplayName = group.Key,
+        Positions = string.Join(", ", positions),
+        NtdValues = [],
+        ComponentTypeName = first.ComponentTypeName,
+        SourceComponents = components,
+      };
 
       foreach (var ntdParam in otherGroup.NtdValues)
         ntdParam.RecalculateGroupOrders = otherGroup.RecalculateNoteOrders;

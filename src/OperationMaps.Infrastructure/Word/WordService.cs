@@ -62,6 +62,17 @@ namespace OperationMaps.Infrastructure.Word
         fs.CopyTo(ms);
       ms.Position = 0;
 
+      // Replace header/footer placeholders directly in the ZIP XML before opening
+      // via SDK — needed because TextBox content uses wne:txbxContent which SDK
+      // does not traverse via Descendants<Paragraph>().
+      if (!string.IsNullOrEmpty(data.DocumentDesignation) && map.HeaderReplacements.Count > 0)
+      {
+        var resolved = ResolveHeaderFields(map.HeaderReplacements, data, 1);
+        ms = ReplaceInZipXml(ms, resolved,
+            "word/header1.xml", "word/header2.xml", "word/header3.xml",
+            "word/footer1.xml", "word/footer2.xml", "word/footer3.xml");
+      }
+
       // Use explicit using block so doc is fully closed (and file handles flushed)
       // before we read bytes from the stream.
       using (var doc = WordprocessingDocument.Open(ms, isEditable: true))
@@ -72,6 +83,12 @@ namespace OperationMaps.Infrastructure.Word
             : (int)Math.Ceiling((double)componentCount / map.ComponentsPerPage);
 
         var originalTable = WordTableHelper.GetTable(doc, map.TableIndex);
+
+        // Remove any stray paragraphs that follow the original table
+        // (templates often have trailing empty paragraphs that cause a blank page)
+        WordTableHelper.RemoveTrailingParagraphsAfterTable(
+            doc, originalTable);
+
         var pageTables = new List<Table> { originalTable };
 
         for (int page = 1; page < totalPages; page++)
@@ -86,9 +103,11 @@ namespace OperationMaps.Infrastructure.Word
           var component = data.Components[i];
           var slot = map.ComponentSlots[slotIndex];
 
-          FillCoord(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name);
-          FillCoord(table, slot.MetaCells, MetaCellKey.ComponentTypeName, component.ComponentTypeName);
-          FillCoord(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity);
+          Dbg($"Component[{i}] '{component.Name}' page={pageIndex} slot={slotIndex} NTD={component.NtdValues.Count}");
+
+          DebugFill(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name, "name");
+          DebugFill(table, slot.MetaCells, MetaCellKey.ComponentTypeName, component.ComponentTypeName, "componentType");
+          DebugFill(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity, "quantity");
 
           foreach (var (rowKey, coord) in slot.ParameterCells)
           {
@@ -97,9 +116,10 @@ namespace OperationMaps.Infrastructure.Word
             string value =
                 component.NtdValues.TryGetValue(rowNumber, out var ntd) ? ntd :
                 component.SchemeValues.TryGetValue(rowNumber, out var scheme) ? scheme :
-                "";
+                "—";
 
             var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
+            Dbg($"  param#{rowNumber} -> [{coord.Row},{coord.Col}] cell={cell is not null} val='{value}'");
             if (cell is not null)
               WordTableHelper.SetCellText(cell, value);
           }
@@ -108,15 +128,17 @@ namespace OperationMaps.Infrastructure.Word
           {
             var nc = slot.NoteCell.Value;
             var cell = WordTableHelper.TryGetCell(table, nc.Row, nc.Col);
+            Dbg($"  note -> [{nc.Row},{nc.Col}] cell={cell is not null}");
             if (cell is not null)
               WordTableHelper.SetCellText(cell, component.Note);
           }
         }
 
+        // Header/footer placeholders are already replaced at ZIP level above.
+        // Only replace in body (cover-page placeholders etc.)
         if (map.HeaderReplacements.Count > 0)
         {
           var resolved = ResolveHeaderFields(map.HeaderReplacements, data, totalPages);
-          WordTableHelper.ReplaceInHeadersAndFooters(doc, resolved);
           WordTableHelper.ReplaceInBody(doc, resolved);
         }
 
@@ -156,7 +178,7 @@ namespace OperationMaps.Infrastructure.Word
 
           anyOnThisTable = true;
 
-          string designation = ReadCoord(table, slot.MetaCells, MetaCellKey.Designation);
+          string typeName = ReadCoord(table, slot.MetaCells, MetaCellKey.ComponentTypeName);
           string quantity = ReadCoord(table, slot.MetaCells, MetaCellKey.Quantity);
 
           var ntdValues = new Dictionary<int, string>();
@@ -188,7 +210,7 @@ namespace OperationMaps.Infrastructure.Word
           components.Add(new WordComponentData
           {
             Name = name,
-            Designation = designation,
+            ComponentTypeName = typeName,
             Quantity = quantity,
             NtdValues = ntdValues,
             SchemeValues = schemeValues,
@@ -237,6 +259,78 @@ namespace OperationMaps.Infrastructure.Word
       if (!cellDict.TryGetValue(key, out var coord)) return "";
       var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
       return cell is null ? "" : WordTableHelper.GetCellText(cell).Trim();
+    }
+
+    [System.Diagnostics.Conditional("DEBUG")]
+    private static void Dbg(string msg)
+        => System.Diagnostics.Debug.WriteLine($"[Word] {msg}");
+
+    private static void DebugFill(
+        Table table,
+        IReadOnlyDictionary<string, CellCoord> cellDict,
+        string key,
+        string value,
+        string label)
+    {
+      if (!cellDict.TryGetValue(key, out var coord))
+      {
+        Dbg($"  {label} -> key '{key}' NOT FOUND in map");
+        return;
+      }
+      var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
+      Dbg($"  {label} -> [{coord.Row},{coord.Col}] cell={cell is not null} val='{value}'");
+      if (cell is not null)
+        WordTableHelper.SetCellText(cell, value);
+    }
+
+    /// <summary>
+    /// Opens the docx ZIP in memory, replaces all placeholder strings in the
+    /// specified XML entry files, and returns a new MemoryStream with the result.
+    /// This bypasses the OpenXml SDK object model and works on raw XML text,
+    /// so it reaches content inside TextBoxes (wne:txbxContent) that the SDK
+    /// does not traverse.
+    /// </summary>
+    private static MemoryStream ReplaceInZipXml(
+        MemoryStream source,
+        IReadOnlyDictionary<string, string> replacements,
+        params string[] entryNames)
+    {
+      source.Position = 0;
+      var output = new MemoryStream();
+
+      using (var zin = new System.IO.Compression.ZipArchive(source, System.IO.Compression.ZipArchiveMode.Read, leaveOpen: true))
+      using (var zout = new System.IO.Compression.ZipArchive(output, System.IO.Compression.ZipArchiveMode.Create, leaveOpen: true))
+      {
+        var entrySet = new HashSet<string>(entryNames, StringComparer.OrdinalIgnoreCase);
+
+        foreach (var entry in zin.Entries)
+        {
+          var outEntry = zout.CreateEntry(entry.FullName, System.IO.Compression.CompressionLevel.Optimal);
+
+          using var inStream = entry.Open();
+          using var outStream = outEntry.Open();
+
+          if (entrySet.Contains(entry.FullName))
+          {
+            // Read, replace, write as UTF-8
+            using var reader = new StreamReader(inStream, System.Text.Encoding.UTF8);
+            var xml = reader.ReadToEnd();
+
+            foreach (var (placeholder, value) in replacements)
+              xml = xml.Replace(placeholder, System.Security.SecurityElement.Escape(value));
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(xml);
+            outStream.Write(bytes, 0, bytes.Length);
+          }
+          else
+          {
+            inStream.CopyTo(outStream);
+          }
+        }
+      }
+
+      output.Position = 0;
+      return output;
     }
 
     private static IReadOnlyDictionary<string, string> ResolveHeaderFields(

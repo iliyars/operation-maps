@@ -16,11 +16,27 @@ namespace OperationMaps.Wpf.Stores;
 public sealed partial class ProjectStore : ObservableObject
 {
 
-  // ---- Project metadat -------------------
+  // ---- Project metadata -------------------
 
   [ObservableProperty]
   [NotifyPropertyChangedFor(nameof(HasProject))]
   private string? _projectName;
+
+  /// <summary>Название изделия из XML (field_2).</summary>
+  [ObservableProperty] private string? _documentTitle;
+
+  /// <summary>Децимальный номер из XML (field_3) — используется в колонтитуле.</summary>
+  [ObservableProperty] private string? _documentNumber;
+
+  /// <summary>Разработал (field_16).</summary>
+  [ObservableProperty] private string? _developedBy;
+
+  /// <summary>Проверил (field_17).</summary>
+  [ObservableProperty] private string? _checkedBy;
+
+  /// <summary>Утвердил (field_18).</summary>
+  [ObservableProperty] private string? _approvedBy;
+
 
   /// <summary>
   /// Absolute path to the project folder (the folder containing the .omaps file).
@@ -71,13 +87,27 @@ public sealed partial class ProjectStore : ObservableObject
   public UndoRedoStack History { get; } = new();
 
 
-  // ---- Load ----------------------------
+  // ---- Load / Clear ----------------------------
 
-  public void Load(string projectName, string projectFolderPath, ProjectMatchResult matchResult)
+  /// <summary>
+  /// Loads a project from an XML import result.
+  /// </summary>
+  /// <param name="projectName">Display name (file name without extension).</param>
+  /// <param name="projectFolderPath">
+  /// Absolute path to the folder that contains (or will contain) the .omaps file.
+  /// All Word exports go into <c>projectFolderPath/Forms/</c>.
+  /// </param>
+  /// <param name="matchResult">Component matching result.</param>
+  public void Load(string projectName, string projectFolderPath, ProjectMatchResult matchResult, ImportResult? importResult = null)
   {
     ProjectName = projectName;
     ProjectFolderPath = projectFolderPath;
     MatchResult = matchResult;
+    DocumentTitle = importResult?.DocumentTitle;
+    DocumentNumber = importResult?.DocumentNumber;
+    DevelopedBy = importResult?.DevelopedBy;
+    CheckedBy = importResult?.DevelopedBy;
+    ApprovedBy = importResult?.ApprovedBy;
 
     Components.Clear();
     History.Clear();
@@ -91,6 +121,11 @@ public sealed partial class ProjectStore : ObservableObject
     ProjectName = null;
     ProjectFolderPath = null;
     MatchResult = null;
+    DocumentTitle = null;
+    DocumentNumber = null;
+    DevelopedBy = null;
+    CheckedBy = null;
+    ApprovedBy = null;
     Components.Clear();
     History.Clear();
   }

@@ -51,7 +51,7 @@ namespace OperationMaps.Wpf.Features.Welcome
 
       if (!_importer.CanImport(path))
       {
-        // TODO: IDialogService.ShowError(...)
+        //TODO: IDialogService.ShowError(...)
         return;
       }
 
@@ -67,7 +67,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       var projectName = Path.GetFileNameWithoutExtension(path);
       var projectFolderPath = Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
 
-      _store.Load(projectName, projectFolderPath, matchResult);
+      _store.Load(projectName, projectFolderPath, matchResult, importResult);
 
       _shell.OnProjectLoaded(projectName, matchResult);
 

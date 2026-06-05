@@ -48,6 +48,8 @@ namespace OperationMaps.Application.Word
     /// <summary>Designation string, e.g. "С1, С2–С5".</summary>
     public string Designation { get; init; } = "";
 
+    public string TypeName { get; init; } = "";
+
     /// <summary>Total quantity across all positions.</summary>
     public string Quantity { get; init; } = "";
 

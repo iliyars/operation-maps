@@ -7,8 +7,15 @@ public sealed partial class Form4Group : ObservableObject
 {
   public string DisplayName { get; init; } = "";
   public string Positions { get; init; } = "";
+  public string Designation { get; init; } = "";
   public IReadOnlyList<NtdParameterVm> NtdValues { get; init; } = [];
   public IReadOnlyList<ProjectComponentVm> SourceComponents { get; init; } = [];
+
+  /// <summary>
+  /// Тип компонента (обозначение) для записи в Word.
+  /// Берётся из TypeName первого компонента группы.
+  /// </summary>
+  public string TypeName { get; init; } = "";
 
   public int PositionCount => SourceComponents
     .Sum(c => c.Entry.Imported.Positions.Count);

@@ -17,7 +17,6 @@ public static class DatabaseSeeder
     AddForm6(db);
     AddForm7(db);
     AddForm8(db);
-    AddForm8(db);
     AddForm9(db);
     AddForm13(db);
     AddForm14(db);
@@ -110,37 +109,40 @@ public static class DatabaseSeeder
     var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
     famR18MP.NtdValues.AddRange(new[]
     {
-            FNtd(famR18MP,  1, "100000"), FNtd(famR18MP,  2, "25"),
-            FNtd(famR18MP,  3, "25"),     FNtd(famR18MP,  4, "—"),
-            FNtd(famR18MP,  5, "—"),      FNtd(famR18MP,  6, "—"),
-            FNtd(famR18MP,  7, "10⁻⁶"),  FNtd(famR18MP,  8, "—"),
-            FNtd(famR18MP,  9, "−60 (−60)"), FNtd(famR18MP, 10, "+85 (+85)"),
-            FNtd(famR18MP, 11, "98"),     FNtd(famR18MP, 12, "+35"),
-            FNtd(famR18MP, 13, "—"),      FNtd(famR18MP, 14, "—"),
+            FNtd(famR18MP,  1, "Да"), FNtd(famR18MP,  2, "—"),
+            FNtd(famR18MP,  3, "100000"), FNtd(famR18MP,  4, "25"),
+            FNtd(famR18MP,  5, "25"),     FNtd(famR18MP,  6, "—"),
+            FNtd(famR18MP,  7, "—"),      FNtd(famR18MP,  8, "—"),
+            FNtd(famR18MP,  9, "10⁻⁶"),  FNtd(famR18MP,  10, "—"),
+            FNtd(famR18MP,  11, "−60 (−60)"), FNtd(famR18MP, 12, "+85 (+85)"),
+            FNtd(famR18MP, 13, "98"),     FNtd(famR18MP, 14, "+35"),
+            FNtd(famR18MP, 15, "—"),      FNtd(famR18MP, 16, "—"),
         });
 
     var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
     famK1079.NtdValues.AddRange(new[]
     {
-            FNtd(famK1079,  1, "150000"), FNtd(famK1079,  2, "25"),
-            FNtd(famK1079,  3, "25"),     FNtd(famK1079,  4, "100-10000"),
-            FNtd(famK1079,  5, "175"),    FNtd(famK1079,  6, "5000 (500)"),
-            FNtd(famK1079,  7, "10⁻⁶"),  FNtd(famK1079,  8, "2,88"),
-            FNtd(famK1079,  9, "−60 (−60)"), FNtd(famK1079, 10, "+85 (+60)"),
-            FNtd(famK1079, 11, "98"),     FNtd(famK1079, 12, "—"),
-            FNtd(famK1079, 13, "—"),      FNtd(famK1079, 14, "—"),
+            FNtd(famK1079,  1, "Да"), FNtd(famK1079,  2, "—"),
+            FNtd(famK1079,  3, "1"), FNtd(famK1079,  4, "2"),
+            FNtd(famK1079,  5, "3"),     FNtd(famK1079,  6, "4"),
+            FNtd(famK1079,  7, "5"),    FNtd(famK1079,  8, "6"),
+            FNtd(famK1079,  9, "7"),  FNtd(famK1079,  10, "8"),
+            FNtd(famK1079,  11, "9"), FNtd(famK1079, 12, "10"),
+            FNtd(famK1079, 13, "11"),     FNtd(famK1079, 14, "12"),
+            FNtd(famK1079, 15, "13"),      FNtd(famK1079, 16, "14"),
         });
 
     var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
     famK5367.NtdValues.AddRange(new[]
     {
-            FNtd(famK5367,  1, "150000"), FNtd(famK5367,  2, "25"),
-            FNtd(famK5367,  3, "25"),     FNtd(famK5367,  4, "—"),
-            FNtd(famK5367,  5, "—"),      FNtd(famK5367,  6, "—"),
-            FNtd(famK5367,  7, "10⁻⁶"),  FNtd(famK5367,  8, "—"),
-            FNtd(famK5367,  9, "−60 (−60)"), FNtd(famK5367, 10, "+125 (+85)"),
-            FNtd(famK5367, 11, "98"),     FNtd(famK5367, 12, "+35"),
-            FNtd(famK5367, 13, "—"),      FNtd(famK5367, 14, "7К1=2К, 7К4=2К"),
+            FNtd(famK5367,  1, "Да"), FNtd(famK5367,  2, "—"),
+            FNtd(famK5367,  3, "150000"), FNtd(famK5367,  4, "25"),
+            FNtd(famK5367,  5, "25"),     FNtd(famK5367,  6, "—"),
+            FNtd(famK5367,  7, "—"),      FNtd(famK5367,  8, "—"),
+            FNtd(famK5367,  9, "10⁻⁶"),  FNtd(famK5367,  10, "—"),
+            FNtd(famK5367,  11, "−60 (−60)"), FNtd(famK5367, 12, "+125 (+85)"),
+            FNtd(famK5367, 13, "98"),     FNtd(famK5367, 14, "+35"),
+            FNtd(famK5367, 15, "—"),      FNtd(famK5367, 16, "7К1=2К, 7К4=2К"),
         });
 
     // ── 6. Тестовый компонент К10-79 с NTD для Формы 67 ──────────────────
@@ -238,20 +240,22 @@ public static class DatabaseSeeder
 
     var params4 = new List<FormParameter>
         {
-            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Показатель ресурса",                                Unit = "ч"           },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Показатель срока службы",                          Unit = "лет"         },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  3, Order =  3, Name = "Показатель сохраняемости",                         Unit = "лет"         },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  4, Order =  1, Name = "Акустический шум: диапазон частот",                Unit = "Гц"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  5, Order =  2, Name = "Акустический шум: уровень звукового давления",     Unit = "дБ"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  6, Order =  3, Name = "Линейное ускорение",                               Unit = "М.С.Е-2.(G)" },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  7, Order =  4, Name = "Давление окружающей среды: пониженное",            Unit = "мм рт. ст."  },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  8, Order =  5, Name = "Давление окружающей среды: повышенное",            Unit = "атм"         },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  9, Order =  6, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 10, Order =  7, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 11, Order =  8, Name = "Относительная влажность",                         Unit = "%"           },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 12, Order =  9, Name = "Относительная влажность: температура",            Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order = 10, Name = "Роса, иней",                                      Unit = null          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order = 11, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Наличие в перечнях при утверждении ТТЗ",                                Unit = "ч"           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Наличие в перечнях последних редакций",                                Unit = "ч"           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  3, Order =  3, Name = "Показатель ресурса",                                Unit = "ч"           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  4, Order =  4, Name = "Показатель срока службы",                          Unit = "лет"         },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  5, Order =  5, Name = "Показатель сохраняемости",                         Unit = "лет"         },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  6, Order =  1, Name = "Акустический шум: диапазон частот",                Unit = "Гц"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  7, Order =  2, Name = "Акустический шум: уровень звукового давления",     Unit = "дБ"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  8, Order =  3, Name = "Линейное ускорение",                               Unit = "М.С.Е-2.(G)" },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  9, Order =  4, Name = "Давление окружающей среды: пониженное",            Unit = "мм рт. ст."  },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  10, Order =  5, Name = "Давление окружающей среды: повышенное",            Unit = "атм"         },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  11, Order =  6, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 12, Order =  7, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order =  8, Name = "Относительная влажность",                         Unit = "%"           },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order =  9, Name = "Относительная влажность: температура",            Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 15, Order = 10, Name = "Роса, иней",                                      Unit = null          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 16, Order = 11, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
         };
     form4.Parameters.AddRange(params4);
     form4.ValueColumns.Add(new FormValueColumn

@@ -21,5 +21,12 @@ namespace OperationMaps.Wpf.Services
 
       return Task.FromResult(result);
     }
+
+    public string? SaveFile(string title, string filter)
+    {
+      var dialog = new SaveFileDialog { Title = title, Filter = filter };
+      return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
   }
 }

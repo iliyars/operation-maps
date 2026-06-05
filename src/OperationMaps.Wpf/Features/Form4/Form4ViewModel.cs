@@ -85,12 +85,19 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     Directory.CreateDirectory(formsFolder);
 
     var outputPath = _store.GetFormDocumentPath("4")!;
-    
+
     IsExporting = true;
     try
     {
       var templatePath = _mapLoader.GetTemplatePath("4");
       var data = BuildWordFormData();
+
+      // TEMP DEBUG — удалить после проверки
+      System.Diagnostics.Debug.WriteLine($"[Word Export] Components: {data.Components.Count}");
+      foreach (var c in data.Components)
+      {
+        System.Diagnostics.Debug.WriteLine($"  - {c.Name} | NTD values: {c.NtdValues.Count}");
+      }
       var bytes = await _wordService.ExportAsync(data, templatePath, ct);
       await File.WriteAllBytesAsync(outputPath, bytes, ct);
     }
@@ -148,14 +155,15 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
     var noteText = string.Join("\n", noteLines);
 
-    return new WordComponentData
-    {
-      Name = group.DisplayName,
-      Designation = group.Positions,
-      Quantity = group.PositionCount.ToString(),
-      NtdValues = ntdValues,
-      Note = noteText,
-    };
+        return new WordComponentData
+        {
+            Name = group.DisplayName,
+            Designation = group.Positions,
+            TypeName = group.TypeName,
+          Quantity = group.PositionCount.ToString(),
+            NtdValues = ntdValues,
+            Note = noteText,
+        };
   }
 
   // ── Groups builder ────────────────────────────────────────────────────────
@@ -194,7 +202,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       var form4Group = new Form4Group
       {
         DisplayName = group.Key.FamilyName,
-        Positions = string.Join(", ", positions),
+        TypeName = first.TypeName,
         NtdValues = first.NtdValues,
         SourceComponents = components,
       };

@@ -28,12 +28,50 @@
             BorderBrush="{DynamicResource BorderDefaultBrush}"
             BorderThickness="0,0,0,1"
             Padding="16,10">
-      <StackPanel>
-        <TextBlock Text="Форма 4"
-                   Style="{StaticResource TitleText}"/>
-        <TextBlock Text="Карта оценки номенклатуры ЭРИ"
-                   Style="{StaticResource SubtitleText}"/>
-      </StackPanel>
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="Форма 4"
+                     Style="{StaticResource TitleText}"/>
+          <TextBlock Text="Карта оценки номенклатуры ЭРИ"
+                     Style="{StaticResource SubtitleText}"/>
+        </StackPanel>
+
+        <!-- Export button -->
+        <Button Grid.Column="1"
+                Command="{Binding ExportWordCommand}"
+                Style="{StaticResource PrimaryButton}"
+                VerticalAlignment="Center"
+                Padding="14,8">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xE8A5;"
+                       Style="{StaticResource IconText}"
+                       FontSize="14"
+                       VerticalAlignment="Center"
+                       Margin="0,0,8,0"/>
+            <TextBlock VerticalAlignment="Center">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                  <Setter Property="Text"
+                          Value="Создать Word"/>
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsExporting}"
+                                 Value="True">
+                      <Setter Property="Text"
+                              Value="Создание..."/>
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+          </StackPanel>
+        </Button>
+
+      </Grid>
     </Border>
 
     <!-- Loading -->
@@ -103,9 +141,17 @@
                                FontWeight="Medium"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap"/>
-                    <TextBlock Text="{Binding Positions}"
-                               Style="{StaticResource PositionsText}"
-                               Margin="0,3,0,0"/>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="0,3,0,0">
+                      <TextBlock Text="{Binding TypeName}"
+                                 Style="{StaticResource PositionsText}"/>
+                      <TextBlock Text=" — "
+                                 Style="{StaticResource PositionsText}"/>
+                      <TextBlock Text="{Binding PositionCount}"
+                                 Style="{StaticResource PositionsText}"/>
+                      <TextBlock Text=" шт."
+                                 Style="{StaticResource PositionsText}"/>
+                    </StackPanel>
                   </StackPanel>
                   <Ellipse Grid.Column="1"
                            Width="7"
@@ -144,8 +190,7 @@
         <!-- Empty state -->
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Visibility="{Binding SelectedGroup,
-                                Converter={StaticResource NotNullToVis}}">
+                    Visibility="{Binding SelectedGroup, Converter={StaticResource NotNullToVis}}">
           <TextBlock Text="&#xE9D9;"
                      Style="{StaticResource IconTextMuted}"
                      FontSize="40"/>
@@ -159,8 +204,7 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       Padding="24,16,24,24"
                       Focusable="False"
-                      Visibility="{Binding SelectedGroup,
-                                  Converter={StaticResource NullToVis}}">
+                      Visibility="{Binding SelectedGroup, Converter={StaticResource NullToVis}}">
           <StackPanel DataContext="{Binding SelectedGroup}">
 
             <TextBlock Text="{Binding DisplayName}"
@@ -169,9 +213,17 @@
                        Foreground="{DynamicResource TextPrimaryBrush}"
                        TextWrapping="Wrap"/>
 
-            <TextBlock Text="{Binding Positions}"
-                       Style="{StaticResource PositionsText}"
-                       Margin="0,4,0,0"/>
+            <StackPanel Orientation="Horizontal"
+                        Margin="0,4,0,0">
+              <TextBlock Text="{Binding TypeName}"
+                         Style="{StaticResource PositionsText}"/>
+              <TextBlock Text=" — "
+                         Style="{StaticResource PositionsText}"/>
+              <TextBlock Text="{Binding PositionCount}"
+                         Style="{StaticResource PositionsText}"/>
+              <TextBlock Text=" шт."
+                         Style="{StaticResource PositionsText}"/>
+            </StackPanel>
 
             <!-- No NTD warning -->
             <Border Background="{DynamicResource StatusWarningBgBrush}"
@@ -180,8 +232,7 @@
                     CornerRadius="6"
                     Padding="12,10"
                     Margin="0,16,0,0"
-                    Visibility="{Binding HasNtdValues,
-                                    Converter={StaticResource InverseBoolToVis}}">
+                    Visibility="{Binding HasNtdValues, Converter={StaticResource InverseBoolToVis}}">
               <StackPanel Orientation="Horizontal">
                 <TextBlock Text="&#xE7BA;"
                            Style="{StaticResource IconText}"
@@ -203,8 +254,7 @@
             </Border>
 
             <!-- NTD parameters -->
-            <StackPanel Visibility="{Binding HasNtdValues,
-                                        Converter={StaticResource BoolToVis}}">
+            <StackPanel Visibility="{Binding HasNtdValues, Converter={StaticResource BoolToVis}}">
               <ItemsControl ItemsSource="{Binding NtdValues}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="{x:Type comp:NtdParameterVm}">
@@ -213,12 +263,10 @@
                             Padding="0,10,0,10">
                       <StackPanel>
 
-                        <!-- Parameter name -->
                         <TextBlock Text="{Binding DisplayName}"
                                    Style="{StaticResource ParamLabel}"
                                    Margin="0"/>
 
-                        <!-- Value + markers -->
                         <StackPanel Orientation="Horizontal"
                                     Margin="0,2,0,0">
                           <TextBlock Text="{Binding Value}"
@@ -240,7 +288,6 @@
                           </ItemsControl>
                         </StackPanel>
 
-                        <!-- Existing notes -->
                         <ItemsControl ItemsSource="{Binding Notes}"
                                       Margin="0,6,0,0">
                           <ItemsControl.ItemTemplate>
@@ -271,18 +318,15 @@
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
-                        <!-- Add note input -->
                         <Grid Margin="0,6,0,0"
-                              Visibility="{Binding IsAddingNote,
-                                                          Converter={StaticResource BoolToVis}}">
+                              Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                           </Grid.ColumnDefinitions>
                           <TextBox Grid.Column="0"
-                                   Text="{Binding PendingNoteText,
-                                                                 UpdateSourceTrigger=PropertyChanged}"
+                                   Text="{Binding PendingNoteText, UpdateSourceTrigger=PropertyChanged}"
                                    AcceptsReturn="False"
                                    IsVisibleChanged="NoteInputBox_IsVisibleChanged">
                             <TextBox.InputBindings>
@@ -311,14 +355,12 @@
                           </Button>
                         </Grid>
 
-                        <!-- Add note button -->
                         <Button Command="{Binding StartAddNoteCommand}"
                                 Style="{StaticResource GhostButton}"
                                 HorizontalAlignment="Left"
                                 Padding="0"
                                 Margin="0,4,0,0"
-                                Visibility="{Binding IsAddingNote,
-                                                            Converter={StaticResource InverseBoolToVis}}">
+                                Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
                           <StackPanel Orientation="Horizontal">
                             <TextBlock Text="&#xE710;"
                                        Style="{StaticResource IconText}"

@@ -5,12 +5,24 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace OperationMaps.Infrastructure.Word
 {
+  /// <summary>
+  /// Low-level helper for Word table operations.
+  /// All row/column indices are ZERO-BASED throughout this class.
+  /// Physical cell index accounts for merged cells (GridSpan) — matches
+  /// the coordinate model used in map.json.
+  /// </summary>
   public static class WordTableHelper
   {
+    // ── Table access ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the table at <paramref name="tableIndex"/> in the document body.
+    /// Throws <see cref="InvalidOperationException"/> if the index is out of range.
+    /// </summary>
     public static Table GetTable(WordprocessingDocument doc, int tableIndex)
     {
       var body = doc.MainDocumentPart?.Document?.Body
-            ?? throw new InvalidOperationException("Document has no body.");
+          ?? throw new InvalidOperationException("Document has no body.");
 
       var tables = body.Elements<Table>().ToList();
 
@@ -43,7 +55,7 @@ namespace OperationMaps.Infrastructure.Word
       return cells[colIndex];
     }
 
-    // <summary>
+    /// <summary>
     /// Same as <see cref="TryGetCell"/> but throws when the cell does not exist.
     /// </summary>
     public static TableCell GetCell(Table table, int rowIndex, int colIndex)
@@ -155,6 +167,41 @@ namespace OperationMaps.Infrastructure.Word
       var anchor = rows[lastRowIndex];
       foreach (var clone in clones)
         anchor.InsertAfterSelf(clone);
+    }
+
+    // ── Table cloning (pagination for full-table forms) ───────────────────────
+
+    /// <summary>
+    /// Clones the entire <paramref name="table"/> and inserts the clone
+    /// after it in the document body, preceded by a page break paragraph.
+    /// All cell text in the clone is cleared so the new page starts empty.
+    /// </summary>
+    /// <returns>The cloned (empty) table, ready to be filled.</returns>
+    public static Table CloneTable(WordprocessingDocument doc, Table table)
+    {
+      var body = doc.MainDocumentPart!.Document.Body
+          ?? throw new InvalidOperationException("Document has no body.");
+
+      var clone = (Table)table.CloneNode(deep: true);
+
+      var pageBreak = new Paragraph(new Run(new Break { Type = BreakValues.Page }));
+
+      // sectPr must always be the last element in body.
+      // Insert pageBreak and clone before sectPr (or at end if no sectPr).
+      var sectPr = body.Elements<SectionProperties>().LastOrDefault();
+
+      if (sectPr is not null)
+      {
+        sectPr.InsertBeforeSelf(pageBreak);
+        sectPr.InsertBeforeSelf(clone);
+      }
+      else
+      {
+        body.AppendChild(pageBreak);
+        body.AppendChild(clone);
+      }
+
+      return clone;
     }
 
     // ── Row insertion (dynamic forms) ─────────────────────────────────────────

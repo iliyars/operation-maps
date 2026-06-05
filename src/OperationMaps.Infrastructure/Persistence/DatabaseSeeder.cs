@@ -13,75 +13,75 @@ public static class DatabaseSeeder
                         return;
 
 
-                var form4 = AddForm4(db);
-                AddForm6(db);
-                AddForm7(db);
-                AddForm8(db);
-                AddForm9(db);
-                AddForm13(db);
-                AddForm14(db);
-                AddForm15(db);
-                AddForm16(db);
-                AddForm17(db);
-                AddForm19(db);
-                AddForm20(db);
-                AddForm21(db);
-                AddForm22(db);
-                AddForm24(db);
-                AddForm25(db);
-                AddForm26(db);
-                AddForm28(db);
-                AddForm30(db);
-                AddForm31(db);
-                AddForm32(db);
-                AddForm33(db);
-                AddForm34(db);
-                AddForm36(db);
-                AddForm37(db);
-                AddForm38(db);
-                AddForm39(db);
-                AddForm40(db);
-                AddForm41(db);
-                AddForm44(db);
-                AddForm45(db);
-                AddForm46(db);
-                AddForm47(db);
-                AddForm48(db);
-                AddForm49(db);
-                AddForm50(db);
-                AddForm51(db);
-                AddForm52(db);
-                AddForm53(db);
-                AddForm54(db);
-                AddForm55(db);
-                AddForm56(db);
-                AddForm57(db);
-                AddForm59(db);
-                AddForm61(db);
-                AddForm63(db);
-                AddForm64(db);
-                AddForm65(db);
-                AddForm65A(db);
-                AddForm66(db);
-                var form67 = AddForm67(db);
-                var form68 = AddForm68(db);
-                AddForm69(db);
-                AddForm70(db);
-                AddForm71(db);
-                AddForm72(db);
-                AddForm73(db);
-                AddForm74(db);
-                AddForm77(db);
-                AddForm78(db);
-                AddForm79(db);
-                AddForm80(db);
-                AddForm81(db);
-                AddForm82(db);
-                AddForm83(db);
-                AddForm84(db);
-                AddForm85(db);
-                AddForm86(db);
-                AddForm87(db);
+    var form4 = AddForm4(db);
+    AddForm6(db);
+    AddForm7(db);
+    AddForm8(db);
+    AddForm9(db);
+    AddForm13(db);
+    AddForm14(db);
+    AddForm15(db);
+    AddForm16(db);
+    AddForm17(db);
+    AddForm19(db);
+    AddForm20(db);
+    AddForm21(db);
+    AddForm22(db);
+    AddForm24(db);
+    AddForm25(db);
+    AddForm26(db);
+    AddForm28(db);
+    AddForm30(db);
+    AddForm31(db);
+    AddForm32(db);
+    AddForm33(db);
+    AddForm34(db);
+    AddForm36(db);
+    AddForm37(db);
+    AddForm38(db);
+    AddForm39(db);
+    AddForm40(db);
+    AddForm41(db);
+    AddForm44(db);
+    AddForm45(db);
+    AddForm46(db);
+    AddForm47(db);
+    AddForm48(db);
+    AddForm49(db);
+    AddForm50(db);
+    AddForm51(db);
+    AddForm52(db);
+    AddForm53(db);
+    AddForm54(db);
+    AddForm55(db);
+    AddForm56(db);
+    AddForm57(db);
+    AddForm59(db);
+    AddForm61(db);
+    AddForm63(db);
+    AddForm64(db);
+    AddForm65(db);
+    AddForm65A(db);
+    AddForm66(db);
+    var form67 = AddForm67(db);
+    var form68 = AddForm68(db);
+    AddForm69(db);
+    AddForm70(db);
+    AddForm71(db);
+    AddForm72(db);
+    AddForm73(db);
+    AddForm74(db);
+    AddForm77(db);
+    AddForm78(db);
+    AddForm79(db);
+    AddForm80(db);
+    AddForm81(db);
+    AddForm82(db);
+    AddForm83(db);
+    AddForm84(db);
+    AddForm85(db);
+    AddForm86(db);
+    AddForm87(db);
 
 
 
@@ -106,10 +106,10 @@ public static class DatabaseSeeder
                 FamilyNtdValue FNtd(Family f, int row, string val) =>
                     new() { Family = f, FormParameter = P4(row), Value = val };
 
-                var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
-                famR18MP.NtdValues.AddRange(new[]
-                {
-        FNtd(famR18MP, 1, "Да"), FNtd(famR18MP, 2, "-"),
+    var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
+    famR18MP.NtdValues.AddRange(new[]
+    {
+            FNtd(famR18MP,  1, "Да"), FNtd(famR18MP,  2, "—"),
             FNtd(famR18MP,  3, "100000"), FNtd(famR18MP,  4, "25"),
             FNtd(famR18MP,  5, "25"),     FNtd(famR18MP,  6, "—"),
             FNtd(famR18MP,  7, "—"),      FNtd(famR18MP,  8, "—"),
@@ -119,23 +119,23 @@ public static class DatabaseSeeder
             FNtd(famR18MP, 15, "—"),      FNtd(famR18MP, 16, "—"),
         });
 
-                var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
-                famK1079.NtdValues.AddRange(new[]
-                {
-        FNtd(famK1079, 1, "Да"), FNtd(famK1079, 2, "-"),
-            FNtd(famK1079,  3, "150000"), FNtd(famK1079,  4, "25"),
-            FNtd(famK1079,  5, "25"),     FNtd(famK1079,  6, "100-10000"),
-            FNtd(famK1079,  7, "175"),    FNtd(famK1079,  8, "5000 (500)"),
-            FNtd(famK1079,  9, "10⁻⁶"),  FNtd(famK1079,  10, "2,88"),
-            FNtd(famK1079,  11, "−60 (−60)"), FNtd(famK1079, 12, "+85 (+60)"),
-            FNtd(famK1079, 13, "98"),     FNtd(famK1079, 14, "—"),
-            FNtd(famK1079, 15, "—"),      FNtd(famK1079, 16, "—"),
+    var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
+    famK1079.NtdValues.AddRange(new[]
+    {
+            FNtd(famK1079,  1, "Да"), FNtd(famK1079,  2, "—"),
+            FNtd(famK1079,  3, "1"), FNtd(famK1079,  4, "2"),
+            FNtd(famK1079,  5, "3"),     FNtd(famK1079,  6, "4"),
+            FNtd(famK1079,  7, "5"),    FNtd(famK1079,  8, "6"),
+            FNtd(famK1079,  9, "7"),  FNtd(famK1079,  10, "8"),
+            FNtd(famK1079,  11, "9"), FNtd(famK1079, 12, "10"),
+            FNtd(famK1079, 13, "11"),     FNtd(famK1079, 14, "12"),
+            FNtd(famK1079, 15, "13"),      FNtd(famK1079, 16, "14"),
         });
 
-                var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
-                famK5367.NtdValues.AddRange(new[]
-                {
-                    FNtd(famK5367, 1, "Да"), FNtd(famK5367, 2, "-"),
+    var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
+    famK5367.NtdValues.AddRange(new[]
+    {
+            FNtd(famK5367,  1, "Да"), FNtd(famK5367,  2, "—"),
             FNtd(famK5367,  3, "150000"), FNtd(famK5367,  4, "25"),
             FNtd(famK5367,  5, "25"),     FNtd(famK5367,  6, "—"),
             FNtd(famK5367,  7, "—"),      FNtd(famK5367,  8, "—"),
@@ -240,22 +240,22 @@ public static class DatabaseSeeder
 
                 var params4 = new List<FormParameter>
         {
-            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Наличие в перечнях при утверждении ТТЗ",           Unit = null           },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Наличие в перечнях последних редакций",            Unit = null           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  1, Order =  1, Name = "Наличие в перечнях при утверждении ТТЗ",                                Unit = "ч"           },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  2, Order =  2, Name = "Наличие в перечнях последних редакций",                                Unit = "ч"           },
             new() { Form = form4, Section = sec4Rel, RowNumber =  3, Order =  3, Name = "Показатель ресурса",                                Unit = "ч"           },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  4, Order =  2, Name = "Показатель срока службы",                          Unit = "лет"         },
-            new() { Form = form4, Section = sec4Rel, RowNumber =  5, Order =  3, Name = "Показатель сохраняемости",                         Unit = "лет"         },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  4, Order =  4, Name = "Показатель срока службы",                          Unit = "лет"         },
+            new() { Form = form4, Section = sec4Rel, RowNumber =  5, Order =  5, Name = "Показатель сохраняемости",                         Unit = "лет"         },
             new() { Form = form4, Section = sec4Op,  RowNumber =  6, Order =  1, Name = "Акустический шум: диапазон частот",                Unit = "Гц"          },
             new() { Form = form4, Section = sec4Op,  RowNumber =  7, Order =  2, Name = "Акустический шум: уровень звукового давления",     Unit = "дБ"          },
             new() { Form = form4, Section = sec4Op,  RowNumber =  8, Order =  3, Name = "Линейное ускорение",                               Unit = "М.С.Е-2.(G)" },
             new() { Form = form4, Section = sec4Op,  RowNumber =  9, Order =  4, Name = "Давление окружающей среды: пониженное",            Unit = "мм рт. ст."  },
             new() { Form = form4, Section = sec4Op,  RowNumber =  10, Order =  5, Name = "Давление окружающей среды: повышенное",            Unit = "атм"         },
-            new() { Form = form4, Section = sec4Op,  RowNumber =  11, Order =  4, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 12,  Order =  5, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order =  6, Name = "Относительная влажность",                         Unit = "%"           },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order =  7, Name = "Относительная влажность: температура",            Unit = "°С"          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 15, Order = 8, Name = "Роса, иней",                                      Unit = null          },
-            new() { Form = form4, Section = sec4Op,  RowNumber = 16, Order = 9, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
+            new() { Form = form4, Section = sec4Op,  RowNumber =  11, Order =  6, Name = "Предельная (рабочая) температура: пониженная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 12, Order =  7, Name = "Предельная (рабочая) температура: повышенная",     Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 13, Order =  8, Name = "Относительная влажность",                         Unit = "%"           },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 14, Order =  9, Name = "Относительная влажность: температура",            Unit = "°С"          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 15, Order = 10, Name = "Роса, иней",                                      Unit = null          },
+            new() { Form = form4, Section = sec4Op,  RowNumber = 16, Order = 11, Name = "Стойкость к воздействию специальных факторов, 7К", Unit = null          },
         };
                 form4.Parameters.AddRange(params4);
                 form4.ValueColumns.Add(new FormValueColumn

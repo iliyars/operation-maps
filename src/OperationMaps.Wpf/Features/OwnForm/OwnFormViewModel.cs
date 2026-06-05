@@ -2,7 +2,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.EntityFrameworkCore;
+using OperationMaps.Application.Services;
+using OperationMaps.Application.Word;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Infrastructure.Word;
 using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
@@ -12,6 +15,7 @@ using OperationMaps.Wpf.Stores;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -308,6 +312,117 @@ namespace OperationMaps.Wpf.Features.OwnForm
       HasHistory = _undoStack.Count > 0 || _redoStack.Count > 0;
       OnPropertyChanged(nameof(CanUndo));
       OnPropertyChanged(nameof(CanRedo));
+    }
+
+    // Injected via property — set by DI after construction.
+    // We use property injection here because OwnFormViewModel already has
+    // a constructor with (ProjectStore, CatalogDbContext) and adding more
+    // params there would require updating DI registration.
+    // Alternative: add to constructor — your call.
+    public IWordService? WordService { get; set; }
+    public WordFormMapLoader? MapLoader { get; set; }
+
+    [ObservableProperty] private bool _isExporting;
+
+    // ── Export command ────────────────────────────────────────────────────────
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportWordAsync(CancellationToken ct = default)
+    {
+      if (WordService is null || MapLoader is null) return;
+
+      var formsFolder = _store.FormsFolder;
+      if (formsFolder is null) return;
+
+      Directory.CreateDirectory(formsFolder);
+
+      var outputPath = _store.GetFormDocumentPath(FormNumber)!;
+
+      IsExporting = true;
+      try
+      {
+        var templatePath = MapLoader.GetTemplatePath(FormNumber);
+        var data = BuildWordFormData();
+        var bytes = await WordService.ExportAsync(data, templatePath, ct);
+        await File.WriteAllBytesAsync(outputPath, bytes, ct);
+      }
+      finally
+      {
+        IsExporting = false;
+      }
+    }
+
+    private bool CanExport => Columns.Count > 0 && !IsExporting && !string.IsNullOrEmpty(FormNumber);
+
+    partial void OnIsExportingChanged(bool value)
+        => ExportWordCommand.NotifyCanExecuteChanged();
+
+    // ── Data builder ──────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Converts the current table state (Columns × Parameters) into
+    /// a <see cref="WordFormData"/> ready for the export service.
+    /// Called both from <see cref="ExportWordCommand"/> and from
+    /// <see cref="Shell.ShellViewModel"/> during full-report export.
+    /// </summary>
+    public WordFormData BuildWordFormData()
+    {
+      // Build a lookup: FormParameterId → RowNumber
+      // (Parameters collection is already ordered by RowNumber)
+      var paramIdToRow = Parameters
+          .ToDictionary(p => p.FormParameterId, p => p.RowNumber);
+
+      var components = Columns.Select(col => BuildComponentData(col, paramIdToRow)).ToList();
+
+      return new WordFormData
+      {
+        FormNumber = FormNumber,
+        DocumentDesignation = _store.ProjectName ?? "",
+        Components = components,
+        HeaderFields = new Dictionary<string, string>
+        {
+          ["sheetNumber"] = "1",
+        },
+      };
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private static WordComponentData BuildComponentData(
+        FormColumnVm column,
+        Dictionary<int, int> paramIdToRow)
+    {
+      // Scheme values: FormParameterId → RowNumber → value
+      var schemeValues = column.CellValues
+          .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+          .ToDictionary(
+              kv => paramIdToRow[kv.Key],   // key:   RowNumber (matches map.json)
+              kv => kv.Value);              // value: user-entered string
+
+      // NTD values: same key mapping
+      var ntdValues = column.NtdValues
+          .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+          .ToDictionary(
+              kv => paramIdToRow[kv.Key],
+              kv => kv.Value);
+
+      // Notes: collect across all parameters in sequential Order
+      // (RecalculateNoteOrders already assigned Order = 1,2,3... globally per column)
+      var noteLines = column.Notes.Values
+          .SelectMany(notes => notes)
+          .OrderBy(n => n.Order)
+          .Select(n => $"{n.Marker} {n.NoteText.Trim()}")
+          .ToList();
+
+      return new WordComponentData
+      {
+        Name = column.Name,
+        Designation = column.Positions,
+        Quantity = column.Component.Entry.Imported.Positions.Count.ToString(),
+        SchemeValues = schemeValues,
+        NtdValues = ntdValues,
+        Note = string.Join("\n", noteLines),
+      };
     }
   }
 }

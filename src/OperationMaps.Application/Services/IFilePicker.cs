@@ -9,6 +9,6 @@ namespace OperationMaps.Application.Services
   {
     Task<string?> PickAsync(string title, string filter);
 
-    string SaveFile(string title, string filter);
+    string? SaveFile(string title, string filter);
   }
 }

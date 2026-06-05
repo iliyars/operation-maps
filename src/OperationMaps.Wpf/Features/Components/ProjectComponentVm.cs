@@ -21,8 +21,14 @@ namespace OperationMaps.Wpf.Features.Components
     public string Positions => string.Join(", ", Entry.Imported.Positions);
     public string Name => Entry.MatchResult.MatchedComponent?.FullName
                               ?? Entry.Imported.RawName;
-    public string? TypeName => Entry.MatchResult.MatchedType?.Name;
+    public string? TypeName => Entry.Imported.DetectedCategory;
     public string? FamilyName => Entry.MatchResult.MatchedFamily?.Name;
+
+    /// <summary>
+    /// Тип компонента для Формы 4: "Конденсатор", "Резистор" и т.д.
+    /// Всегда берётся из XML (DetectedCategory) — первое слово наименования.
+    /// </summary>
+    public string ComponentTypeName => Entry.Imported.DetectedCategory;
 
     public ComponentMatchStatus MatchStatus => Entry.MatchResult switch
     {

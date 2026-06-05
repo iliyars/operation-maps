@@ -5,6 +5,7 @@ using OperationMaps.Application.Services;
 using OperationMaps.Infrastructure.Importing;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Services;
+using OperationMaps.Infrastructure.Word;
 
 namespace OperationMaps.Infrastructure;
 
@@ -29,7 +30,18 @@ public static class DependencyInjection
     services.AddScoped<IComponentNameParser, ComponentNameParser>();
     services.AddScoped<IComponentMatcher, ComponentMatcher>();
 
+    // ── Word ──────────────────────────────────────────────────────────────
+    var templatesPath = Path.Combine(
+        AppContext.BaseDirectory, "Word", "Resources");
 
+    // Singleton: map files are read once and cached for the app lifetime
+    services.AddSingleton(new WordFormMapLoader(templatesPath));
+
+    // Singleton: stateless, safe to share across all view models
+    services.AddSingleton<IWordService, WordService>();
+
+    // Singleton: orchestrates export + merge, no mutable state
+    services.AddSingleton<WordReportBuilder>();
 
     return services;
 

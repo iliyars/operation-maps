@@ -15,7 +15,7 @@ public sealed partial class Form4Group : ObservableObject
   /// Тип компонента (обозначение) для записи в Word.
   /// Берётся из TypeName первого компонента группы.
   /// </summary>
-  public string TypeName { get; init; } = "";
+  public string ComponentTypeName { get; init; } = "";
 
   public int PositionCount => SourceComponents
     .Sum(c => c.Entry.Imported.Positions.Count);

@@ -87,7 +87,7 @@ namespace OperationMaps.Infrastructure.Word
           var slot = map.ComponentSlots[slotIndex];
 
           FillCoord(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name);
-          FillCoord(table, slot.MetaCells, MetaCellKey.ComponentType, component.TypeName);
+          FillCoord(table, slot.MetaCells, MetaCellKey.ComponentTypeName, component.ComponentTypeName);
           FillCoord(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity);
 
           foreach (var (rowKey, coord) in slot.ParameterCells)

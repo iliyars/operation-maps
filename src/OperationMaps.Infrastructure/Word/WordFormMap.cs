@@ -84,7 +84,7 @@ namespace OperationMaps.Infrastructure.Word
   public static class MetaCellKey
   {
     public const string ComponentName = "componentName";
-        public const string ComponentType = "componentType";
+    public const string ComponentTypeName = "componentType";
     public const string Designation = "designation";
     public const string Quantity = "quantity";
   }

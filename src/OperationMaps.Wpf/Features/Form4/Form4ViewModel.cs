@@ -1,6 +1,7 @@
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
@@ -92,12 +93,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       var templatePath = _mapLoader.GetTemplatePath("4");
       var data = BuildWordFormData();
 
-      // TEMP DEBUG — удалить после проверки
-      System.Diagnostics.Debug.WriteLine($"[Word Export] Components: {data.Components.Count}");
-      foreach (var c in data.Components)
-      {
-        System.Diagnostics.Debug.WriteLine($"  - {c.Name} | NTD values: {c.NtdValues.Count}");
-      }
+    
       var bytes = await _wordService.ExportAsync(data, templatePath, ct);
       await File.WriteAllBytesAsync(outputPath, bytes, ct);
     }
@@ -155,15 +151,15 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
     var noteText = string.Join("\n", noteLines);
 
-        return new WordComponentData
-        {
-            Name = group.DisplayName,
-            Designation = group.Positions,
-            TypeName = group.TypeName,
-          Quantity = group.PositionCount.ToString(),
-            NtdValues = ntdValues,
-            Note = noteText,
-        };
+    return new WordComponentData
+    {
+      Name = group.DisplayName,
+      Designation = group.Positions,
+      ComponentTypeName = group.ComponentTypeName,
+      Quantity = group.PositionCount.ToString(),
+      NtdValues = ntdValues,
+      Note = noteText,
+    };
   }
 
   // ── Groups builder ────────────────────────────────────────────────────────
@@ -202,7 +198,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       var form4Group = new Form4Group
       {
         DisplayName = group.Key.FamilyName,
-        TypeName = first.TypeName,
+        ComponentTypeName = first.ComponentTypeName,
         NtdValues = first.NtdValues,
         SourceComponents = components,
       };
@@ -221,19 +217,20 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     foreach (var group in otherComponents)
     {
       var components = group.ToList();
-
-      var positions = components
+            var first = components.First();
+            var positions = components
           .SelectMany(c => c.Entry.Imported.Positions)
           .OrderBy(p => p, PositionComparer.Instance)
           .ToList();
 
-      var otherGroup = new Form4Group
-      {
-        DisplayName = group.Key,
-        Positions = string.Join(", ", positions),
-        NtdValues = [],
-        SourceComponents = components,
-      };
+            var otherGroup = new Form4Group
+            {
+                DisplayName = group.Key,
+                Positions = string.Join(", ", positions),
+                NtdValues = [],
+                ComponentTypeName = first.ComponentTypeName,
+                SourceComponents = components,
+            };
 
       foreach (var ntdParam in otherGroup.NtdValues)
         ntdParam.RecalculateGroupOrders = otherGroup.RecalculateNoteOrders;

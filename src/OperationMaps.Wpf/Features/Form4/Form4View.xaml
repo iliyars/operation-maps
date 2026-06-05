@@ -139,7 +139,7 @@
                                                    TextWrapping="Wrap"/>
                                         <StackPanel Orientation="Horizontal"
                                                 Margin="0,3,0,0">
-                                            <TextBlock Text="{Binding TypeName}"
+                                            <TextBlock Text="{Binding ComponentTypeName}"
                                                     Style="{StaticResource PositionsText}"/>
                                             <TextBlock Text=" — "
                                                     Style="{StaticResource PositionsText}"/>
@@ -206,7 +206,7 @@
                                 TextWrapping="Wrap"/>
                         <StackPanel Orientation="Horizontal"
                                 Margin="0,4,0,0">
-                            <TextBlock Text="{Binding TypeName}"
+                            <TextBlock Text="{Binding ComponentTypeName}"
                                     Style="{StaticResource PositionsText}"/>
                             <TextBlock Text=" — "
                                     Style="{StaticResource PositionsText}"/>

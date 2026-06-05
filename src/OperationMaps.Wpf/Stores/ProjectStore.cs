@@ -116,7 +116,7 @@ public sealed partial class ProjectStore : ObservableObject
     DocumentTitle = importResult?.DocumentTitle;
     DocumentNumber = importResult?.DocumentNumber;
     DevelopedBy = importResult?.DevelopedBy;
-    CheckedBy = importResult?.DevelopedBy;
+    CheckedBy = importResult?.CheckedBy;
     ApprovedBy = importResult?.ApprovedBy;
 
     Components.Clear();

@@ -33,7 +33,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       ShellViewModel shell,
       INavigationService navigation)
     {
-      _filePicker = filePicker ?? throw new ArgumentNullException(nameof(FilePicker));
+      _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
       _importer = importer ?? throw new ArgumentNullException(nameof(importer));
       _matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
       _store = store ?? throw new ArgumentNullException(nameof(store));

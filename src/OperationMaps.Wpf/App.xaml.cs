@@ -52,7 +52,6 @@ public partial class App : System.Windows.Application
 
     // Navigate to the initial screen
     var navigation = _host.Services.GetRequiredService<INavigationService>();
-    await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
 
     //Show the window
     var vm = _host.Services.GetRequiredService<MainViewModel>();

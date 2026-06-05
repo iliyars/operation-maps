@@ -27,7 +27,7 @@ namespace OperationMaps.Wpf.Infrastructure.Navigation
     public NavigationService(IServiceProvider serviceProvider)
     {
       _serviceProvider = serviceProvider
-        ?? throw new ArgumentException(nameof(serviceProvider));
+        ?? throw new ArgumentNullException(nameof(serviceProvider));
     }
 
     public Task NavigateAsync<TScreen>(

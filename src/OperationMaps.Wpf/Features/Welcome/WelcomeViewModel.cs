@@ -56,13 +56,28 @@ namespace OperationMaps.Wpf.Features.Welcome
       }
 
       ImportResult importResult;
-      await using (var stream = File.OpenRead(path))
+      try
       {
+        await using var stream = File.OpenRead(path);
         importResult = await _importer.ImportAsync(stream, cancellationToken);
       }
+      catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+                                or InvalidDataException or OperationCanceledException)
+      {
+        //TODO: IDialogService.ShowError($"Не удалось открыть файл: {ex.Message}");
+        return;
+      }
 
-      var matchResult = await _matcher.MatchAllAsync(
-            importResult.Components, cancellationToken);
+      ProjectMatchResult matchResult;
+      try
+      {
+        matchResult = await _matcher.MatchAllAsync(importResult.Components, cancellationToken);
+      }
+      catch (Exception ex) when (ex is not OperationCanceledException)
+      {
+        //TODO: IDialogService.ShowError($"Ошибка при сопоставлении компонентов: {ex.Message}");
+        return;
+      }
 
       var projectName = Path.GetFileNameWithoutExtension(path);
       var projectFolderPath = Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;

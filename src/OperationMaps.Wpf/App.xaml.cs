@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -43,15 +42,14 @@ public partial class App : System.Windows.Application
   {
     _host = BuildHost();
     await _host.StartAsync();
-        ThemeManager.Instance.Initialize(System.Windows.Application.Current.Resources);
-        // Register View DataTemplates by convention (ViewModel → View)
-        ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
+    ThemeManager.Instance.Initialize(System.Windows.Application.Current.Resources);
+    // Register View DataTemplates by convention (ViewModel → View)
+    ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
 
     // Seed the database
     await InitializeDatabaseAsync();
 
-    // Navigate to the initial screen
-    var navigation = _host.Services.GetRequiredService<INavigationService>();
+
 
     //Show the window
     var vm = _host.Services.GetRequiredService<MainViewModel>();
@@ -59,6 +57,7 @@ public partial class App : System.Windows.Application
     window.Show();
 
     // Navigate to the initial screen
+    var navigation = _host.Services.GetRequiredService<INavigationService>();
     await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
   }
 

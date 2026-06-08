@@ -19,7 +19,7 @@ using OperationMaps.Wpf.Features.OwnForm;
 
 namespace OperationMaps.Wpf
 {
-  public static class ServiceCollectionExtension
+  public static class ServiceCollectionExtensionпше 
   {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {

@@ -27,6 +27,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     private readonly ProjectStore _store;
     private readonly CatalogDbContext _db;
+    private readonly IWordService _wordService;
+    private readonly WordFormMapLoader _mapLoader;
 
     // Form metadata
     public int FormId { get; private set; }
@@ -68,10 +70,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     [ObservableProperty]
     private IReadOnlyList<ParameterDetailVm> _parameterDetails = [];
-    public OwnFormViewModel(ProjectStore store, CatalogDbContext db)
+    [ObservableProperty] private bool _isExporting;
+
+    public OwnFormViewModel(ProjectStore store, CatalogDbContext db, IWordService wordService, WordFormMapLoader mapLoader)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _db = db ?? throw new ArgumentNullException(nameof(db));
+      _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
+      _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -314,23 +320,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
       OnPropertyChanged(nameof(CanRedo));
     }
 
-    // Injected via property — set by DI after construction.
-    // We use property injection here because OwnFormViewModel already has
-    // a constructor with (ProjectStore, CatalogDbContext) and adding more
-    // params there would require updating DI registration.
-    // Alternative: add to constructor — your call.
-    public IWordService? WordService { get; set; }
-    public WordFormMapLoader? MapLoader { get; set; }
-
-    [ObservableProperty] private bool _isExporting;
 
     // ── Export command ────────────────────────────────────────────────────────
 
     [RelayCommand(CanExecute = nameof(CanExport))]
     private async Task ExportWordAsync(CancellationToken ct = default)
     {
-      if (WordService is null || MapLoader is null) return;
-
       var formsFolder = _store.FormsFolder;
       if (formsFolder is null) return;
 
@@ -341,9 +336,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
       IsExporting = true;
       try
       {
-        var templatePath = MapLoader.GetTemplatePath(FormNumber);
+        var templatePath = _mapLoader.GetTemplatePath(FormNumber);
         var data = BuildWordFormData();
-        var bytes = await WordService.ExportAsync(data, templatePath, ct);
+        var bytes = await _wordService.ExportAsync(data, templatePath, ct);
         await File.WriteAllBytesAsync(outputPath, bytes, ct);
       }
       finally

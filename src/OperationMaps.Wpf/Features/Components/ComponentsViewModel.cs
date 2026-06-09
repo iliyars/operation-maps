@@ -48,7 +48,7 @@ namespace OperationMaps.Wpf.Features.Components
 
     public int CountAll => Components.Count;
     public int CountMatched => Components.Count(c => c.MatchStatus != ComponentMatchStatus.Unresolved);
-    public int CountUnresolved => Components.Count(c => c.MatchStatus != ComponentMatchStatus.Unresolved);
+    public int CountUnresolved => Components.Count(c => c.MatchStatus == ComponentMatchStatus.Unresolved);
 
     // ── Selection ─────────────────────────────────────────────────────────────
 

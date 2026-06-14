@@ -57,6 +57,7 @@ public sealed class Pe3XmlImporter : IComponentListImporter
                            docTitle, docNumber, developedBy, checkedBy, approvedBy);
     }
 
+    int importIndex = 0;
     foreach (var rec in recordsData.Elements("Record"))
     {
       cancellationToken.ThrowIfCancellationRequested();
@@ -103,8 +104,9 @@ public sealed class Pe3XmlImporter : IComponentListImporter
 
       components.Add(new ImportedComponent
       {
-        RawName = parsed.Name,           // чистое имя без типа и ТУ
-        DetectedCategory = parsed.Type,  // тип из парсера
+        ImportIndex = importIndex++,
+        RawName = parsed.Name,
+        DetectedCategory = parsed.Type,
         Positions = positions,
         RawPositions = rawPos
       });

@@ -76,8 +76,8 @@ namespace OperationMaps.Infrastructure.Word
     /// Coordinates of parameter value cells.
     /// Key: <c>FormParameter.RowNumber</c> as a string (e.g. "1", "12").
     /// </summary>
-    public IReadOnlyDictionary<string, CellCoord> ParameterCells { get; init; }
-        = new Dictionary<string, CellCoord>();
+    public IReadOnlyDictionary<string, ParameterCoord> ParameterCells { get; init; }
+        = new Dictionary<string, ParameterCoord>();
 
     /// <summary>
     /// Coordinate of the note cell for this slot. Null if the form has no note cell.
@@ -88,12 +88,19 @@ namespace OperationMaps.Infrastructure.Word
   /// <summary>Zero-based row/column pair.</summary>
   public readonly record struct CellCoord(int Row, int Col);
 
+  /// <summary>
+  /// Coordinate for a parameter cell that may have separate columns
+  /// for "по НТД" and "в схеме". If <see cref="SchemeCol"/> is null,
+  /// only NTD column is filled (backward compatible with Form 4).
+  /// </summary>
+  public readonly record struct ParameterCoord(int Row, int NtdCol, int? SchemeCol);
+
   /// <summary>Well-known keys used in <see cref="ComponentSlotMap.MetaCells"/>.</summary>
   public static class MetaCellKey
   {
     public const string ComponentName = "componentName";
     public const string ComponentType = "componentType";
     public const string Quantity = "quantity";
+    public const string PositionsNumber = "positionsNumber";
   }
-
 }

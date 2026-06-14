@@ -115,9 +115,45 @@ namespace OperationMaps.Infrastructure.Word
       return new ComponentSlotMap
       {
         MetaCells = ParseCellDict(obj["metaCells"], slotIndex, mapPath),
-        ParameterCells = ParseCellDict(obj["parameterCells"], slotIndex, mapPath),
+        ParameterCells = ParseParameterCellDict(obj["parameterCells"], slotIndex, mapPath),
         NoteCell = ParseOptionalCoord(obj["noteCell"]),
       };
+    }
+
+    /// <summary>
+    /// Parses parameterCells — supports both old format { row, col }
+    /// and new format { row, ntdCol, schemeCol? }.
+    /// Old format maps col → ntdCol with schemeCol = null (backward compatible).
+    /// </summary>
+    private static IReadOnlyDictionary<string, ParameterCoord> ParseParameterCellDict(
+        JsonNode? node, int slotIndex, string mapPath)
+    {
+      if (node is null) return new Dictionary<string, ParameterCoord>();
+
+      var result = new Dictionary<string, ParameterCoord>();
+      foreach (var (key, value) in node.AsObject())
+      {
+        if (key == "comment" || value is null) continue;
+        var obj = value.AsObject();
+        var row = obj["row"]?.GetValue<int>()
+            ?? throw new InvalidDataException($"Missing 'row' in parameterCells[{key}] slot {slotIndex}");
+
+        // New format: ntdCol + optional schemeCol
+        if (obj["ntdCol"] is not null)
+        {
+          var ntdCol = obj["ntdCol"]!.GetValue<int>();
+          var schemeCol = obj["schemeCol"]?.GetValue<int>();
+          result[key] = new ParameterCoord(row - 1, ntdCol - 1, schemeCol.HasValue ? schemeCol.Value - 1 : null);
+        }
+        // Old format: col only (backward compatible — only NTD)
+        else
+        {
+          var col = obj["col"]?.GetValue<int>()
+              ?? throw new InvalidDataException($"Missing 'col' in parameterCells[{key}] slot {slotIndex}");
+          result[key] = new ParameterCoord(row - 1, col - 1, null);
+        }
+      }
+      return result;
     }
 
     private static IReadOnlyDictionary<string, CellCoord> ParseCellDict(

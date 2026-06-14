@@ -17,7 +17,7 @@ namespace OperationMaps.Wpf.Stores;
 public sealed partial class ProjectStore : ObservableObject
 {
 
-  // ---- Project metadata -------------------
+  // ── Project metadata ──────────────────────────────────────────────────────
 
   [ObservableProperty]
   [NotifyPropertyChangedFor(nameof(HasProject))]
@@ -37,7 +37,6 @@ public sealed partial class ProjectStore : ObservableObject
 
   /// <summary>Утвердил (field_18).</summary>
   [ObservableProperty] private string? _approvedBy;
-
 
   /// <summary>
   /// Absolute path to the project folder (the folder containing the .omaps file).
@@ -85,19 +84,18 @@ public sealed partial class ProjectStore : ObservableObject
 
   /// <summary>Current operating conditions for this project.</summary>
   [ObservableProperty] private OperatingConditions _conditions = new();
-  // ----- Components --------------------
+
+  // ── Components ────────────────────────────────────────────────────────────
 
   public ObservableCollection<ProjectComponentVm> Components { get; } = [];
 
   public ProjectMatchResult? MatchResult { get; private set; }
 
-
-  // ---- Undo/Redo ----------------------
+  // ── Undo / Redo ───────────────────────────────────────────────────────────
 
   public UndoRedoStack History { get; } = new();
 
-
-  // ---- Load / Clear ----------------------------
+  // ── Load / Clear ──────────────────────────────────────────────────────────
 
   /// <summary>
   /// Loads a project from an XML import result.
@@ -122,7 +120,10 @@ public sealed partial class ProjectStore : ObservableObject
     Components.Clear();
     History.Clear();
 
-    foreach (var entry in matchResult.Matched.Concat(matchResult.Unresolved))
+    // Preserve original XML order by sorting on import index
+    foreach (var entry in matchResult.Matched
+                 .Concat(matchResult.Unresolved)
+                 .OrderBy(e => e.Imported.ImportIndex))
       Components.Add(new ProjectComponentVm(entry));
   }
 
@@ -136,6 +137,7 @@ public sealed partial class ProjectStore : ObservableObject
     DevelopedBy = null;
     CheckedBy = null;
     ApprovedBy = null;
+    Conditions = new();
     Components.Clear();
     History.Clear();
   }

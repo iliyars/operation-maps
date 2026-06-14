@@ -22,9 +22,8 @@ using System.Threading.Tasks;
 namespace OperationMaps.Wpf.Features.OwnForm
 {
 
-  public partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo
+  public sealed partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo
   {
-
     private readonly ProjectStore _store;
     private readonly CatalogDbContext _db;
     private readonly IWordService _wordService;
@@ -221,13 +220,36 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       var outputPath = _store.GetFormDocumentPath(FormNumber)!;
 
+      // Check if the file is currently open (e.g. in Word)
+      if (File.Exists(outputPath))
+      {
+        try
+        {
+          using var fs = File.Open(outputPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        }
+        catch (IOException)
+        {
+          System.Windows.MessageBox.Show(
+              $"Файл уже открыт в другой программе:\n{outputPath}\n\nЗакройте файл и повторите экспорт.",
+              "Файл занят",
+              System.Windows.MessageBoxButton.OK,
+              System.Windows.MessageBoxImage.Warning);
+          return;
+        }
+      }
+
       IsExporting = true;
       try
       {
         var templatePath = _mapLoader.GetTemplatePath(FormNumber);
         var data = BuildWordFormData();
         var bytes = await _wordService.ExportAsync(data, templatePath, ct);
-        await File.WriteAllBytesAsync(outputPath, bytes, ct);
+
+        // Write to temp then replace — safety if file is locked between check and write
+        var tmpPath = outputPath + ".tmp";
+        await File.WriteAllBytesAsync(tmpPath, bytes, ct);
+        if (File.Exists(outputPath)) File.Delete(outputPath);
+        File.Move(tmpPath, outputPath);
       }
       finally
       {
@@ -257,7 +279,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       return new WordFormData
       {
         FormNumber = FormNumber,
-        DocumentDesignation = _store.ProjectName ?? "",
+        DocumentDesignation = _store.DocumentNumber ?? _store.ProjectName ?? "",
         Components = components,
         HeaderFields = new Dictionary<string, string>
         {
@@ -380,7 +402,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       return new WordComponentData
       {
         Name = column.Name,
-        Designation = column.Positions,
+        Positions = column.Positions,
         Quantity = column.Component.Entry.Imported.Positions.Count.ToString(),
         SchemeValues = schemeValues,
         NtdValues = ntdValues,

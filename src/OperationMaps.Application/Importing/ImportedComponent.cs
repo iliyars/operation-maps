@@ -5,6 +5,7 @@ namespace OperationMaps.Application.Importing;
 /// </summary>
 public sealed class ImportedComponent
 {
+  public int ImportIndex { get; init; }
   public required string RawName { get; init; }          // field_5, наименование целиком
   public required string DetectedCategory { get; init; }  // первое слово: "Резистор"...
   public required IReadOnlyList<string> Positions { get; set; } // развёрнутые: R1,R2,R3

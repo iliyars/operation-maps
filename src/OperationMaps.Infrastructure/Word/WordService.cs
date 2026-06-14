@@ -85,9 +85,7 @@ namespace OperationMaps.Infrastructure.Word
         var originalTable = WordTableHelper.GetTable(doc, map.TableIndex);
 
         // Remove any stray paragraphs that follow the original table
-        // (templates often have trailing empty paragraphs that cause a blank page)
-        WordTableHelper.RemoveTrailingParagraphsAfterTable(
-            doc, originalTable);
+        WordTableHelper.RemoveTrailingParagraphsAfterTable(doc, originalTable);
 
         // Fill operating conditions into the original table BEFORE cloning —
         // they will be copied to all subsequent pages automatically.
@@ -138,20 +136,30 @@ namespace OperationMaps.Infrastructure.Word
           DebugFill(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name, "name");
           DebugFill(table, slot.MetaCells, MetaCellKey.ComponentType, component.ComponentTypeName, "componentType");
           DebugFill(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity, "quantity");
+          DebugFill(table, slot.MetaCells, MetaCellKey.PositionsNumber, component.Positions, "positionsNumber");
 
           foreach (var (rowKey, coord) in slot.ParameterCells)
           {
             if (!int.TryParse(rowKey, out var rowNumber)) continue;
 
-            string value =
-                component.NtdValues.TryGetValue(rowNumber, out var ntd) ? ntd :
-                component.SchemeValues.TryGetValue(rowNumber, out var scheme) ? scheme :
-                "—";
+            string ntdValue =
+                component.NtdValues.TryGetValue(rowNumber, out var ntd) ? ntd : "—";
 
-            var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
-            Dbg($"  param#{rowNumber} -> [{coord.Row},{coord.Col}] cell={cell is not null} val='{value}'");
-            if (cell is not null)
-              WordTableHelper.SetCellText(cell, value);
+            string schemeValue =
+                component.SchemeValues.TryGetValue(rowNumber, out var scheme) ? scheme : "—";
+
+            // Fill NTD column (always)
+            var ntdCell = WordTableHelper.TryGetCell(table, coord.Row, coord.NtdCol);
+            if (ntdCell is not null)
+              WordTableHelper.SetCellText(ntdCell, ntdValue);
+
+            // Fill Scheme column (only if schemeCol is defined in map.json)
+            if (coord.SchemeCol.HasValue)
+            {
+              var schemeCell = WordTableHelper.TryGetCell(table, coord.Row, coord.SchemeCol.Value);
+              if (schemeCell is not null)
+                WordTableHelper.SetCellText(schemeCell, schemeValue);
+            }
           }
 
           if (slot.NoteCell.HasValue && !string.IsNullOrEmpty(component.Note))
@@ -218,14 +226,26 @@ namespace OperationMaps.Infrastructure.Word
           {
             if (!int.TryParse(rowKey, out var rowNumber)) continue;
 
-            var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
-            if (cell is null) continue;
+            // Read NTD column
+            var ntdCell = WordTableHelper.TryGetCell(table, coord.Row, coord.NtdCol);
+            if (ntdCell is not null)
+            {
+              var val = WordTableHelper.GetCellText(ntdCell).Trim();
+              if (!string.IsNullOrEmpty(val))
+                ntdValues[rowNumber] = val;
+            }
 
-            var value = WordTableHelper.GetCellText(cell).Trim();
-            if (string.IsNullOrEmpty(value)) continue;
-
-            ntdValues[rowNumber] = value;
-            schemeValues[rowNumber] = value;
+            // Read Scheme column (if defined)
+            if (coord.SchemeCol.HasValue)
+            {
+              var schemeCell = WordTableHelper.TryGetCell(table, coord.Row, coord.SchemeCol.Value);
+              if (schemeCell is not null)
+              {
+                var val = WordTableHelper.GetCellText(schemeCell).Trim();
+                if (!string.IsNullOrEmpty(val))
+                  schemeValues[rowNumber] = val;
+              }
+            }
           }
 
           string note = "";

@@ -54,7 +54,7 @@ namespace OperationMaps.Application.Word
     public string Name { get; init; } = "";
 
     /// <summary>Designation string, e.g. "С1, С2–С5".</summary>
-    public string Designation { get; init; } = "";
+    public string Positions { get; init; } = "";
 
     public string ComponentTypeName { get; init; } = "";
 

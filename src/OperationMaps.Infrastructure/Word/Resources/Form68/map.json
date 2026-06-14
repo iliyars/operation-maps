@@ -1,0 +1,289 @@
+{
+  "formNumber": "68",
+  "tableIndex": 0,
+  "componentsPerPage": 3,
+  "componentSlots": [
+    {
+      "comment": "Slot 0 — первый компонент (col 1)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 2
+        },
+        "componentName": {
+          "row": 3,
+          "col": 2
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "15": {
+          "row": 19,
+          "ntdCol": 4,
+          "schemeCol": 3
+        }
+      },
+      "noteCell": {
+        "row": 19,
+        "col": 3
+      }
+    },
+    {
+      "comment": "Slot 1 — первый компонент (col 2)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 3
+        },
+        "componentName": {
+          "row": 3,
+          "col": 3
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "15": {
+          "row": 19,
+          "ntdCol": 6,
+          "schemeCol": 5
+        }
+      },
+      "noteCell": {
+        "row": 19,
+        "col": 4 
+      }
+    },
+    {
+      "comment": "Slot 2 — третий компонент (col 3)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 4
+        },
+        "componentName": {
+          "row": 3,
+          "col": 4
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 8,
+          "schemeCol": 7
+        }
+      },
+      "noteCell": {
+        "row": 19,
+        "col": 5
+      }
+    }
+  ],
+  "headerReplacements": {
+    "{{designation}}": "designation",
+    "{{sheet}}": "sheetNumber",
+    "{{totalSheets}}": "totalSheets"
+  }
+}

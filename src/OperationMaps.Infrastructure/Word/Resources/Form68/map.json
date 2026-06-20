@@ -188,7 +188,7 @@
       },
       "noteCell": {
         "row": 19,
-        "col": 4 
+        "col": 4
       }
     },
     {
@@ -271,6 +271,11 @@
         },
         "14": {
           "row": 18,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "15": {
+          "row": 19,
           "ntdCol": 8,
           "schemeCol": 7
         }

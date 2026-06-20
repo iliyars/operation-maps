@@ -18,63 +18,45 @@ namespace OperationMaps.Wpf.Features.OwnForm
   /// </summary>
   public partial class OwnFormView : UserControl
   {
-    private OwnFormViewModel? _vm;
     public OwnFormView()
     {
       InitializeComponent();
-      DataContextChanged += OnDataContextChanged;
     }
 
-    private void OnDataContextChanged(object sender,
-         DependencyPropertyChangedEventArgs e)
+    private void NoteInputBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-      if (_vm is not null)
-        _vm.SplitRequested -= OnSplitRequested;
-
-      _vm = e.NewValue as OwnFormViewModel;
-
-      if (_vm is not null)
-        _vm.SplitRequested += OnSplitRequested;
-    }
-
-    private void OnSplitRequested(FormColumnVm column)
-    {
-      var positions = column.Component.Entry.Imported.Positions;
-
-      var dialog = new SplitDialog.SplitDialog(positions)
+      if (e.NewValue is true && sender is TextBox tb)
       {
-        Owner = Window.GetWindow(this)
-      };
-
-      if (dialog.ShowDialog() != true || dialog.Result is null)
-        return;
-
-      var result = dialog.Result;
-
-      if (result.Count < 2)
-        return;
-
-      // Two groups → standard split
-      // Always use ExecuteMultiSplit — works for 2 or N groups
-      _vm!.ExecuteMultiSplit(column, dialog.Result);
-
-
+        tb.Dispatcher.BeginInvoke(
+            () => { tb.Focus(); tb.SelectAll(); },
+            System.Windows.Threading.DispatcherPriority.Input);
+      }
+      else if (e.NewValue is false)
+      {
+        Keyboard.ClearFocus();
+        Focus();
+      }
     }
 
-        private void NoteInputBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (e.NewValue is true && sender is TextBox tb)
-            {
-                tb.Dispatcher.BeginInvoke(
-                    () => { tb.Focus(); tb.SelectAll(); },
-                    System.Windows.Threading.DispatcherPriority.Input);
-            }
-            else if (e.NewValue is false)
-            {
-                Keyboard.ClearFocus();
-                Focus();
-            }
-        }
+    /// <summary>
+    /// Routes a click on a column list item to either single-selection
+    /// (plain click) or multi-selection for Merge (Ctrl+click).
+    /// MouseBinding cannot branch on Keyboard.Modifiers declaratively,
+    /// so the routing happens here.
+    /// </summary>
+    private void ColumnItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+      if (sender is not Border border) return;
+      if (border.Tag is not ColumnListItemVm item) return;
+      if (DataContext is not OwnFormViewModel vm) return;
 
+      if (Keyboard.Modifiers == ModifierKeys.Control)
+        vm.ToggleColumnSelectionCommand.Execute(item.Column);
+      else
+        vm.SelectColumnCommand.Execute(item.Column);
+
+      e.Handled = true;
     }
+
+  }
 }

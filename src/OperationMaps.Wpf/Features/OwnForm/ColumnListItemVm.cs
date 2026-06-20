@@ -21,6 +21,8 @@ public sealed partial class ColumnListItemVm : ObservableObject
 
   [ObservableProperty] private bool _isSelected;
 
+  [ObservableProperty] private bool _isMultiSelected;
+
   public int FilledCount { get; private set; }
   public int TotalCount { get; private set; }
 

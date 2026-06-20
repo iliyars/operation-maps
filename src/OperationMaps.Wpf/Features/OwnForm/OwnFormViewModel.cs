@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
@@ -17,11 +16,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OperationMaps.Wpf.Features.OwnForm
 {
-
   public sealed partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo
   {
     private readonly ProjectStore _store;
@@ -68,8 +67,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public ObservableCollection<FormColumnVm> SelectedColumns { get; } = [];
 
-    public bool CanSplit => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
-    public bool CanMerge => SelectedColumns.Count == 2;
+    public bool CanSplit  => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
+    public bool CanMerge  => SelectedColumns.Count == 2;
     private bool CanExport => Columns.Count > 0 && !IsExporting && !string.IsNullOrEmpty(FormNumber);
 
     public event Action<FormColumnVm>? SplitRequested;
@@ -82,10 +81,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
         IWordService wordService,
         WordFormMapLoader mapLoader)
     {
-      _store = store ?? throw new ArgumentNullException(nameof(store));
-      _db = db ?? throw new ArgumentNullException(nameof(db));
+      _store       = store       ?? throw new ArgumentNullException(nameof(store));
+      _db          = db          ?? throw new ArgumentNullException(nameof(db));
       _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
-      _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
+      _mapLoader   = mapLoader   ?? throw new ArgumentNullException(nameof(mapLoader));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -96,7 +95,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       if (parameter is not int formId) return;
 
-      FormId = formId;
+      FormId    = formId;
       IsLoading = true;
 
       try
@@ -119,7 +118,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       cmd.Undo();
       _redoStack.Push(cmd);
       RefreshHistory();
-      RefreshAllItems();
+      RebuildColumnItems();
+      ClearStaleSelection();
     }
 
     [RelayCommand(CanExecute = nameof(CanRedo))]
@@ -130,7 +130,27 @@ namespace OperationMaps.Wpf.Features.OwnForm
       cmd.Execute();
       _undoStack.Push(cmd);
       RefreshHistory();
-      RefreshAllItems();
+      RebuildColumnItems();
+      ClearStaleSelection();
+    }
+
+    /// <summary>
+    /// After Undo/Redo, Columns may no longer contain the previously
+    /// selected FormColumnVm instance (Split/Merge replace columns
+    /// rather than mutate them in place). Reset selection in that case
+    /// to avoid the detail panel pointing at a removed column.
+    /// </summary>
+    private void ClearStaleSelection()
+    {
+      if (SelectedColumn is not null && !Columns.Contains(SelectedColumn))
+      {
+        SelectedColumn = null;
+        if (SelectedItem is not null)
+          SelectedItem.IsSelected = false;
+        SelectedItem     = null;
+        ParameterDetails = [];
+      }
+      ClearMultiSelection();
     }
 
     // ── Commands: Split / Merge ───────────────────────────────────────────────
@@ -145,20 +165,24 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand(CanExecute = nameof(CanMerge))]
     private void Merge()
     {
-      var first = SelectedColumns[0];
+      var first  = SelectedColumns[0];
       var second = SelectedColumns[1];
       ExecuteCommand(new MergeColumnsCommand(Columns, first, second));
       RebuildColumnItems();
+      ClearMultiSelection();
     }
 
     [RelayCommand]
     private void SelectColumn(FormColumnVm column)
     {
+      // Plain click resets any active multi-selection for Merge
+      ClearMultiSelection();
+
       if (SelectedItem is not null)
         SelectedItem.IsSelected = false;
 
       SelectedColumn = column;
-      SelectedItem = ColumnItems.FirstOrDefault(i => i.Column == column);
+      SelectedItem   = ColumnItems.FirstOrDefault(i => i.Column == column);
 
       if (SelectedItem is not null)
         SelectedItem.IsSelected = true;
@@ -205,6 +229,50 @@ namespace OperationMaps.Wpf.Features.OwnForm
       ParameterDetails = details;
     }
 
+    /// <summary>
+    /// Ctrl+Click handler — toggles a column in/out of <see cref="SelectedColumns"/>
+    /// for the Merge operation, without touching the single-selection detail panel.
+    /// At most 2 columns are kept: a third Ctrl+Click drops the oldest one
+    /// before adding the new one (FIFO), matching common "pick exactly 2" UX.
+    /// </summary>
+    [RelayCommand]
+    private void ToggleColumnSelection(FormColumnVm column)
+    {
+      var item = ColumnItems.FirstOrDefault(i => i.Column == column);
+
+      if (SelectedColumns.Contains(column))
+      {
+        SelectedColumns.Remove(column);
+        if (item is not null) item.IsMultiSelected = false;
+      }
+      else
+      {
+        if (SelectedColumns.Count >= 2)
+        {
+          var oldest = SelectedColumns[0];
+          SelectedColumns.RemoveAt(0);
+          var oldestItem = ColumnItems.FirstOrDefault(i => i.Column == oldest);
+          if (oldestItem is not null) oldestItem.IsMultiSelected = false;
+        }
+
+        SelectedColumns.Add(column);
+        if (item is not null) item.IsMultiSelected = true;
+      }
+
+      MergeCommand.NotifyCanExecuteChanged();
+    }
+
+    private void ClearMultiSelection()
+    {
+      foreach (var col in SelectedColumns)
+      {
+        var item = ColumnItems.FirstOrDefault(i => i.Column == col);
+        if (item is not null) item.IsMultiSelected = false;
+      }
+      SelectedColumns.Clear();
+      MergeCommand.NotifyCanExecuteChanged();
+    }
+
     [RelayCommand]
     private void SaveColumn() => SelectedItem?.Refresh();
 
@@ -242,10 +310,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
       try
       {
         var templatePath = _mapLoader.GetTemplatePath(FormNumber);
-        var data = BuildWordFormData();
-        var bytes = await _wordService.ExportAsync(data, templatePath, ct);
+        var data         = BuildWordFormData();
+        var bytes        = await _wordService.ExportAsync(data, templatePath, ct);
 
-        // Write to temp then replace — safety if file is locked between check and write
         var tmpPath = outputPath + ".tmp";
         await File.WriteAllBytesAsync(tmpPath, bytes, ct);
         if (File.Exists(outputPath)) File.Delete(outputPath);
@@ -262,11 +329,6 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     // ── Word data builder ─────────────────────────────────────────────────────
 
-    /// <summary>
-    /// Converts the current table state into a <see cref="WordFormData"/>.
-    /// Called from <see cref="ExportWordCommand"/> and from
-    /// <see cref="Shell.ShellViewModel"/> during full-report export.
-    /// </summary>
     public WordFormData BuildWordFormData()
     {
       var paramIdToRow = Parameters
@@ -278,10 +340,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       return new WordFormData
       {
-        FormNumber = FormNumber,
+        FormNumber          = FormNumber,
         DocumentDesignation = _store.DocumentNumber ?? _store.ProjectName ?? "",
-        Components = components,
-        HeaderFields = new Dictionary<string, string>
+        Components          = components,
+        HeaderFields        = new Dictionary<string, string>
         {
           ["sheetNumber"] = "1",
         },
@@ -324,6 +386,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       Parameters.Clear();
       _undoStack.Clear();
       _redoStack.Clear();
+      RefreshHistory(); // ← reset Undo/Redo buttons state for the new form
 
       var form = await _db.Forms
           .Include(f => f.Parameters)
@@ -332,7 +395,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (form is null) return;
 
       FormNumber = form.Number;
-      FormTitle = form.Title;
+      FormTitle  = form.Title;
 
       var parameters = form.Parameters.OrderBy(p => p.RowNumber).ToList();
 
@@ -341,7 +404,6 @@ namespace OperationMaps.Wpf.Features.OwnForm
                    || c.Entry.MatchResult.MatchedComponent?.OwnForm?.Id == FormId)
           .ToList();
 
-      // Load ALL ComponentNtdValues for this form in one query — avoid N+1
       var componentIds = relevantComponents
           .Select(c => c.Entry.MatchResult.MatchedComponent?.Id)
           .Where(id => id is not null)
@@ -355,14 +417,13 @@ namespace OperationMaps.Wpf.Features.OwnForm
               .ToListAsync(ct)
           : [];
 
-      // Group by ComponentId for fast lookup
       var ntdByComponent = allNtdValues
           .GroupBy(v => v.ComponentId)
           .ToDictionary(g => g.Key, g => g.ToList());
 
       foreach (var component in relevantComponents)
       {
-        var column = new FormColumnVm(component);
+        var column      = new FormColumnVm(component);
         var componentId = component.Entry.MatchResult.MatchedComponent?.Id;
 
         if (componentId is not null && ntdByComponent.TryGetValue(componentId.Value, out var ntdValues))
@@ -401,12 +462,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       return new WordComponentData
       {
-        Name = column.Name,
-        Positions = column.Positions,
-        Quantity = column.Component.Entry.Imported.Positions.Count.ToString(),
+        Name         = column.Name,
+        Positions    = PositionRangeFormatter.Format(column.Component.Entry.Imported.Positions),
+        Quantity     = column.Component.Entry.Imported.Positions.Count.ToString(),
         SchemeValues = schemeValues,
-        NtdValues = ntdValues,
-        Note = string.Join("\n", noteLines),
+        NtdValues    = ntdValues,
+        Note         = string.Join("\n", noteLines),
       };
     }
 
@@ -431,11 +492,21 @@ namespace OperationMaps.Wpf.Features.OwnForm
       RefreshHistory();
     }
 
+    /// <summary>
+    /// Updates CanUndo/CanRedo-dependent state and notifies the generated
+    /// RelayCommands so their bound buttons re-evaluate IsEnabled.
+    /// OnPropertyChanged alone does NOT do this — [RelayCommand(CanExecute=...)]
+    /// commands only re-check when NotifyCanExecuteChanged() is called explicitly.
+    /// </summary>
     private void RefreshHistory()
     {
       HasHistory = _undoStack.Count > 0 || _redoStack.Count > 0;
       OnPropertyChanged(nameof(CanUndo));
       OnPropertyChanged(nameof(CanRedo));
+
+      UndoCommand.NotifyCanExecuteChanged();
+      RedoCommand.NotifyCanExecuteChanged();
     }
   }
 }
+ 

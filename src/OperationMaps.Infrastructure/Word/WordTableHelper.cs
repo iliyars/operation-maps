@@ -272,6 +272,41 @@ namespace OperationMaps.Infrastructure.Word
         rows[rowIndex].InsertBeforeSelf(newRow);
     }
 
+    /// <summary>
+    /// Inserts a new row immediately after <paramref name="rowIndex"/>,
+    /// copying the structure (cell count, widths, shading, vMerge/gridSpan)
+    /// of the row at <paramref name="templateRowIndex"/>. The new row's
+    /// cells are empty.
+    /// <para>
+    /// Used for Form 64's optional second supply-voltage row: the template
+    /// row to clone IS the primary parameter's row (it has the matching
+    /// column layout), and the clone is inserted right after it so the
+    /// "по НТД"/"в схеме" pairs read top-to-bottom in the right order.
+    /// </para>
+    /// <returns>The newly inserted (empty) row.</returns>
+    /// </summary>
+    public static TableRow InsertRowAfter(
+        Table table,
+        int rowIndex,
+        int templateRowIndex)
+    {
+      var rows = table.Elements<TableRow>().ToList();
+
+      if (rowIndex < 0 || rowIndex >= rows.Count)
+        throw new ArgumentOutOfRangeException(nameof(rowIndex));
+      if (templateRowIndex < 0 || templateRowIndex >= rows.Count)
+        throw new ArgumentOutOfRangeException(nameof(templateRowIndex));
+
+      var newRow = (TableRow)rows[templateRowIndex].CloneNode(deep: true);
+
+      // Clear all cell text in the new row
+      foreach (var cell in newRow.Elements<TableCell>())
+        ClearCellText(cell);
+
+      rows[rowIndex].InsertAfterSelf(newRow);
+      return newRow;
+    }
+
     // ── Header / footer text replacement ─────────────────────────────────────
 
     /// <summary>

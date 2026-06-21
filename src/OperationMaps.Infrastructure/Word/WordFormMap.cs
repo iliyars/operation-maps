@@ -57,6 +57,46 @@ namespace OperationMaps.Infrastructure.Word
     /// Only relevant when <see cref="OptionalRowInsertIndex"/> is set.
     /// </summary>
     public int? OptionalRowTemplateIndex { get; init; }
+
+    /// <summary>
+    /// Per-slot configuration for a dynamically-inserted optional parameter row
+    /// (e.g. the second supply voltage in Form 64). Key: FormParameter.RowNumber
+    /// of the OPTIONAL parameter (as a string, e.g. "1.5" or a dedicated id),
+    /// matching <see cref="ComponentSlotMap.OptionalRowSlots"/> keys.
+    /// Null/empty for forms without this feature.
+    /// </summary>
+    public IReadOnlyDictionary<string, OptionalRowMap> OptionalRows { get; init; }
+        = new Dictionary<string, OptionalRowMap>();
+  }
+
+  /// <summary>
+  /// Describes how to insert and fill an optional parameter row for one
+  /// component slot. Coordinates are relative to the slot's own column
+  /// position — same NtdCol/SchemeCol as the primary row, but the row
+  /// itself does not exist in the template and must be cloned in.
+  /// </summary>
+  public sealed class OptionalRowMap
+  {
+    /// <summary>
+    /// FormParameter.RowNumber of the PRIMARY parameter this optional row
+    /// extends (e.g. 1 for "напряжение питания"). The cloned row is inserted
+    /// immediately after the primary row's current position.
+    /// </summary>
+    public required int PrimaryRowNumber { get; init; }
+
+    /// <summary>
+    /// Zero-based row index of the template row to clone, AS IT EXISTS in the
+    /// original (un-cloned) table — i.e. the primary parameter's row, since
+    /// the optional row has the same column layout.
+    /// </summary>
+    public required int TemplateRowIndex { get; init; }
+
+    /// <summary>
+    /// Column coordinates for this slot's optional row cells. Same column
+    /// indices as the primary row's NtdCol/SchemeCol — only the row index
+    /// changes (computed at runtime as TemplateRowIndex + 1 after insertion).
+    /// </summary>
+    public required ParameterCoord Coord { get; init; }
   }
 
   /// <summary>

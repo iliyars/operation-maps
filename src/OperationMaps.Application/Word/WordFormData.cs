@@ -38,7 +38,6 @@ namespace OperationMaps.Application.Word
     /// </summary>
     public OperatingConditions? OperatingConditions { get; init; }
 
-
     /// <summary>
     /// Whether this form contains a dynamically inserted optional row.
     /// When true, the export service calls InsertRowBefore for each component
@@ -93,5 +92,26 @@ namespace OperationMaps.Application.Word
     /// Value for the optional row cell (when <see cref="HasOptionalRow"/> is true).
     /// </summary>
     public string OptionalRowValue { get; init; } = "";
+
+    /// <summary>
+    /// Optional-parameter values keyed by the OPTIONAL FormParameter.RowNumber
+    /// (e.g. the second supply voltage row). Whenever a key is present here
+    /// with a non-empty value, the export service inserts the corresponding
+    /// optional row for THIS component's slot and fills it — independent of
+    /// other components sharing the same page. Empty dictionary means this
+    /// component needs no optional rows at all.
+    /// </summary>
+    public IReadOnlyDictionary<int, OptionalRowValues> OptionalRowValuesByParameter { get; init; }
+        = new Dictionary<int, OptionalRowValues>();
+  }
+
+  /// <summary>
+  /// The "по НТД" / "в схеме" pair for one optional parameter row
+  /// (e.g. a component's second supply voltage).
+  /// </summary>
+  public sealed class OptionalRowValues
+  {
+    public string? NtdValue { get; init; }
+    public string? SchemeValue { get; init; }
   }
 }

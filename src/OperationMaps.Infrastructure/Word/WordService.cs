@@ -172,6 +172,17 @@ namespace OperationMaps.Infrastructure.Word
           }
         }
 
+        // ── Optional rows (e.g. Form 64's second supply voltage) ──────────────
+        // Must run AFTER the main fill loop above, because inserting a row
+        // shifts every row index below it by +1 — doing this first would
+        // desynchronize all the static ParameterCells coordinates used above.
+        // Each page is handled independently; within a page, each slot that
+        // actually has optional-row data gets its own inserted row, so two
+        // components sharing a page can differ (one has a second voltage,
+        // the other doesn't) without affecting each other.
+        if (map.OptionalRows.Count > 0)
+          FillOptionalRows(data, map, pageTables);
+
         // Header/footer placeholders are already replaced at ZIP level above.
         // Only replace in body (cover-page placeholders etc.)
         if (map.HeaderReplacements.Count > 0)
@@ -186,6 +197,61 @@ namespace OperationMaps.Infrastructure.Word
 
       ms.Position = 0;
       return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Inserts and fills the optional parameter row (e.g. Form 64's second
+    /// supply voltage) for every component that actually provides a value
+    /// for it. Iterates components grouped by page so row insertions on one
+    /// page don't affect coordinate math on another.
+    /// </summary>
+    private static void FillOptionalRows(
+        WordFormData data,
+        WordFormMap map,
+        List<Table> pageTables)
+    {
+      int componentCount = data.Components.Count;
+
+      for (int i = 0; i < componentCount; i++)
+      {
+        var component = data.Components[i];
+        if (component.OptionalRowValuesByParameter.Count == 0) continue;
+
+        int pageIndex = i / map.ComponentsPerPage;
+        int slotIndex = i % map.ComponentsPerPage;
+        var table = pageTables[pageIndex];
+
+        foreach (var (optionalRowNumber, values) in component.OptionalRowValuesByParameter)
+        {
+          var lookupKey = $"{optionalRowNumber}:{slotIndex}";
+          if (!map.OptionalRows.TryGetValue(lookupKey, out var rowMap)) continue;
+
+          var hasNtd = !string.IsNullOrWhiteSpace(values.NtdValue);
+          var hasScheme = !string.IsNullOrWhiteSpace(values.SchemeValue);
+          if (!hasNtd && !hasScheme) continue; // nothing to show, skip the insert entirely
+
+          // Insert the new row right after the template row (the primary
+          // parameter's row) and fill it using the SAME column indices as
+          // the primary row — only the row index shifts by +1.
+          var newRow = WordTableHelper.InsertRowAfter(
+              table, rowMap.TemplateRowIndex, rowMap.TemplateRowIndex);
+
+          var insertedRowIndex = rowMap.TemplateRowIndex + 1;
+
+          var ntdCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.NtdCol);
+          if (ntdCell is not null)
+            WordTableHelper.SetCellText(ntdCell, hasNtd ? values.NtdValue! : "—");
+
+          if (rowMap.Coord.SchemeCol.HasValue)
+          {
+            var schemeCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.SchemeCol.Value);
+            if (schemeCell is not null)
+              WordTableHelper.SetCellText(schemeCell, hasScheme ? values.SchemeValue! : "—");
+          }
+
+          Dbg($"  optional row [{lookupKey}] inserted at row {insertedRowIndex}, ntd='{values.NtdValue}' scheme='{values.SchemeValue}'");
+        }
+      }
     }
 
     // ── Import implementation ─────────────────────────────────────────────────
@@ -256,6 +322,13 @@ namespace OperationMaps.Infrastructure.Word
             if (cell is not null)
               note = WordTableHelper.GetCellText(cell).Trim();
           }
+
+          // NOTE: optional rows are NOT read back here — re-importing a
+          // dynamically-inserted row would require detecting which physical
+          // row index corresponds to which logical parameter after an
+          // arbitrary number of insertions, which the current coordinate
+          // model doesn't track. Optional-row values only flow one way
+          // (app → Word) for now.
 
           components.Add(new WordComponentData
           {

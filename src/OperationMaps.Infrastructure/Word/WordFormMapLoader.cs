@@ -94,6 +94,8 @@ namespace OperationMaps.Infrastructure.Word
           operatingConditionCells[key] = ParseCoord(value, -1, key, mapPath);
         }
 
+      var optionalRows = ParseOptionalRows(root["optionalRows"], componentsPerPage, mapPath);
+
       return new WordFormMap
       {
         FormNumber = formNumber,
@@ -104,6 +106,7 @@ namespace OperationMaps.Infrastructure.Word
         OperatingConditionCells = operatingConditionCells,
         OptionalRowInsertIndex = optionalRowInsertIndex,
         OptionalRowTemplateIndex = optionalRowTemplateIndex,
+        OptionalRows = optionalRows,
       };
     }
 
@@ -118,6 +121,84 @@ namespace OperationMaps.Infrastructure.Word
         ParameterCells = ParseParameterCellDict(obj["parameterCells"], slotIndex, mapPath),
         NoteCell = ParseOptionalCoord(obj["noteCell"]),
       };
+    }
+
+    /// <summary>
+    /// Parses the top-level "optionalRows" section, e.g.:
+    /// <code>
+    /// "optionalRows": {
+    ///   "1": {
+    ///     "primaryRowNumber": 1,
+    ///     "templateRowIndex": 4,
+    ///     "slots": [
+    ///       { "ntdCol": 5, "schemeCol": 4 },
+    ///       { "ntdCol": 9, "schemeCol": 8 }
+    ///     ]
+    ///   }
+    /// }
+    /// </code>
+    /// Key is the OPTIONAL FormParameter.RowNumber as a string. "slots" must
+    /// have exactly <paramref name="componentsPerPage"/> entries, one per
+    /// component slot on the page, listing that slot's column coordinates
+    /// for the cloned row. Returns one <see cref="OptionalRowMap"/> per
+    /// (parameter, slotIndex) pair, keyed as "{rowNumber}:{slotIndex}" so the
+    /// export service can look it up per-component without re-parsing slots.
+    /// </summary>
+    private static IReadOnlyDictionary<string, OptionalRowMap> ParseOptionalRows(
+        JsonNode? node, int componentsPerPage, string mapPath)
+    {
+      if (node is null) return new Dictionary<string, OptionalRowMap>();
+
+      var result = new Dictionary<string, OptionalRowMap>();
+
+      foreach (var (rowKey, value) in node.AsObject())
+      {
+        if (value is null) continue;
+        var obj = value.AsObject();
+
+        var primaryRowNumber = obj["primaryRowNumber"]?.GetValue<int>()
+            ?? throw new InvalidDataException($"Missing 'primaryRowNumber' in optionalRows['{rowKey}'] in {mapPath}");
+
+        var templateRowIndex1Based = obj["templateRowIndex"]?.GetValue<int>()
+            ?? throw new InvalidDataException($"Missing 'templateRowIndex' in optionalRows['{rowKey}'] in {mapPath}");
+
+        var slotsArray = obj["slots"]?.AsArray()
+            ?? throw new InvalidDataException($"Missing 'slots' in optionalRows['{rowKey}'] in {mapPath}");
+
+        if (slotsArray.Count != componentsPerPage)
+          throw new InvalidDataException(
+              $"optionalRows['{rowKey}'].slots count ({slotsArray.Count}) does not match " +
+              $"componentsPerPage ({componentsPerPage}) in {mapPath}");
+
+        for (int slotIndex = 0; slotIndex < slotsArray.Count; slotIndex++)
+        {
+          var slotObj = slotsArray[slotIndex]?.AsObject()
+              ?? throw new InvalidDataException($"optionalRows['{rowKey}'].slots[{slotIndex}] is not an object in {mapPath}");
+
+          var ntdCol = slotObj["ntdCol"]?.GetValue<int>()
+              ?? throw new InvalidDataException($"Missing 'ntdCol' in optionalRows['{rowKey}'].slots[{slotIndex}] in {mapPath}");
+          var schemeCol = slotObj["schemeCol"]?.GetValue<int>();
+
+          // Row index in the coord is left at the template position; the
+          // export service computes the actual post-insertion row at runtime
+          // (TemplateRowIndex + 1), since inserting a row shifts everything
+          // below it down by one.
+          var coord = new ParameterCoord(
+              templateRowIndex1Based - 1,
+              ntdCol - 1,
+              schemeCol.HasValue ? schemeCol.Value - 1 : null);
+
+          var lookupKey = $"{rowKey}:{slotIndex}";
+          result[lookupKey] = new OptionalRowMap
+          {
+            PrimaryRowNumber = primaryRowNumber,
+            TemplateRowIndex = templateRowIndex1Based - 1,
+            Coord = coord,
+          };
+        }
+      }
+
+      return result;
     }
 
     /// <summary>

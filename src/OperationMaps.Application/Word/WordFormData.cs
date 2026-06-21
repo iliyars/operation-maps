@@ -77,6 +77,15 @@ namespace OperationMaps.Application.Word
         = new Dictionary<int, string>();
 
     /// <summary>
+    /// Pin numbers used for each parameter, keyed by
+    /// <c>FormParameter.RowNumber</c> (e.g. ComponentPinValue.Pins).
+    /// Only relevant for forms with a "номера выводов" column (Form 64).
+    /// Empty for all other forms.
+    /// </summary>
+    public IReadOnlyDictionary<int, string> PinValues { get; init; }
+        = new Dictionary<int, string>();
+
+    /// <summary>
     /// Formatted note string for the note cell, e.g. "* Обеспечивается конструкцией".
     /// Already concatenated and ordered — the export service writes it as-is.
     /// </summary>
@@ -106,12 +115,13 @@ namespace OperationMaps.Application.Word
   }
 
   /// <summary>
-  /// The "по НТД" / "в схеме" pair for one optional parameter row
-  /// (e.g. a component's second supply voltage).
+  /// The "по НТД" / "в схеме" / "номера выводов" triple for one optional
+  /// parameter row (e.g. a component's second supply voltage in Form 64).
   /// </summary>
   public sealed class OptionalRowValues
   {
     public string? NtdValue { get; init; }
     public string? SchemeValue { get; init; }
+    public string? PinsValue { get; init; }
   }
 }

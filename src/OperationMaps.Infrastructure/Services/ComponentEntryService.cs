@@ -7,14 +7,12 @@ namespace OperationMaps.Infrastructure.Services;
 
 public sealed class ComponentEntryService : IComponentEntryService
 {
-
   private readonly CatalogDbContext _db;
 
   public ComponentEntryService(CatalogDbContext db)
   {
     _db = db ?? throw new ArgumentNullException(nameof(db));
   }
-
 
   public async Task<Component> CreateComponentAsync(NewComponentInput input, CancellationToken ct = default)
   {
@@ -30,7 +28,6 @@ public sealed class ComponentEntryService : IComponentEntryService
           .FirstOrDefaultAsync(f => f.Id == familyId, ct)
           ?? throw new InvalidOperationException($"Family {familyId} not found.");
     }
-
     else
     {
       if (string.IsNullOrWhiteSpace(input.NewFamilyName))
@@ -46,7 +43,6 @@ public sealed class ComponentEntryService : IComponentEntryService
     }
 
     // Link the family to the chosen own-form, if not already linked.
-    // (FamilyForms drives "RequiredForms" in the matcher.)
     var hasOwnFormLink = await _db.FamilyForms
         .AnyAsync(ff => ff.FamilyId == family.Id && ff.FormId == input.OwnFormId, ct);
 
@@ -78,9 +74,9 @@ public sealed class ComponentEntryService : IComponentEntryService
       NeedsAdminReview = true,
     };
     _db.Components.Add(component);
-    await _db.SaveChangesAsync(ct); // need component.Id before adding NtdValues
+    await _db.SaveChangesAsync(ct); // need component.Id before adding NtdValues/PinValues
 
-    // ── 4. Own-form NTD values ────────────────────────────────────────────────
+    // ── 4. Own-form NTD values (includes any optional-row values) ────────────
     foreach (var (formParameterId, value) in input.OwnFormValues)
     {
       if (string.IsNullOrWhiteSpace(value)) continue;
@@ -90,6 +86,19 @@ public sealed class ComponentEntryService : IComponentEntryService
         ComponentId = component.Id,
         FormParameterId = formParameterId,
         Value = value.Trim(),
+      });
+    }
+
+    // ── 5. Pin numbers (Form 64's "номера выводов" column) ───────────────────
+    foreach (var (formParameterId, pins) in input.PinValues)
+    {
+      if (string.IsNullOrWhiteSpace(pins)) continue;
+
+      _db.ComponentPinValues.Add(new ComponentPinValue
+      {
+        ComponentId = component.Id,
+        FormParameterId = formParameterId,
+        Pins = pins.Trim(),
       });
     }
 

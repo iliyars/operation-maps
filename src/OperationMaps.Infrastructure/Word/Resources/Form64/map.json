@@ -1,0 +1,76 @@
+{
+  "formNumber": "64",
+  "tableIndex": 0,
+  "componentsPerPage": 2,
+  "componentSlots": [
+    {
+      "comment": "Slot 0 — первый компонент (col 1)",
+      "metaCells": {
+        "positionsNumber": { "row": 2, "col": 2 },
+        "componentName": { "row": 3, "col": 2 }
+      },
+      "parameterCells": {
+        "1": { "row": 5, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "2": { "row": 6, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "3": { "row": 7, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "4": { "row": 8, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "5": { "row": 9, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "6": { "row": 10, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "7": { "row": 11, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "8": { "row": 12, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "9": { "row": 13, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "10": { "row": 14, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "11": { "row": 15, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "12": { "row": 16, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "13": { "row": 17, "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        "14": { "row": 18, "ntdCol": 5, "schemeCol": 4, "pins": 3 },
+        "15": { "row": 19, "ntdCol": 5, "schemeCol": 4, "pins": 3 },
+        "16": { "row": 20, "ntdCol": 5, "schemeCol": 4, "pins": 3 },
+        "17": { "row": 21, "ntdCol": 5, "schemeCol": 4, "pins": 3 }
+      },
+      "noteCell": { "row": 22, "col": 3 }
+    },
+    {
+      "comment": "Slot 1 — второй компонент (col 2)",
+      "metaCells": {
+        "positionsNumber": { "row": 2, "col": 3 },
+        "componentName": { "row": 3, "col": 3 }
+      },
+      "parameterCells": {
+        "1": { "row": 5, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "2": { "row": 6, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "3": { "row": 7, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "4": { "row": 8, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "5": { "row": 9, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "6": { "row": 10, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "7": { "row": 11, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "8": { "row": 12, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "9": { "row": 13, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "10": { "row": 14, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "11": { "row": 15, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "12": { "row": 16, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "13": { "row": 17, "ntdCol": 9, "schemeCol": 8, "pins": 7 },
+        "14": { "row": 18, "ntdCol": 8, "schemeCol": 7, "pins": 6 },
+        "15": { "row": 19, "ntdCol": 8, "schemeCol": 7, "pins": 6 },
+        "16": { "row": 20, "ntdCol": 8, "schemeCol": 7, "pins": 6 },
+        "17": { "row": 21, "ntdCol": 8, "schemeCol": 7, "pins": 6 }
+      },
+      "noteCell": { "row": 22, "col": 4 }
+    }
+  ],
+  "headerReplacements": {
+    "{{designation}}": "designation",
+    "{{sheet}}": "sheetNumber",
+    "{{totalSheets}}": "totalSheets"
+  },
+  "optionalRows": {
+    "1": {
+      "primaryRowNumber": 1,
+      "templateRowIndex": 5,
+      "slots": [
+        { "ntdCol": 6, "schemeCol": 5, "pins": 4 },
+        { "ntdCol": 9, "schemeCol": 8, "pins": 7 }
+      ]
+    }
+  }
+}

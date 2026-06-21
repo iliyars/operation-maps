@@ -34,6 +34,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public string FormNumber { get; private set; } = "";
     public string FormTitle { get; private set; } = "";
 
+    /// <summary>
+    /// True when the current form has a "номера выводов" column (Form 64).
+    /// Drives whether the pins TextBox is rendered for parameter rows.
+    /// </summary>
+    [ObservableProperty] private bool _showsPins;
+
     // ── Table data ────────────────────────────────────────────────────────────
 
     public ObservableCollection<FormColumnVm> Columns { get; } = [];
@@ -67,8 +73,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public ObservableCollection<FormColumnVm> SelectedColumns { get; } = [];
 
-    public bool CanSplit  => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
-    public bool CanMerge  => SelectedColumns.Count == 2;
+    public bool CanSplit => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
+    public bool CanMerge => SelectedColumns.Count == 2;
     private bool CanExport => Columns.Count > 0 && !IsExporting && !string.IsNullOrEmpty(FormNumber);
 
     public event Action<FormColumnVm>? SplitRequested;
@@ -81,10 +87,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
         IWordService wordService,
         WordFormMapLoader mapLoader)
     {
-      _store       = store       ?? throw new ArgumentNullException(nameof(store));
-      _db          = db          ?? throw new ArgumentNullException(nameof(db));
+      _store = store ?? throw new ArgumentNullException(nameof(store));
+      _db = db ?? throw new ArgumentNullException(nameof(db));
       _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
-      _mapLoader   = mapLoader   ?? throw new ArgumentNullException(nameof(mapLoader));
+      _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -95,7 +101,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       if (parameter is not int formId) return;
 
-      FormId    = formId;
+      FormId = formId;
       IsLoading = true;
 
       try
@@ -147,7 +153,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         SelectedColumn = null;
         if (SelectedItem is not null)
           SelectedItem.IsSelected = false;
-        SelectedItem     = null;
+        SelectedItem = null;
         ParameterDetails = [];
       }
       ClearMultiSelection();
@@ -165,7 +171,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand(CanExecute = nameof(CanMerge))]
     private void Merge()
     {
-      var first  = SelectedColumns[0];
+      var first = SelectedColumns[0];
       var second = SelectedColumns[1];
       ExecuteCommand(new MergeColumnsCommand(Columns, first, second));
       RebuildColumnItems();
@@ -182,20 +188,33 @@ namespace OperationMaps.Wpf.Features.OwnForm
         SelectedItem.IsSelected = false;
 
       SelectedColumn = column;
-      SelectedItem   = ColumnItems.FirstOrDefault(i => i.Column == column);
+      SelectedItem = ColumnItems.FirstOrDefault(i => i.Column == column);
 
       if (SelectedItem is not null)
         SelectedItem.IsSelected = true;
 
       var details = Parameters
-          .Select(p => new ParameterDetailVm(
-              column: column,
-              parameterId: p.FormParameterId,
-              rowNumber: p.RowNumber,
-              displayName: p.DisplayName,
-              ntdValue: column.GetNtdValue(p.FormParameterId),
-              formula: p.Formula,
-              isRequired: p.IsRequired))
+          .Where(p => !p.IsOptional) // optional rows render via the primary row, never as their own row
+          .Select(p =>
+          {
+            var optionalParamId = p.OptionalCounterpartId ?? 0;
+            var hasOptionalRow = optionalParamId != 0 && column.HasOptionalRow(optionalParamId);
+
+            return new ParameterDetailVm(
+                column: column,
+                parameterId: p.FormParameterId,
+                rowNumber: p.RowNumber,
+                displayName: p.DisplayName,
+                ntdValue: column.GetNtdValue(p.FormParameterId),
+                formula: p.Formula,
+                isRequired: p.IsRequired,
+                showPins: ShowsPins,
+                pinsValue: column.GetPinValue(p.FormParameterId),
+                hasOptionalRow: hasOptionalRow,
+                optionalFormParameterId: optionalParamId,
+                optionalNtdValue: hasOptionalRow ? column.OptionalNtdValues[optionalParamId] : "—",
+                optionalPinsValue: hasOptionalRow ? column.GetPinValue(optionalParamId) : "");
+          })
           .ToList();
 
       var derivedRows = details.Where(d => d.IsDerived).ToList();
@@ -310,8 +329,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       try
       {
         var templatePath = _mapLoader.GetTemplatePath(FormNumber);
-        var data         = BuildWordFormData();
-        var bytes        = await _wordService.ExportAsync(data, templatePath, ct);
+        var data = BuildWordFormData();
+        var bytes = await _wordService.ExportAsync(data, templatePath, ct);
 
         var tmpPath = outputPath + ".tmp";
         await File.WriteAllBytesAsync(tmpPath, bytes, ct);
@@ -332,18 +351,28 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public WordFormData BuildWordFormData()
     {
       var paramIdToRow = Parameters
+          .Where(p => !p.IsOptional)
           .ToDictionary(p => p.FormParameterId, p => p.RowNumber);
 
+      // Optional parameters map their own FormParameterId → the PRIMARY
+      // parameter's RowNumber (e.g. RowNumber=1 for "напряжение питания"),
+      // because that's what map.json's "optionalRows" top-level keys are —
+      // NOT the optional parameter's own RowNumber. FormParameter.OptionalForRowNumber
+      // already stores exactly this primary RowNumber.
+      var optionalParamIdToOptionalRowNumber = Parameters
+          .Where(p => p.IsOptional && p.OptionalForRowNumber.HasValue)
+          .ToDictionary(p => p.FormParameterId, p => p.OptionalForRowNumber!.Value);
+
       var components = Columns
-          .Select(col => BuildComponentData(col, paramIdToRow))
+          .Select(col => BuildComponentData(col, paramIdToRow, optionalParamIdToOptionalRowNumber))
           .ToList();
 
       return new WordFormData
       {
-        FormNumber          = FormNumber,
+        FormNumber = FormNumber,
         DocumentDesignation = _store.DocumentNumber ?? _store.ProjectName ?? "",
-        Components          = components,
-        HeaderFields        = new Dictionary<string, string>
+        Components = components,
+        HeaderFields = new Dictionary<string, string>
         {
           ["sheetNumber"] = "1",
         },
@@ -395,7 +424,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (form is null) return;
 
       FormNumber = form.Number;
-      FormTitle  = form.Title;
+      FormTitle = form.Title;
 
       var parameters = form.Parameters.OrderBy(p => p.RowNumber).ToList();
 
@@ -421,20 +450,64 @@ namespace OperationMaps.Wpf.Features.OwnForm
           .GroupBy(v => v.ComponentId)
           .ToDictionary(g => g.Key, g => g.ToList());
 
+      // Pin numbers (Form 64's "номера выводов" column) — catalog data,
+      // entered once per Component via the "add component" wizard.
+      var allPinValues = componentIds.Count > 0
+          ? await _db.ComponentPinValues
+              .Where(v => componentIds.Contains(v.ComponentId)
+                       && v.FormParameter.FormId == FormId)
+              .ToListAsync(ct)
+          : [];
+
+      var pinsByComponent = allPinValues
+          .GroupBy(v => v.ComponentId)
+          .ToDictionary(g => g.Key, g => g.ToList());
+
+      // Which FormParameterIds are optional (e.g. the second supply voltage)
+      // — their NTD values go into OptionalNtdValues, not NtdValues, since
+      // they don't represent a normal table row.
+      var optionalParamIds = parameters.Where(p => p.IsOptional).Select(p => p.Id).ToHashSet();
+
       foreach (var component in relevantComponents)
       {
-        var column      = new FormColumnVm(component);
+        var column = new FormColumnVm(component);
         var componentId = component.Entry.MatchResult.MatchedComponent?.Id;
 
-        if (componentId is not null && ntdByComponent.TryGetValue(componentId.Value, out var ntdValues))
-          foreach (var ntd in ntdValues)
-            column.NtdValues[ntd.FormParameterId] = ntd.Value;
+        if (componentId is not null)
+        {
+          if (ntdByComponent.TryGetValue(componentId.Value, out var ntdValues))
+            foreach (var ntd in ntdValues)
+              if (optionalParamIds.Contains(ntd.FormParameterId))
+                column.OptionalNtdValues[ntd.FormParameterId] = ntd.Value;
+              else
+                column.NtdValues[ntd.FormParameterId] = ntd.Value;
+
+          if (pinsByComponent.TryGetValue(componentId.Value, out var pinValues))
+            foreach (var pin in pinValues)
+              column.PinValues[pin.FormParameterId] = pin.Pins;
+        }
 
         Columns.Add(column);
       }
 
       foreach (var param in parameters)
         Parameters.Add(new FormParameterRowVm(param, Columns));
+
+      // Link each "primary" parameter to its optional counterpart, if any.
+      // The counterpart is identified by IsOptional=true + OptionalForRowNumber
+      // pointing back at the primary's RowNumber.
+      foreach (var primary in Parameters.Where(p => !p.IsOptional))
+      {
+        var counterpart = Parameters.FirstOrDefault(
+            p => p.IsOptional && p.OptionalForRowNumber == primary.RowNumber);
+        if (counterpart is not null)
+          primary.OptionalCounterpartId = counterpart.FormParameterId;
+      }
+
+      // Form 64 shows a "номера выводов" column for every parameter row.
+      // Detected by form number rather than a dedicated flag for now —
+      // straightforward since pin numbers are currently unique to Form 64.
+      ShowsPins = FormNumber == "64";
 
       foreach (var col in Columns)
         ColumnItems.Add(new ColumnListItemVm(col, Parameters));
@@ -444,7 +517,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     private static WordComponentData BuildComponentData(
         FormColumnVm column,
-        Dictionary<int, int> paramIdToRow)
+        Dictionary<int, int> paramIdToRow,
+        Dictionary<int, int> optionalParamIdToOptionalRowNumber)
     {
       var schemeValues = column.CellValues
           .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
@@ -454,6 +528,27 @@ namespace OperationMaps.Wpf.Features.OwnForm
           .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
           .ToDictionary(kv => paramIdToRow[kv.Key], kv => kv.Value);
 
+      var pinValues = column.PinValues
+          .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
+          .ToDictionary(kv => paramIdToRow[kv.Key], kv => kv.Value);
+
+      // Optional rows (e.g. a second supply voltage) only exist for a
+      // component when the catalog has an NTD value for that optional
+      // parameter — OptionalNtdValues is the source of truth for "does
+      // this row apply at all". Scheme value comes from user input
+      // (OptionalCellValues); pins come from the same PinValues dict,
+      // just keyed by the OPTIONAL parameter's id.
+      var optionalRowValues = column.OptionalNtdValues
+          .Where(kv => optionalParamIdToOptionalRowNumber.ContainsKey(kv.Key))
+          .ToDictionary(
+              kv => optionalParamIdToOptionalRowNumber[kv.Key],
+              kv => new OptionalRowValues
+              {
+                NtdValue = kv.Value,
+                SchemeValue = column.GetOptionalCellValue(kv.Key),
+                PinsValue = column.GetPinValue(kv.Key),
+              });
+
       var noteLines = column.Notes.Values
           .SelectMany(notes => notes)
           .OrderBy(n => n.Order)
@@ -462,12 +557,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       return new WordComponentData
       {
-        Name         = column.Name,
-        Positions    = PositionRangeFormatter.Format(column.Component.Entry.Imported.Positions),
-        Quantity     = column.Component.Entry.Imported.Positions.Count.ToString(),
+        Name = column.Name,
+        Positions = PositionRangeFormatter.Format(column.Component.Entry.Imported.Positions),
+        Quantity = column.Component.Entry.Imported.Positions.Count.ToString(),
         SchemeValues = schemeValues,
-        NtdValues    = ntdValues,
-        Note         = string.Join("\n", noteLines),
+        NtdValues = ntdValues,
+        PinValues = pinValues,
+        OptionalRowValuesByParameter = optionalRowValues,
+        Note = string.Join("\n", noteLines),
       };
     }
 
@@ -509,4 +606,3 @@ namespace OperationMaps.Wpf.Features.OwnForm
     }
   }
 }
- 

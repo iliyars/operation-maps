@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Components.AddComponent"
         Title="Ввод данных компонента"
-        Width="640"
-        Height="640"
-        MinWidth="560"
+        Width="680"
+        Height="680"
+        MinWidth="600"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BgAppBrush}">
@@ -24,21 +24,21 @@
                 Padding="20,14">
             <StackPanel>
                 <TextBlock Text="Ввод данных компонента"
-                           Style="{StaticResource TitleText}"/>
+                        Style="{StaticResource TitleText}"/>
                 <StackPanel Orientation="Horizontal"
-                            Margin="0,4,0,0">
+                        Margin="0,4,0,0">
                     <TextBlock Text="{Binding ComponentRawName}"
                                FontSize="13"
                                Foreground="{DynamicResource TextSecondaryBrush}"/>
                     <TextBlock Text=" — "
-                               Style="{StaticResource PositionsText}"/>
+                            Style="{StaticResource PositionsText}"/>
                     <TextBlock Text="{Binding ComponentPositions}"
-                               Style="{StaticResource PositionsText}"/>
+                            Style="{StaticResource PositionsText}"/>
                 </StackPanel>
                 <!-- Step indicator -->
                 <StackPanel Orientation="Horizontal"
-                            Margin="0,10,0,0"
-                            Visibility="{Binding HasStep1, Converter={StaticResource BoolToVis}}">
+                        Margin="0,10,0,0"
+                        Visibility="{Binding HasStep1, Converter={StaticResource BoolToVis}}">
                     <Border CornerRadius="10"
                             Padding="8,3"
                             Margin="0,0,6,0">
@@ -48,7 +48,7 @@
                                         Value="{DynamicResource AccentBrush}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsStep2}"
-                                                 Value="True">
+                                            Value="True">
                                         <Setter Property="Background"
                                                 Value="{DynamicResource BgHoverBrush}"/>
                                     </DataTrigger>
@@ -56,15 +56,15 @@
                             </Style>
                         </Border.Style>
                         <TextBlock Text="1. Форма 4"
-                                   FontSize="11"
-                                   FontWeight="Medium">
+                                FontSize="11"
+                                FontWeight="Medium">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground"
                                             Value="White"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsStep2}"
-                                                     Value="True">
+                                                Value="True">
                                             <Setter Property="Foreground"
                                                     Value="{DynamicResource TextMutedBrush}"/>
                                         </DataTrigger>
@@ -81,7 +81,7 @@
                                         Value="{DynamicResource BgHoverBrush}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsStep2}"
-                                                 Value="True">
+                                            Value="True">
                                         <Setter Property="Background"
                                                 Value="{DynamicResource AccentBrush}"/>
                                     </DataTrigger>
@@ -89,15 +89,15 @@
                             </Style>
                         </Border.Style>
                         <TextBlock Text="2. Собственная форма"
-                                   FontSize="11"
-                                   FontWeight="Medium">
+                                FontSize="11"
+                                FontWeight="Medium">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Foreground"
                                             Value="{DynamicResource TextMutedBrush}"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsStep2}"
-                                                     Value="True">
+                                                Value="True">
                                             <Setter Property="Foreground"
                                                     Value="White"/>
                                         </DataTrigger>
@@ -113,16 +113,16 @@
         <!-- Loading -->
         <StackPanel Grid.Row="1"
                     VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
+                HorizontalAlignment="Center"
                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
             <TextBlock Text="Загрузка..."
-                       Style="{StaticResource MutedText}"
-                       FontSize="14"/>
+                    Style="{StaticResource MutedText}"
+                    FontSize="14"/>
         </StackPanel>
 
         <!-- Body -->
         <Grid Grid.Row="1"
-              Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
+                Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
 
             <!-- Step 1: Family + Form 4 -->
             <ScrollViewer Padding="20,16"
@@ -130,21 +130,20 @@
                           Visibility="{Binding IsStep1, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
 
-                    <!-- Family name -->
                     <TextBlock Text="Семейство"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="0,0,0,4"/>
+                            Style="{StaticResource SectionLabel}"
+                            Margin="0,0,0,4"/>
                     <TextBox Text="{Binding FamilyName, UpdateSourceTrigger=PropertyChanged}"
                              IsReadOnly="{Binding FamilyAlreadyKnown}"
                              Margin="0,0,0,4"/>
                     <TextBlock Text="Семейство определено автоматически из наименования"
                                FontSize="11"
-                               Foreground="{DynamicResource TextMutedBrush}"
+                            Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,16"
                                Visibility="{Binding FamilyAlreadyKnown, Converter={StaticResource BoolToVis}}"/>
                     <TextBlock Text="Семейство не распознано — название заполнено по имени компонента, при необходимости измените"
                                FontSize="11"
-                               Foreground="{DynamicResource StatusWarningBrush}"
+                            Foreground="{DynamicResource StatusWarningBrush}"
                                Margin="0,0,0,16"
                                Visibility="{Binding FamilyAlreadyKnown, Converter={StaticResource InverseBoolToVis}}"/>
 
@@ -152,7 +151,7 @@
 
                     <TextBlock Text="Параметры Формы 4 (одинаковы для всего семейства)"
                                FontSize="13"
-                               FontWeight="SemiBold"
+                            FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="0,0,0,12"/>
 
@@ -187,8 +186,8 @@
                 <StackPanel>
 
                     <TextBlock Text="Собственная форма компонента"
-                               Style="{StaticResource SectionLabel}"
-                               Margin="0,0,0,4"/>
+                            Style="{StaticResource SectionLabel}"
+                            Margin="0,0,0,4"/>
                     <ComboBox ItemsSource="{Binding OwnFormOptions}"
                               SelectedItem="{Binding SelectedOwnForm}"
                               DisplayMemberPath="Display"
@@ -200,27 +199,143 @@
                     <StackPanel Visibility="{Binding SelectedOwnForm, Converter={StaticResource NullToVis}}">
                         <TextBlock Text="Параметры выбранной формы"
                                    FontSize="13"
-                                   FontWeight="SemiBold"
+                                FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    Margin="0,0,0,12"/>
+
+                        <!-- Column headers, mirroring the row layout below -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="160"/>
+                                <ColumnDefinition>
+                                    <ColumnDefinition.Style>
+                                        <Style TargetType="ColumnDefinition">
+                                            <Setter Property="Width" Value="0"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding OwnFormShowsPins}" Value="True">
+                                                    <Setter Property="Width" Value="120"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ColumnDefinition.Style>
+                                </ColumnDefinition>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0"/>
+                            <TextBlock Grid.Column="1"
+                                       Text="Параметр по НТД"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       Margin="0,0,8,0"/>
+                            <TextBlock Grid.Column="2"
+                                       Text="№ выводов"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       Visibility="{Binding OwnFormShowsPins, Converter={StaticResource BoolToVis}}"/>
+                        </Grid>
 
                         <ItemsControl ItemsSource="{Binding OwnFormRows}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type local:WizardParameterRowVm}">
-                                    <Grid Margin="0,0,0,10">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="180"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBlock Grid.Column="0"
-                                                   Text="{Binding DisplayName}"
-                                                   VerticalAlignment="Center"
-                                                   FontSize="12"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <TextBox Grid.Column="1"
-                                                 Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-                                                 Padding="6,4"/>
-                                    </Grid>
+                                    <StackPanel Margin="0,0,0,12">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="160"/>
+                                                <ColumnDefinition>
+                                                    <ColumnDefinition.Style>
+                                                        <Style TargetType="ColumnDefinition">
+                                                            <Setter Property="Width" Value="0"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ShowPins}" Value="True">
+                                                                    <Setter Property="Width" Value="120"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ColumnDefinition.Style>
+                                                </ColumnDefinition>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding DisplayName}"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBox Grid.Column="1"
+                                                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                     Padding="6,4"
+                                                     Margin="0,0,8,0"/>
+                                            <TextBox Grid.Column="2"
+                                                     Text="{Binding PinsValue, UpdateSourceTrigger=PropertyChanged}"
+                                                     Padding="6,4"
+                                                     ToolTip="Номера выводов"
+                                                     Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"/>
+                                        </Grid>
+
+                                        <!-- Optional second-value row, e.g. Form 64's second supply voltage -->
+                                        <StackPanel Margin="0,6,0,0"
+                                                    Visibility="{Binding CanHaveOptionalRow, Converter={StaticResource BoolToVis}}">
+
+                                            <Button Command="{Binding AddOptionalRowCommand}"
+                                                    Style="{StaticResource GhostButton}"
+                                                    HorizontalAlignment="Left"
+                                                    Padding="0"
+                                                    Visibility="{Binding IsOptionalRowVisible, Converter={StaticResource InverseBoolToVis}}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE710;" Style="{StaticResource IconText}"
+                                                               FontSize="10" Foreground="{DynamicResource AccentBrush}"
+                                                               VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="Добавить второе напряжение"
+                                                               FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <Border Background="{DynamicResource BgHoverBrush}"
+                                                    CornerRadius="6" Padding="8"
+                                                    Visibility="{Binding IsOptionalRowVisible, Converter={StaticResource BoolToVis}}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="160"/>
+                                                        <ColumnDefinition>
+                                                            <ColumnDefinition.Style>
+                                                                <Style TargetType="ColumnDefinition">
+                                                                    <Setter Property="Width" Value="0"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding ShowPins}" Value="True">
+                                                                            <Setter Property="Width" Value="120"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </ColumnDefinition.Style>
+                                                        </ColumnDefinition>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="второе напряжение"
+                                                               VerticalAlignment="Center"
+                                                               FontSize="11"
+                                                               Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    <TextBox Grid.Column="1"
+                                                             Text="{Binding OptionalValue, UpdateSourceTrigger=PropertyChanged}"
+                                                             Padding="6,4" Margin="0,0,8,0"/>
+                                                    <TextBox Grid.Column="2"
+                                                             Text="{Binding OptionalPinsValue, UpdateSourceTrigger=PropertyChanged}"
+                                                             Padding="6,4"
+                                                             ToolTip="Номера выводов"
+                                                             Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"/>
+                                                    <Button Grid.Column="3"
+                                                            Command="{Binding RemoveOptionalRowCommand}"
+                                                            Style="{StaticResource IconButton}"
+                                                            Margin="6,0,0,0"
+                                                            ToolTip="Удалить">
+                                                        <TextBlock Text="&#xE711;" Style="{StaticResource IconText}"
+                                                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                    </Button>
+                                                </Grid>
+                                            </Border>
+                                        </StackPanel>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -251,7 +366,7 @@
                            Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVis}}"/>
 
                 <StackPanel Grid.Column="1"
-                            Orientation="Horizontal">
+                        Orientation="Horizontal">
                     <Button Content="Назад"
                             Style="{StaticResource OutlineButton}"
                             Command="{Binding GoBackCommand}"
@@ -277,7 +392,7 @@
                                             Value="Сохранить"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsSaving}"
-                                                     Value="True">
+                                                Value="True">
                                             <Setter Property="Text"
                                                     Value="Сохранение..."/>
                                         </DataTrigger>

@@ -37,6 +37,48 @@ namespace OperationMaps.Wpf.Features.OwnForm
       OnPropertyChanged(nameof(CellValues));
     }
 
+    // ── Pin values "номера выводов" (Form 64 only) ────────────────────────────
+
+    /// <summary>
+    /// Pin numbers loaded from ComponentPinValue (catalog data, set once via
+    /// the "add component" wizard for this specific Component). Read-only
+    /// from the OwnForm screen's point of view — the user never types these
+    /// in here, they're just displayed alongside "по НТД". Keyed by
+    /// FormParameterId. Empty for forms without a pins column or for
+    /// components that don't have catalog pin data.
+    /// </summary>
+    public Dictionary<int, string> PinValues { get; } = new();
+
+    public string GetPinValue(int formParameterId)
+        => PinValues.TryGetValue(formParameterId, out var v) ? v : "";
+
+    // ── Optional second-value row (e.g. Form 64's second supply voltage) ─────
+
+    /// <summary>
+    /// Catalog NTD value for an OPTIONAL parameter row (e.g. a component's
+    /// second supply voltage), keyed by the OPTIONAL FormParameter's id.
+    /// Presence of a key here — set once via the "add component" wizard and
+    /// loaded alongside NtdValues — is what determines whether OwnFormView
+    /// shows this row at all; there's no user-facing "add" affordance here,
+    /// the catalog data decides.
+    /// </summary>
+    public Dictionary<int, string> OptionalNtdValues { get; } = new();
+
+    public bool HasOptionalRow(int optionalFormParameterId)
+        => OptionalNtdValues.ContainsKey(optionalFormParameterId);
+
+    /// <summary>User-entered "в схеме" value for the optional row, keyed by the OPTIONAL FormParameterId.</summary>
+    public Dictionary<int, string> OptionalCellValues { get; } = new();
+
+    public string GetOptionalCellValue(int optionalFormParameterId)
+        => OptionalCellValues.TryGetValue(optionalFormParameterId, out var v) ? v : "";
+
+    public void SetOptionalCellValue(int optionalFormParameterId, string value)
+    {
+      OptionalCellValues[optionalFormParameterId] = value;
+      OnPropertyChanged(nameof(OptionalCellValues));
+    }
+
     // ── NTD values "по НТД" ───────────────────────────────────────────────────
 
     /// <summary>
@@ -123,12 +165,20 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       var cloned = new FormColumnVm(Component.CloneWithPositions(positions));
 
-      // Copy cell values — TODO: consider clearing or prompting user
       foreach (var (key, value) in CellValues)
         cloned.CellValues[key] = value;
 
       foreach (var (key, value) in NtdValues)
         cloned.NtdValues[key] = value;
+
+      foreach (var (key, value) in PinValues)
+        cloned.PinValues[key] = value;
+
+      foreach (var (key, value) in OptionalNtdValues)
+        cloned.OptionalNtdValues[key] = value;
+
+      foreach (var (key, value) in OptionalCellValues)
+        cloned.OptionalCellValues[key] = value;
 
       return cloned;
     }

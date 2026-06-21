@@ -307,6 +307,118 @@ namespace OperationMaps.Infrastructure.Word
       return newRow;
     }
 
+    /// <summary>
+    /// Inserts a new row immediately after <paramref name="rowIndex"/>,
+    /// configured as a vertical "split" of selected columns on the
+    /// template row — used for Form 64's optional second supply-voltage
+    /// row, where only the slots that actually have a second value get a
+    /// visibly separate cell; every other column (the left-hand parameter
+    /// labels, and slots with no second value) visually merges with the
+    /// row above via <c>vMerge="continue"</c>, so the table reads as one
+    /// consistent line instead of leaving a half-empty extra row.
+    /// <para>
+    /// For each column index in <paramref name="splitColumns"/>: the
+    /// TEMPLATE row's cell is switched to <c>vMerge="restart"</c> (it
+    /// becomes the top half of the split) and the NEW row's same-index
+    /// cell is left as a normal, empty, fillable cell
+    /// (<c>vMerge</c> removed entirely) — the caller fills it afterwards.
+    /// </para>
+    /// <para>
+    /// Every other column on the new row gets <c>vMerge="continue"</c>,
+    /// merging invisibly with whatever is above it (which may itself be a
+    /// <c>restart</c> or another <c>continue</c> — Word resolves the chain).
+    /// </para>
+    /// </summary>
+    /// <param name="table">The table to modify.</param>
+    /// <param name="rowIndex">Zero-based index to insert the new row after.</param>
+    /// <param name="templateRowIndex">Row whose structure (widths, borders) is cloned.</param>
+    /// <param name="splitColumns">
+    /// Zero-based physical column indices that should become visibly split
+    /// (i.e. get their own cell in the new row) rather than merging with
+    /// the row above.
+    /// </param>
+    /// <returns>The newly inserted row.</returns>
+    public static TableRow InsertSplitRow(
+        Table table,
+        int rowIndex,
+        int templateRowIndex,
+        IReadOnlySet<int> splitColumns)
+    {
+      var rows = table.Elements<TableRow>().ToList();
+
+      if (rowIndex < 0 || rowIndex >= rows.Count)
+        throw new ArgumentOutOfRangeException(nameof(rowIndex));
+      if (templateRowIndex < 0 || templateRowIndex >= rows.Count)
+        throw new ArgumentOutOfRangeException(nameof(templateRowIndex));
+
+      var templateRow = rows[templateRowIndex];
+      var newRow = (TableRow)templateRow.CloneNode(deep: true);
+
+      var templateCells = templateRow.Elements<TableCell>().ToList();
+      var newCells = newRow.Elements<TableCell>().ToList();
+
+      for (int col = 0; col < newCells.Count; col++)
+      {
+        var newCell = newCells[col];
+        ClearCellText(newCell);
+
+        if (splitColumns.Contains(col))
+        {
+          // This column gets a real, independent cell in the new row.
+          // Promote the TEMPLATE row's cell to vMerge="restart" so Word
+          // treats the template row as the start of a (now two-row tall)
+          // merge group that the new row's cell will... actually we want
+          // the OPPOSITE: the template keeps its own value untouched and
+          // the new row is a genuinely separate cell. So: ensure neither
+          // cell has a vMerge fragment from cloning — remove it if present.
+          if (col < templateCells.Count)
+            RemoveVMerge(templateCells[col]);
+          RemoveVMerge(newCell);
+        }
+        else
+        {
+          // Merge invisibly with whatever is above: this cell shows no
+          // border/content of its own, it's a continuation of the cell
+          // directly above it in the table.
+          SetVMergeContinue(newCell);
+
+          // Make sure the cell ABOVE is the start of a merge group — if it
+          // wasn't already merging, mark it as the restart point so Word
+          // recognizes the two as one merged region.
+          if (col < templateCells.Count)
+            EnsureVMergeRestart(templateCells[col]);
+        }
+      }
+
+      rows[rowIndex].InsertAfterSelf(newRow);
+      return newRow;
+    }
+
+    private static void RemoveVMerge(TableCell cell)
+    {
+      var tcPr = cell.GetFirstChild<TableCellProperties>();
+      tcPr?.RemoveAllChildren<VerticalMerge>();
+    }
+
+    private static void SetVMergeContinue(TableCell cell)
+    {
+      var tcPr = cell.GetFirstChild<TableCellProperties>() ?? cell.PrependChild(new TableCellProperties());
+      tcPr.RemoveAllChildren<VerticalMerge>();
+      // VerticalMerge with no Val attribute (or Val="continue") means
+      // "merge with the cell above".
+      tcPr.PrependChild(new VerticalMerge { Val = MergedCellValues.Continue });
+    }
+
+    private static void EnsureVMergeRestart(TableCell cell)
+    {
+      var tcPr = cell.GetFirstChild<TableCellProperties>() ?? cell.PrependChild(new TableCellProperties());
+      var existing = tcPr.GetFirstChild<VerticalMerge>();
+      if (existing is not null && existing.Val?.Value == MergedCellValues.Continue)
+        return; // already part of a merge chain from further above — leave it
+      tcPr.RemoveAllChildren<VerticalMerge>();
+      tcPr.PrependChild(new VerticalMerge { Val = MergedCellValues.Restart });
+    }
+
     // ── Header / footer text replacement ─────────────────────────────────────
 
     /// <summary>

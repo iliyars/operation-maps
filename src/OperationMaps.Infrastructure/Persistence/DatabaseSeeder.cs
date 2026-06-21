@@ -13,75 +13,75 @@ public static class DatabaseSeeder
                         return;
 
 
-    var form4 = AddForm4(db);
-    AddForm6(db);
-    AddForm7(db);
-    AddForm8(db);
-    AddForm9(db);
-    AddForm13(db);
-    AddForm14(db);
-    AddForm15(db);
-    AddForm16(db);
-    AddForm17(db);
-    AddForm19(db);
-    AddForm20(db);
-    AddForm21(db);
-    AddForm22(db);
-    AddForm24(db);
-    AddForm25(db);
-    AddForm26(db);
-    AddForm28(db);
-    AddForm30(db);
-    AddForm31(db);
-    AddForm32(db);
-    AddForm33(db);
-    AddForm34(db);
-    AddForm36(db);
-    AddForm37(db);
-    AddForm38(db);
-    AddForm39(db);
-    AddForm40(db);
-    AddForm41(db);
-    AddForm44(db);
-    AddForm45(db);
-    AddForm46(db);
-    AddForm47(db);
-    AddForm48(db);
-    AddForm49(db);
-    AddForm50(db);
-    AddForm51(db);
-    AddForm52(db);
-    AddForm53(db);
-    AddForm54(db);
-    AddForm55(db);
-    AddForm56(db);
-    AddForm57(db);
-    AddForm59(db);
-    AddForm61(db);
-    AddForm63(db);
-    AddForm64(db);
-    AddForm65(db);
-    AddForm65A(db);
-    AddForm66(db);
-    var form67 = AddForm67(db);
-    var form68 = AddForm68(db);
-    AddForm69(db);
-    AddForm70(db);
-    AddForm71(db);
-    AddForm72(db);
-    AddForm73(db);
-    AddForm74(db);
-    AddForm77(db);
-    AddForm78(db);
-    AddForm79(db);
-    AddForm80(db);
-    AddForm81(db);
-    AddForm82(db);
-    AddForm83(db);
-    AddForm84(db);
-    AddForm85(db);
-    AddForm86(db);
-    AddForm87(db);
+                var form4 = AddForm4(db);
+                AddForm6(db);
+                AddForm7(db);
+                AddForm8(db);
+                AddForm9(db);
+                AddForm13(db);
+                AddForm14(db);
+                AddForm15(db);
+                AddForm16(db);
+                AddForm17(db);
+                AddForm19(db);
+                AddForm20(db);
+                AddForm21(db);
+                AddForm22(db);
+                AddForm24(db);
+                AddForm25(db);
+                AddForm26(db);
+                AddForm28(db);
+                AddForm30(db);
+                AddForm31(db);
+                AddForm32(db);
+                AddForm33(db);
+                AddForm34(db);
+                AddForm36(db);
+                AddForm37(db);
+                AddForm38(db);
+                AddForm39(db);
+                AddForm40(db);
+                AddForm41(db);
+                AddForm44(db);
+                AddForm45(db);
+                AddForm46(db);
+                AddForm47(db);
+                AddForm48(db);
+                AddForm49(db);
+                AddForm50(db);
+                AddForm51(db);
+                AddForm52(db);
+                AddForm53(db);
+                AddForm54(db);
+                AddForm55(db);
+                AddForm56(db);
+                AddForm57(db);
+                AddForm59(db);
+                AddForm61(db);
+                AddForm63(db);
+                AddForm64(db);
+                AddForm65(db);
+                AddForm65A(db);
+                AddForm66(db);
+                var form67 = AddForm67(db);
+                var form68 = AddForm68(db);
+                AddForm69(db);
+                AddForm70(db);
+                AddForm71(db);
+                AddForm72(db);
+                AddForm73(db);
+                AddForm74(db);
+                AddForm77(db);
+                AddForm78(db);
+                AddForm79(db);
+                AddForm80(db);
+                AddForm81(db);
+                AddForm82(db);
+                AddForm83(db);
+                AddForm84(db);
+                AddForm85(db);
+                AddForm86(db);
+                AddForm87(db);
 
 
 
@@ -106,9 +106,9 @@ public static class DatabaseSeeder
                 FamilyNtdValue FNtd(Family f, int row, string val) =>
                     new() { Family = f, FormParameter = P4(row), Value = val };
 
-    var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
-    famR18MP.NtdValues.AddRange(new[]
-    {
+                var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
+                famR18MP.NtdValues.AddRange(new[]
+                {
             FNtd(famR18MP,  1, "Да"), FNtd(famR18MP,  2, "—"),
             FNtd(famR18MP,  3, "100000"), FNtd(famR18MP,  4, "25"),
             FNtd(famR18MP,  5, "25"),     FNtd(famR18MP,  6, "—"),
@@ -119,9 +119,9 @@ public static class DatabaseSeeder
             FNtd(famR18MP, 15, "—"),      FNtd(famR18MP, 16, "—"),
         });
 
-    var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
-    famK1079.NtdValues.AddRange(new[]
-    {
+                var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
+                famK1079.NtdValues.AddRange(new[]
+                {
             FNtd(famK1079,  1, "Да"), FNtd(famK1079,  2, "—"),
             FNtd(famK1079,  3, "1"), FNtd(famK1079,  4, "2"),
             FNtd(famK1079,  5, "3"),     FNtd(famK1079,  6, "4"),
@@ -132,9 +132,9 @@ public static class DatabaseSeeder
             FNtd(famK1079, 15, "13"),      FNtd(famK1079, 16, "14"),
         });
 
-    var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
-    famK5367.NtdValues.AddRange(new[]
-    {
+                var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
+                famK5367.NtdValues.AddRange(new[]
+                {
             FNtd(famK5367,  1, "Да"), FNtd(famK5367,  2, "—"),
             FNtd(famK5367,  3, "150000"), FNtd(famK5367,  4, "25"),
             FNtd(famK5367,  5, "25"),     FNtd(famK5367,  6, "—"),
@@ -3641,6 +3641,20 @@ public static class DatabaseSeeder
                 Order = 1, Name = "Позиционное обозначение, тип и номера входных выводов схемных нагрузок", Unit = "", IsRequired = false },
         new() { Form = form, Section = secLoad, RowNumber = 17,
                 Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
+
+        // ---- Опциональный параметр: второе напряжение питания (Form 64).
+        // RowNumber = 18 — следующий свободный номер строки в этой форме.
+        // IsOptional = true помечает его как "не основная строка таблицы" —
+        // UI рисует его не как обычную строку, а как кнопку
+        // "+ Добавить второе напряжение" рядом с RowNumber = 1, и физически
+        // вставляет клонированную строку в Word-шаблон только когда у
+        // конкретного компонента реально заполнено значение для этого
+        // параметра (см. WordService.FillOptionalRows).
+        // OptionalForRowNumber = 1 связывает его с основным параметром
+        // "Напряжение питания".
+        new() { Form = form, Section = secSupply, RowNumber = 18,
+                Order = 3, Name = "Напряжение питания (второе)", Unit = "В",
+                IsRequired = false, IsOptional = true, OptionalForRowNumber = 1 },
     };
 
                 form.Parameters.AddRange(parameters);
@@ -3655,6 +3669,7 @@ public static class DatabaseSeeder
                 db.Forms.Add(form);
                 return (form);
         }
+
         private static Form AddForm65(CatalogDbContext db)
         {
                 // ---- Форма 65: Карта рабочих режимов функциональных узлов (модулей, микромодулей, микросхем)

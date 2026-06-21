@@ -178,6 +178,7 @@ namespace OperationMaps.Infrastructure.Word
           var ntdCol = slotObj["ntdCol"]?.GetValue<int>()
               ?? throw new InvalidDataException($"Missing 'ntdCol' in optionalRows['{rowKey}'].slots[{slotIndex}] in {mapPath}");
           var schemeCol = slotObj["schemeCol"]?.GetValue<int>();
+          var pinsCol = slotObj["pins"]?.GetValue<int>();
 
           // Row index in the coord is left at the template position; the
           // export service computes the actual post-insertion row at runtime
@@ -186,7 +187,8 @@ namespace OperationMaps.Infrastructure.Word
           var coord = new ParameterCoord(
               templateRowIndex1Based - 1,
               ntdCol - 1,
-              schemeCol.HasValue ? schemeCol.Value - 1 : null);
+              schemeCol.HasValue ? schemeCol.Value - 1 : null,
+              pinsCol.HasValue ? pinsCol.Value - 1 : null);
 
           var lookupKey = $"{rowKey}:{slotIndex}";
           result[lookupKey] = new OptionalRowMap
@@ -219,12 +221,17 @@ namespace OperationMaps.Infrastructure.Word
         var row = obj["row"]?.GetValue<int>()
             ?? throw new InvalidDataException($"Missing 'row' in parameterCells[{key}] slot {slotIndex}");
 
-        // New format: ntdCol + optional schemeCol
+        // New format: ntdCol + optional schemeCol + optional pins (Form 64)
         if (obj["ntdCol"] is not null)
         {
           var ntdCol = obj["ntdCol"]!.GetValue<int>();
           var schemeCol = obj["schemeCol"]?.GetValue<int>();
-          result[key] = new ParameterCoord(row - 1, ntdCol - 1, schemeCol.HasValue ? schemeCol.Value - 1 : null);
+          var pinsCol = obj["pins"]?.GetValue<int>();
+          result[key] = new ParameterCoord(
+              row - 1,
+              ntdCol - 1,
+              schemeCol.HasValue ? schemeCol.Value - 1 : null,
+              pinsCol.HasValue ? pinsCol.Value - 1 : null);
         }
         // Old format: col only (backward compatible — only NTD)
         else

@@ -148,6 +148,9 @@ namespace OperationMaps.Infrastructure.Word
             string schemeValue =
                 component.SchemeValues.TryGetValue(rowNumber, out var scheme) ? scheme : "—";
 
+            string pinsValue =
+                component.PinValues.TryGetValue(rowNumber, out var pins) ? pins : "—";
+
             // Fill NTD column (always)
             var ntdCell = WordTableHelper.TryGetCell(table, coord.Row, coord.NtdCol);
             if (ntdCell is not null)
@@ -159,6 +162,14 @@ namespace OperationMaps.Infrastructure.Word
               var schemeCell = WordTableHelper.TryGetCell(table, coord.Row, coord.SchemeCol.Value);
               if (schemeCell is not null)
                 WordTableHelper.SetCellText(schemeCell, schemeValue);
+            }
+
+            // Fill Pins column (only if pinsCol is defined — Form 64 only)
+            if (coord.PinsCol.HasValue)
+            {
+              var pinsCell = WordTableHelper.TryGetCell(table, coord.Row, coord.PinsCol.Value);
+              if (pinsCell is not null)
+                WordTableHelper.SetCellText(pinsCell, pinsValue);
             }
           }
 
@@ -202,8 +213,30 @@ namespace OperationMaps.Infrastructure.Word
     /// <summary>
     /// Inserts and fills the optional parameter row (e.g. Form 64's second
     /// supply voltage) for every component that actually provides a value
-    /// for it. Iterates components grouped by page so row insertions on one
-    /// page don't affect coordinate math on another.
+    /// for it.
+    /// <para>
+    /// Critical ordering detail: if MULTIPLE slots on the SAME page each
+    /// need their own optional row, inserting them naively at the same
+    /// template row index would interleave them in the wrong order — the
+    /// second insertion's target row index is no longer correct once the
+    /// first insertion has shifted the table. To avoid this, all optional
+    /// rows for a page are inserted in slot order, and each insertion's
+    /// target index is offset by how many rows have ALREADY been inserted
+    /// on that page so far.
+    /// </para>
+    /// </summary>
+    /// <summary>
+    /// Inserts and fills the optional parameter row (e.g. Form 64's second
+    /// supply voltage) once PER PAGE, for every primary parameter that has
+    /// at least one component with optional-row data on that page.
+    /// <para>
+    /// The inserted row spans the WHOLE table width — it's a real extra
+    /// table row, so every slot on the page gets a cell in it. A component
+    /// that has no optional-row value of its own still gets its slot's
+    /// cells filled with an em dash ("—"), so the row reads as one
+    /// consistent line across the page rather than leaving gaps for the
+    /// slots that didn't trigger the insertion.
+    /// </para>
     /// </summary>
     private static void FillOptionalRows(
         WordFormData data,
@@ -211,6 +244,13 @@ namespace OperationMaps.Infrastructure.Word
         List<Table> pageTables)
     {
       int componentCount = data.Components.Count;
+      int totalPages = pageTables.Count;
+
+      // Group components by (page, optionalRowNumber) so we know, for each
+      // page and each optional parameter, which slot(s) actually have a
+      // value and what that value is — needed to fill every slot's cell
+      // in the SAME inserted row, not just the slot that triggered it.
+      var byPageAndRow = new Dictionary<(int Page, string RowKey), Dictionary<int, OptionalRowValues>>();
 
       for (int i = 0; i < componentCount; i++)
       {
@@ -219,38 +259,100 @@ namespace OperationMaps.Infrastructure.Word
 
         int pageIndex = i / map.ComponentsPerPage;
         int slotIndex = i % map.ComponentsPerPage;
-        var table = pageTables[pageIndex];
 
         foreach (var (optionalRowNumber, values) in component.OptionalRowValuesByParameter)
         {
-          var lookupKey = $"{optionalRowNumber}:{slotIndex}";
+          var key = (pageIndex, optionalRowNumber.ToString());
+          if (!byPageAndRow.TryGetValue(key, out var bySlot))
+          {
+            bySlot = new Dictionary<int, OptionalRowValues>();
+            byPageAndRow[key] = bySlot;
+          }
+          bySlot[slotIndex] = values;
+        }
+      }
+
+      // Track how many optional rows have already been inserted per page,
+      // so later insertions on the same page offset their target index.
+      var insertedRowsPerPage = new Dictionary<int, int>();
+
+      foreach (var ((pageIndex, rowKey), bySlot) in byPageAndRow)
+      {
+        // Skip if every slot's value is actually empty (nothing to show at all).
+        bool anyRealValue = bySlot.Values.Any(v =>
+            !string.IsNullOrWhiteSpace(v.NtdValue) ||
+            !string.IsNullOrWhiteSpace(v.SchemeValue) ||
+            !string.IsNullOrWhiteSpace(v.PinsValue));
+        if (!anyRealValue) continue;
+
+        var table = pageTables[pageIndex];
+        insertedRowsPerPage.TryGetValue(pageIndex, out var alreadyInserted);
+
+        // All slots on this page share the same TemplateRowIndex (the
+        // primary parameter's row index is the same regardless of slot) —
+        // read it once from whichever slot's map entry exists.
+        var anyLookupKey = $"{rowKey}:{bySlot.Keys.First()}";
+        if (!map.OptionalRows.TryGetValue(anyLookupKey, out var anyRowMap)) continue;
+
+        var targetTemplateIndex = anyRowMap.TemplateRowIndex + alreadyInserted;
+
+        // Determine which physical columns get a real split cell — only
+        // the Ntd/Scheme/Pins columns belonging to slots that actually
+        // have a (non-empty) value. Everything else — left-hand labels,
+        // and slots with no value at all — merges invisibly with the row
+        // above via vMerge="continue".
+        var splitColumns = new HashSet<int>();
+        for (int slotIndex = 0; slotIndex < map.ComponentsPerPage; slotIndex++)
+        {
+          var lookupKey = $"{rowKey}:{slotIndex}";
           if (!map.OptionalRows.TryGetValue(lookupKey, out var rowMap)) continue;
+          if (!bySlot.TryGetValue(slotIndex, out var values)) continue;
 
-          var hasNtd = !string.IsNullOrWhiteSpace(values.NtdValue);
-          var hasScheme = !string.IsNullOrWhiteSpace(values.SchemeValue);
-          if (!hasNtd && !hasScheme) continue; // nothing to show, skip the insert entirely
+          if (!string.IsNullOrWhiteSpace(values.NtdValue))
+            splitColumns.Add(rowMap.Coord.NtdCol);
+          if (rowMap.Coord.SchemeCol.HasValue && !string.IsNullOrWhiteSpace(values.SchemeValue))
+            splitColumns.Add(rowMap.Coord.SchemeCol.Value);
+          if (rowMap.Coord.PinsCol.HasValue && !string.IsNullOrWhiteSpace(values.PinsValue))
+            splitColumns.Add(rowMap.Coord.PinsCol.Value);
+        }
 
-          // Insert the new row right after the template row (the primary
-          // parameter's row) and fill it using the SAME column indices as
-          // the primary row — only the row index shifts by +1.
-          var newRow = WordTableHelper.InsertRowAfter(
-              table, rowMap.TemplateRowIndex, rowMap.TemplateRowIndex);
+        WordTableHelper.InsertSplitRow(table, targetTemplateIndex, targetTemplateIndex, splitColumns);
+        var insertedRowIndex = targetTemplateIndex + 1;
 
-          var insertedRowIndex = rowMap.TemplateRowIndex + 1;
+        // Fill only the columns we actually split — the rest are merged
+        // (vMerge="continue") and must NOT receive any text.
+        for (int slotIndex = 0; slotIndex < map.ComponentsPerPage; slotIndex++)
+        {
+          var lookupKey = $"{rowKey}:{slotIndex}";
+          if (!map.OptionalRows.TryGetValue(lookupKey, out var rowMap)) continue;
+          if (!bySlot.TryGetValue(slotIndex, out var values)) continue;
 
-          var ntdCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.NtdCol);
-          if (ntdCell is not null)
-            WordTableHelper.SetCellText(ntdCell, hasNtd ? values.NtdValue! : "—");
+          if (!string.IsNullOrWhiteSpace(values.NtdValue))
+          {
+            var ntdCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.NtdCol);
+            if (ntdCell is not null)
+              WordTableHelper.SetCellText(ntdCell, values.NtdValue!);
+          }
 
-          if (rowMap.Coord.SchemeCol.HasValue)
+          if (rowMap.Coord.SchemeCol.HasValue && !string.IsNullOrWhiteSpace(values.SchemeValue))
           {
             var schemeCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.SchemeCol.Value);
             if (schemeCell is not null)
-              WordTableHelper.SetCellText(schemeCell, hasScheme ? values.SchemeValue! : "—");
+              WordTableHelper.SetCellText(schemeCell, values.SchemeValue!);
           }
 
-          Dbg($"  optional row [{lookupKey}] inserted at row {insertedRowIndex}, ntd='{values.NtdValue}' scheme='{values.SchemeValue}'");
+          if (rowMap.Coord.PinsCol.HasValue && !string.IsNullOrWhiteSpace(values.PinsValue))
+          {
+            var pinsCell = WordTableHelper.TryGetCell(table, insertedRowIndex, rowMap.Coord.PinsCol.Value);
+            if (pinsCell is not null)
+              WordTableHelper.SetCellText(pinsCell, values.PinsValue!);
+          }
+
+          Dbg($"  optional row [{lookupKey}] row={insertedRowIndex} ntd='{values.NtdValue}' scheme='{values.SchemeValue}' pins='{values.PinsValue}'");
         }
+
+        alreadyInserted++;
+        insertedRowsPerPage[pageIndex] = alreadyInserted;
       }
     }
 
@@ -287,6 +389,7 @@ namespace OperationMaps.Infrastructure.Word
 
           var ntdValues = new Dictionary<int, string>();
           var schemeValues = new Dictionary<int, string>();
+          var pinValues = new Dictionary<int, string>();
 
           foreach (var (rowKey, coord) in slot.ParameterCells)
           {
@@ -310,6 +413,18 @@ namespace OperationMaps.Infrastructure.Word
                 var val = WordTableHelper.GetCellText(schemeCell).Trim();
                 if (!string.IsNullOrEmpty(val))
                   schemeValues[rowNumber] = val;
+              }
+            }
+
+            // Read Pins column (if defined — Form 64 only)
+            if (coord.PinsCol.HasValue)
+            {
+              var pinsCell = WordTableHelper.TryGetCell(table, coord.Row, coord.PinsCol.Value);
+              if (pinsCell is not null)
+              {
+                var val = WordTableHelper.GetCellText(pinsCell).Trim();
+                if (!string.IsNullOrEmpty(val))
+                  pinValues[rowNumber] = val;
               }
             }
           }
@@ -337,6 +452,7 @@ namespace OperationMaps.Infrastructure.Word
             Quantity = quantity,
             NtdValues = ntdValues,
             SchemeValues = schemeValues,
+            PinValues = pinValues,
             Note = note,
           });
         }

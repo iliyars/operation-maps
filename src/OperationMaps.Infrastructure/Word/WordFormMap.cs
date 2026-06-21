@@ -130,10 +130,12 @@ namespace OperationMaps.Infrastructure.Word
 
   /// <summary>
   /// Coordinate for a parameter cell that may have separate columns
-  /// for "по НТД" and "в схеме". If <see cref="SchemeCol"/> is null,
-  /// only NTD column is filled (backward compatible with Form 4).
+  /// for "по НТД", "в схеме" and "номера выводов" (Form 64). If
+  /// <see cref="SchemeCol"/> is null, only NTD column is filled
+  /// (backward compatible with Form 4). <see cref="PinsCol"/> is null
+  /// for forms that don't show pin numbers (everything except Form 64).
   /// </summary>
-  public readonly record struct ParameterCoord(int Row, int NtdCol, int? SchemeCol);
+  public readonly record struct ParameterCoord(int Row, int NtdCol, int? SchemeCol, int? PinsCol = null);
 
   /// <summary>Well-known keys used in <see cref="ComponentSlotMap.MetaCells"/>.</summary>
   public static class MetaCellKey

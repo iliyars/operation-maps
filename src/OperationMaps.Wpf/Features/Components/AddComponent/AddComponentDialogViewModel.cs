@@ -13,6 +13,8 @@ namespace OperationMaps.Wpf.Features.Components.AddComponent;
 
 /// <summary>
 /// One editable Form-4 / own-form parameter row in the wizard.
+/// Mirrors OwnForm's ParameterDetailVm feature set (pins, optional row)
+/// so the same Form 64 layout works in both places.
 /// </summary>
 public sealed partial class WizardParameterRowVm : ObservableObject
 {
@@ -21,6 +23,36 @@ public sealed partial class WizardParameterRowVm : ObservableObject
   public string DisplayName { get; }
 
   [ObservableProperty] private string _value = "";
+
+  // ── Pins (Form 64 only) ───────────────────────────────────────────────────
+
+  /// <summary>Whether the own-form being filled has a "номера выводов" column.</summary>
+  public bool ShowPins { get; init; }
+
+  [ObservableProperty] private string _pinsValue = "";
+
+  // ── Optional second-value row (e.g. Form 64's second supply voltage) ─────
+
+  /// <summary>True for the ONE parameter that has an optional counterpart (e.g. RowNumber=1 in Form 64).</summary>
+  public bool CanHaveOptionalRow { get; init; }
+
+  /// <summary>FormParameterId of the optional counterpart, when <see cref="CanHaveOptionalRow"/> is true.</summary>
+  public int OptionalFormParameterId { get; init; }
+
+  [ObservableProperty] private bool _isOptionalRowVisible;
+  [ObservableProperty] private string _optionalValue = "";
+  [ObservableProperty] private string _optionalPinsValue = "";
+
+  [RelayCommand]
+  private void AddOptionalRow() => IsOptionalRowVisible = true;
+
+  [RelayCommand]
+  private void RemoveOptionalRow()
+  {
+    IsOptionalRowVisible = false;
+    OptionalValue = "";
+    OptionalPinsValue = "";
+  }
 
   public WizardParameterRowVm(FormParameter parameter)
   {
@@ -42,9 +74,11 @@ public sealed record OwnFormOption(int Id, string Number, string Title)
 /// Two-step wizard for entering NTD values for a component that wasn't
 /// found in the catalog: step 1 collects Form-4 (family-level) values,
 /// step 2 lets the user pick the component's own form (Form67/68/...)
-/// and fill its parameters. On confirm, creates Family (if needed) +
-/// Component via <see cref="IComponentEntryService"/>, then updates the
-/// originating <see cref="ProjectComponentVm"/> in place.
+/// and fill its parameters — including pin numbers and an optional
+/// second-value row when the chosen form supports them (Form 64).
+/// On confirm, creates Family (if needed) + Component via
+/// <see cref="IComponentEntryService"/>, then updates the originating
+/// <see cref="ProjectComponentVm"/> in place.
 /// </summary>
 public sealed partial class AddComponentDialogViewModel : ObservableObject
 {
@@ -62,12 +96,16 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   [NotifyPropertyChangedFor(nameof(IsStep1))]
   [NotifyPropertyChangedFor(nameof(IsStep2))]
   private int _step = 1; // 1 or 2
+
   [ObservableProperty] private bool _isLoading = true;
   [ObservableProperty] private bool _isSaving;
   [ObservableProperty] private string? _errorMessage;
 
   public bool IsStep1 => Step == 1;
   public bool IsStep2 => Step == 2;
+
+  /// <summary>False when step 1 was skipped (family already existed) — "Назад" is hidden in that case.</summary>
+  public bool HasStep1 { get; private set; } = true;
 
   // ── Header info (read-only, shown on both steps) ───────────────────────────
 
@@ -77,10 +115,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   // ── Step 1: Family ────────────────────────────────────────────────────────
 
-  /// <summary>True when MatchedFamily was already resolved by the parser.</summary>
   [ObservableProperty] private bool _familyAlreadyKnown;
-
-  /// <summary>Editable when family wasn't resolved by the parser.</summary>
   [ObservableProperty] private string _familyName = "";
 
   public ObservableCollection<WizardParameterRowVm> Form4Rows { get; } = [];
@@ -91,11 +126,13 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   [ObservableProperty] private OwnFormOption? _selectedOwnForm;
 
+  /// <summary>Whether the currently selected own form has a "номера выводов" column (Form 64).</summary>
+  [ObservableProperty] private bool _ownFormShowsPins;
+
   public ObservableCollection<WizardParameterRowVm> OwnFormRows { get; } = [];
 
   // ── Result ────────────────────────────────────────────────────────────────
 
-  /// <summary>Set to true once the dialog has successfully saved — view closes on this.</summary>
   [ObservableProperty] private bool _isCompleted;
 
   public AddComponentDialogViewModel(
@@ -144,13 +181,9 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       {
         // Family wasn't resolved by the parser. Pre-fill with the SAME
         // value the parser would compute for "Family" given this
-        // component's name — NOT the raw full name. This matters because
-        // ComponentMatcher looks up Family by parsed.Family on every
-        // import; if we saved something else here (e.g. the full raw
-        // name), a later re-import would never find this family again
-        // and the component would stay "unresolved" forever.
-        // The field stays editable in case the user wants a different
-        // grouping name.
+        // component's name — not the raw full name — so a later
+        // re-import can find this family again (ComponentMatcher
+        // looks up Family by parsed.Family).
         var parsed = _nameParser.Parse(
             $"{_target.Entry.Imported.DetectedCategory} {_target.Entry.Imported.RawName}");
 
@@ -168,16 +201,13 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       Form4Rows.Clear();
       if (form4 is not null)
       {
-        // If the family already has some Form-4 values, pre-fill them
-        // (read-only intent: user can still edit, but won't lose existing data
-        // because the service skips overwriting non-empty existing rows).
         var existingValues = existingFamily is null
             ? []
             : await _db.FamilyNtdValues
                 .Where(v => v.FamilyId == existingFamily.Id)
                 .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
 
-        foreach (var param in form4.Parameters.OrderBy(p => p.RowNumber))
+        foreach (var param in form4.Parameters.Where(p => !p.IsOptional).OrderBy(p => p.RowNumber))
         {
           var row = new WizardParameterRowVm(param);
           if (existingValues.TryGetValue(param.Id, out var existing))
@@ -186,7 +216,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         }
       }
 
-      // Own form options — all forms except Form 4 (Form4 is universal/handled separately)
+      // Own form options — all forms except Form 4
       var forms = await _db.Forms
           .Where(f => f.Number != "4")
           .OrderBy(f => f.Number)
@@ -196,7 +226,6 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       foreach (var f in forms)
         OwnFormOptions.Add(new OwnFormOption(f.Id, f.Number, f.Title));
 
-      // Pre-select if the component type type already suggests a form via family
       if (existingFamily is not null)
       {
         var linkedFormId = await _db.FamilyForms
@@ -234,12 +263,6 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
     SaveCommand.NotifyCanExecuteChanged();
   }
 
-  /// <summary>
-  /// False when step 1 was skipped (family already existed) — in that case
-  /// "Назад" from step 2 has nowhere useful to go, so the button is hidden.
-  /// </summary>
-  public bool HasStep1 { get; private set; } = true;
-
   [RelayCommand]
   private void GoBack()
   {
@@ -254,9 +277,18 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   partial void OnIsSavingChanged(bool value) => SaveCommand.NotifyCanExecuteChanged();
 
+  /// <summary>
+  /// Loads parameters for the selected own form, wiring up pin-number
+  /// support and the optional second-value row exactly like OwnFormView:
+  /// the parameter that has an IsOptional counterpart gets
+  /// CanHaveOptionalRow=true and a reference to that counterpart's id;
+  /// the counterpart parameter itself is excluded from the visible list
+  /// (it only ever renders via the primary row's "+ Добавить" affordance).
+  /// </summary>
   private async Task LoadOwnFormParametersAsync(OwnFormOption? option)
   {
     OwnFormRows.Clear();
+    OwnFormShowsPins = false;
     if (option is null) return;
 
     var form = await _db.Forms
@@ -265,8 +297,23 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
     if (form is null) return;
 
-    foreach (var param in form.Parameters.OrderBy(p => p.RowNumber))
-      OwnFormRows.Add(new WizardParameterRowVm(param));
+    // Pin numbers are currently unique to Form 64.
+    OwnFormShowsPins = form.Number == "64";
+
+    var allParams = form.Parameters.OrderBy(p => p.RowNumber).ToList();
+
+    foreach (var param in allParams.Where(p => !p.IsOptional))
+    {
+      var counterpart = allParams.FirstOrDefault(
+          p => p.IsOptional && p.OptionalForRowNumber == param.RowNumber);
+
+      OwnFormRows.Add(new WizardParameterRowVm(param)
+      {
+        ShowPins = OwnFormShowsPins,
+        CanHaveOptionalRow = counterpart is not null,
+        OptionalFormParameterId = counterpart?.Id ?? 0,
+      });
+    }
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -282,6 +329,29 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
     ErrorMessage = null;
     try
     {
+      // Optional-row values (e.g. second supply voltage) go into the
+      // SAME OwnFormValues dictionary, keyed by the OPTIONAL parameter's
+      // id — ComponentEntryService stores them as regular
+      // ComponentNtdValue rows; the export service is what treats them
+      // specially via map.json's "optionalRows" lookup.
+      var ownFormValues = OwnFormRows.ToDictionary(r => r.FormParameterId, r => r.Value);
+      var pinValues = new Dictionary<int, string>();
+
+      foreach (var row in OwnFormRows)
+      {
+        if (row.ShowPins && !string.IsNullOrWhiteSpace(row.PinsValue))
+          pinValues[row.FormParameterId] = row.PinsValue;
+
+        if (row.CanHaveOptionalRow && row.IsOptionalRowVisible)
+        {
+          if (!string.IsNullOrWhiteSpace(row.OptionalValue))
+            ownFormValues[row.OptionalFormParameterId] = row.OptionalValue;
+
+          if (row.ShowPins && !string.IsNullOrWhiteSpace(row.OptionalPinsValue))
+            pinValues[row.OptionalFormParameterId] = row.OptionalPinsValue;
+        }
+      }
+
       var input = new NewComponentInput
       {
         ComponentTypeId = _componentTypeId,
@@ -290,12 +360,13 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         FullName = _target.Entry.Imported.RawName,
         Form4Values = Form4Rows.ToDictionary(r => r.FormParameterId, r => r.Value),
         OwnFormId = SelectedOwnForm.Id,
-        OwnFormValues = OwnFormRows.ToDictionary(r => r.FormParameterId, r => r.Value),
+        OwnFormValues = ownFormValues,
+        PinValues = pinValues,
       };
 
       var component = await _entryService.CreateComponentAsync(input, ct);
 
-      var newResult = new OperationMaps.Application.Importing.MatchResult
+      var newResult = new MatchResult
       {
         IsMatched = true,
         MatchedType = await _db.ComponentTypes.FindAsync([_componentTypeId], ct),

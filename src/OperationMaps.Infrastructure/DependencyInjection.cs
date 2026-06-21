@@ -37,6 +37,7 @@ public static class DependencyInjection
     // Singleton: stateless, safe to share across all view models
     services.AddSingleton<IWordService, WordService>();
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
+    services.AddScoped<IComponentEntryService, ComponentEntryService>();
 
     // Singleton: orchestrates export + merge, no mutable state
     services.AddSingleton<WordReportBuilder>();

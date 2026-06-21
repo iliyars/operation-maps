@@ -14,7 +14,7 @@ namespace OperationMaps.Wpf.Features.Components
     // ── Identity ──────────────────────────────────────────────────────────────
 
     public Guid Id { get; } = Guid.NewGuid();
-    public ComponentMatchEntry Entry { get; }
+    public ComponentMatchEntry Entry { get; private set; }
 
     // ── Display properties ────────────────────────────────────────────────────
 
@@ -61,7 +61,10 @@ namespace OperationMaps.Wpf.Features.Components
     // ── NTD loading ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Lazily loads NTD values from the catalog DB.
+    /// Lazily loads NTD values from the catalog DB for the Form-4 view:
+    /// shows EVERY Form-4 parameter (not just the ones that have a value),
+    /// filling missing ones with an em dash so the user can see at a glance
+    /// what's still unfilled for this family.
     /// Safe to call multiple times — loads only once.
     /// </summary>
     public async Task LoadNtdValuesAsync(
@@ -81,14 +84,23 @@ namespace OperationMaps.Wpf.Features.Components
 
       try
       {
-        var values = await db.FamilyNtdValues
-            .Include(v => v.FormParameter)
-            .Where(v => v.FamilyId == familyId)
-            .OrderBy(v => v.FormParameter.RowNumber)
+        // All Form-4 parameters, in display order — this is the full list
+        // we want to show, regardless of whether a value exists yet.
+        var form4Parameters = await db.Forms
+            .Where(f => f.Number == "4")
+            .SelectMany(f => f.Parameters)
+            .OrderBy(p => p.RowNumber)
             .ToListAsync(ct);
 
-        NtdValues = values
-            .Select(v => new NtdParameterVm(v))
+        // Existing values for this family — sparse, may be missing rows.
+        var existingValues = await db.FamilyNtdValues
+            .Where(v => v.FamilyId == familyId)
+            .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
+
+        NtdValues = form4Parameters
+            .Select(p => new NtdParameterVm(
+                p,
+                existingValues.TryGetValue(p.Id, out var value) ? value : "—"))
             .ToList();
 
         NtdLoaded = true;
@@ -111,6 +123,7 @@ namespace OperationMaps.Wpf.Features.Components
     {
       var clonedImported = new ImportedComponent
       {
+        ImportIndex = Entry.Imported.ImportIndex,
         RawName = Entry.Imported.RawName,
         DetectedCategory = Entry.Imported.DetectedCategory,
         Positions = positions.ToList(),
@@ -126,6 +139,35 @@ namespace OperationMaps.Wpf.Features.Components
       return new ProjectComponentVm(clonedEntry);
     }
 
+    // ── Re-matching after manual component creation ───────────────────────────
 
+    /// <summary>
+    /// Replaces <see cref="Entry"/>'s MatchResult with a freshly built one
+    /// (e.g. after the user filled in NTD values for a previously unresolved
+    /// component via the "add component" wizard). Updates the in-memory
+    /// project state directly so the row moves from "Unresolved" to
+    /// "Matched" immediately, without restarting the app.
+    /// Resets the lazily-loaded NTD cache so it's reloaded for the new family.
+    /// </summary>
+    public void ApplyNewMatch(MatchResult newResult)
+    {
+      ArgumentNullException.ThrowIfNull(newResult);
+
+      Entry = new ComponentMatchEntry
+      {
+        Imported = Entry.Imported,
+        MatchResult = newResult,
+      };
+
+      // Force NTD values to reload from DB for the (possibly new) family.
+      NtdLoaded = false;
+      NtdValues = [];
+
+      OnPropertyChanged(nameof(Name));
+      OnPropertyChanged(nameof(FamilyName));
+      OnPropertyChanged(nameof(MatchStatus));
+      OnPropertyChanged(nameof(IsMatched));
+      OnPropertyChanged(nameof(HasFamily));
+    }
   }
 }

@@ -36,7 +36,13 @@ public sealed class ComponentMatcher : IComponentMatcher
     Family? family = null;
     var parsed = _nameParser.Parse($"{typeName} {imported.RawName}");
 
-    if (!string.IsNullOrEmpty(parsed.Family) && parsed.Family != parsed.Name)
+    // NOTE: removed the "parsed.Family != parsed.Name" guard that used to be
+    // here. For non-RLC component types (microchips, connectors, etc.) the
+    // parser intentionally returns Family == Name — that's the convention,
+    // not a sign that "no family was detected". Skipping the lookup for those
+    // types meant a Family created via the "add component" wizard could never
+    // be found again on a later import, even though it existed in the DB.
+    if (!string.IsNullOrEmpty(parsed.Family))
     {
       family = await _context.Families
           .Include(f => f.FamilyForms)
@@ -61,14 +67,6 @@ public sealed class ComponentMatcher : IComponentMatcher
     if (component?.OwnForm is not null
         && requiredForms.All(f => f.Id != component.OwnForm.Id))
       requiredForms.Add(component.OwnForm);
-
-    System.Diagnostics.Debug.WriteLine(
-  $"Looking for component: '{imported.RawName}'");
-    System.Diagnostics.Debug.WriteLine(
-        $"Found component: {component?.FullName ?? "NULL"}");
-    System.Diagnostics.Debug.WriteLine(
-        $"OwnForm: {component?.OwnForm?.Number ?? "NULL"}");
-
 
     return new MatchResult
     {
@@ -97,7 +95,6 @@ public sealed class ComponentMatcher : IComponentMatcher
       };
 
     // ── Step 1: parse all names up-front (CPU-only, no DB) ──────────────────
-    // Key: imported component  →  its parsed representation
     var parsed = components.ToDictionary(c => c, c => _nameParser.Parse($"{c.DetectedCategory} {c.RawName}"));
 
     // ── Step 2: load all needed data in 3 batch queries ─────────────────────
@@ -112,8 +109,12 @@ public sealed class ComponentMatcher : IComponentMatcher
       .Where(t => typeNames.Contains(t.Name))
       .ToDictionaryAsync(t => t.Name, ct);
 
+    // NOTE: removed "p.Family != p.Name" filter — see comment in MatchAsync
+    // above. For non-RLC types Family legitimately equals Name; excluding
+    // those from the lookup made it impossible to ever re-match a
+    // manually-created Family for those component types.
     var familyNames = parsed.Values
-      .Where(p => !string.IsNullOrEmpty(p.Family) && p.Family != p.Name)
+      .Where(p => !string.IsNullOrEmpty(p.Family))
       .Select(p => p.Family)
       .Distinct()
       .ToList();
@@ -177,7 +178,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       }
 
       Family? family = null;
-      if (!string.IsNullOrEmpty(p.Family) && p.Family != p.Name)
+      if (!string.IsNullOrEmpty(p.Family))
         familyLookup.TryGetValue((type.Id, p.Family), out family);
 
       componentsByName.TryGetValue(imported.RawName, out var component);

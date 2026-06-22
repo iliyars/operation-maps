@@ -40,6 +40,20 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// </summary>
     [ObservableProperty] private bool _showsPins;
 
+    /// <summary>
+    /// Candidate parameters for load-factor calculation (CanBeLoadFactorBase=true)
+    /// for the current form. Empty if the form has no such parameter at all.
+    /// The picker in OwnFormView is only shown when this has more than one entry —
+    /// with exactly one candidate there's nothing to choose.
+    /// </summary>
+    public ObservableCollection<LoadFactorOptionVm> LoadFactorOptions { get; } = [];
+
+    /// <summary>FormParameterId of the row that displays the calculated load factor, if any.</summary>
+    private int? _loadFactorResultParameterId;
+
+    /// <summary>Form.DefaultLoadFactorParameterId, used when a Component has no explicit override.</summary>
+    private int? _defaultLoadFactorParameterId;
+
     // ── Table data ────────────────────────────────────────────────────────────
 
     public ObservableCollection<FormColumnVm> Columns { get; } = [];
@@ -213,7 +227,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
                 hasOptionalRow: hasOptionalRow,
                 optionalFormParameterId: optionalParamId,
                 optionalNtdValue: hasOptionalRow ? column.OptionalNtdValues[optionalParamId] : "—",
-                optionalPinsValue: hasOptionalRow ? column.GetPinValue(optionalParamId) : "");
+                optionalPinsValue: hasOptionalRow ? column.GetPinValue(optionalParamId) : "",
+                isLoadFactorResult: p.IsLoadFactorResult);
           })
           .ToList();
 
@@ -428,6 +443,23 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       var parameters = form.Parameters.OrderBy(p => p.RowNumber).ToList();
 
+      _loadFactorResultParameterId = parameters.FirstOrDefault(p => p.IsLoadFactorResult)?.Id;
+
+      LoadFactorOptions.Clear();
+      var loadFactorCandidates = parameters.Where(p => p.CanBeLoadFactorBase).OrderBy(p => p.RowNumber).ToList();
+      foreach (var p in loadFactorCandidates)
+        LoadFactorOptions.Add(new LoadFactorOptionVm(p.Id, p.RowNumber, p.Name));
+
+      // Form.DefaultLoadFactorParameterId is the explicit, admin-set default.
+      // When it's not set but there's exactly ONE candidate parameter, that
+      // candidate is the obvious choice — falling back to it here means the
+      // seeder/admin doesn't need to separately wire up
+      // DefaultLoadFactorParameterId for the common single-candidate case;
+      // it only matters when there are multiple candidates and a specific
+      // one should be pre-selected over the others.
+      _defaultLoadFactorParameterId = form.DefaultLoadFactorParameterId
+          ?? (loadFactorCandidates.Count == 1 ? loadFactorCandidates[0].Id : null);
+
       var relevantComponents = _store.Components
           .Where(c => c.Entry.MatchResult.MatchedComponent?.OwnFormId == FormId
                    || c.Entry.MatchResult.MatchedComponent?.OwnForm?.Id == FormId)
@@ -438,6 +470,15 @@ namespace OperationMaps.Wpf.Features.OwnForm
           .Where(id => id is not null)
           .Select(id => id!.Value)
           .ToHashSet();
+
+      // Component.LoadFactorParameterId — per-component override of which
+      // base parameter feeds the load-factor calculation. Loaded from the
+      // EF entity directly (no separate table) since it lives on Component.
+      var loadFactorOverrideByComponent = componentIds.Count > 0
+          ? await _db.Components
+              .Where(c => componentIds.Contains(c.Id))
+              .ToDictionaryAsync(c => c.Id, c => c.LoadFactorParameterId, ct)
+          : [];
 
       var allNtdValues = componentIds.Count > 0
           ? await _db.ComponentNtdValues
@@ -485,8 +526,15 @@ namespace OperationMaps.Wpf.Features.OwnForm
           if (pinsByComponent.TryGetValue(componentId.Value, out var pinValues))
             foreach (var pin in pinValues)
               column.PinValues[pin.FormParameterId] = pin.Pins;
+
+          // Resolve which base parameter drives this component's load
+          // factor: explicit Component.LoadFactorParameterId if set,
+          // otherwise the form's default.
+          loadFactorOverrideByComponent.TryGetValue(componentId.Value, out var explicitOverride);
+          column.LoadFactorBaseParameterId = explicitOverride ?? _defaultLoadFactorParameterId;
         }
 
+        column.LoadFactorInputsChanged += RecalculateLoadFactor;
         Columns.Add(column);
       }
 
@@ -511,6 +559,11 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       foreach (var col in Columns)
         ColumnItems.Add(new ColumnListItemVm(col, Parameters));
+
+      // Initial calculation in case values were already loaded (e.g. via
+      // Word import) before the user touches anything.
+      foreach (var col in Columns)
+        RecalculateLoadFactor(col);
     }
 
     // ── Private: helpers ──────────────────────────────────────────────────────
@@ -566,6 +619,50 @@ namespace OperationMaps.Wpf.Features.OwnForm
         OptionalRowValuesByParameter = optionalRowValues,
         Note = string.Join("\n", noteLines),
       };
+    }
+
+    /// <summary>
+    /// Recomputes the load-factor result for one column and writes it
+    /// into the IsLoadFactorResult row's CellValues, so it shows up in
+    /// the table exactly like any other "в схеме" value — the user just
+    /// never types into it directly.
+    /// </summary>
+    private void RecalculateLoadFactor(FormColumnVm column)
+    {
+      if (_loadFactorResultParameterId is null) return;
+      if (column.LoadFactorBaseParameterId is not { } baseParamId) return;
+
+      var baseParam = Parameters.FirstOrDefault(p => p.FormParameterId == baseParamId);
+      if (baseParam is null) return;
+
+      var schemeValue = column.GetCellValue(baseParamId);
+      var ntdValue = column.GetNtdValue(baseParamId);
+
+      var result = LoadFactorCalculator.Calculate(schemeValue, ntdValue, baseParam.RowNumber);
+
+      column.LoadFactorValue = result ?? "";
+      column.CellValues[_loadFactorResultParameterId.Value] = result ?? "";
+      column.NotifyCellValuesChanged();
+
+      // If this column is currently selected and its detail rows are on
+      // screen, push the new value into the visible ParameterDetailVm too —
+      // CellValues alone wouldn't refresh the already-built ParameterDetails
+      // list, since each ParameterDetailVm snapshots SchemeValue at
+      // construction time rather than binding live to the column.
+      if (SelectedColumn == column)
+      {
+        var resultDetail = ParameterDetails.FirstOrDefault(
+            d => d.FormParameterId == _loadFactorResultParameterId.Value);
+        if (resultDetail is not null)
+          resultDetail.SchemeValue = result ?? "";
+      }
+
+      // Refresh the list item's fill status, since the result row's
+      // completion state just changed without going through the normal
+      // SchemeValue setter (which would have triggered this itself —
+      // avoided here to prevent infinite recursion).
+      var item = ColumnItems.FirstOrDefault(i => i.Column == column);
+      item?.Refresh();
     }
 
     private void RebuildColumnItems()

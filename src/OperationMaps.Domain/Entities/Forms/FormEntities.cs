@@ -36,7 +36,29 @@ public class FormParameter
   public int RowNumber { get; set; }
   public string Name { get; set; } = "";
   public string? Unit { get; set; }
+
+  /// <summary>
+  /// True for parameters eligible to be the "base" value (denominator's
+  /// pair, i.e. provides both the "по НТД" and "в схеме" values) used to
+  /// compute load factor (коэффициент нагрузки) — e.g. row 13
+  /// "Постоянное напряжение" in a resistor form. A form may have several
+  /// such candidates; which one is actually used is resolved per-component
+  /// via Component.LoadFactorParameterId, falling back to
+  /// Form.DefaultLoadFactorParameterId.
+  /// </summary>
   public bool CanBeLoadFactorBase { get; set; }
+
+  /// <summary>
+  /// True for the ONE parameter in the form that displays the calculated
+  /// load factor result (коэффициент нагрузки) — e.g. "Коэффициент
+  /// нагрузки" in Form 67/68. When OwnFormViewModel detects a change to
+  /// the base parameter's SchemeValue, it recomputes this row's value as
+  /// SchemeValue/NtdValue (clamped to a 0.1 minimum) and writes
+  /// "{result} ({baseRowNumber})" into it automatically — the user never
+  /// types into this field directly.
+  /// </summary>
+  public bool IsLoadFactorResult { get; set; }
+
   public int Order { get; set; }
   public string? Formula { get; set; }
 

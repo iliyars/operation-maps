@@ -22,6 +22,37 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     [ObservableProperty] private bool _isSelected;
 
+    // ── Load factor (коэффициент нагрузки) ────────────────────────────────────
+
+    /// <summary>
+    /// FormParameterId of the base parameter currently selected for this
+    /// component's load-factor calculation. Mirrors
+    /// Component.LoadFactorParameterId — null means "use the form's
+    /// default". Settable by the user via a picker when multiple
+    /// candidate parameters exist; persisted back to the catalog via
+    /// IComponentEntryService-style update when the column is saved.
+    /// </summary>
+    [ObservableProperty] private int? _loadFactorBaseParameterId;
+
+    /// <summary>
+    /// The calculated "{ratio} ({rowNumber})" string for the load-factor
+    /// result row, recomputed whenever the base parameter's SchemeValue
+    /// changes. Empty until a base parameter is selected and has both a
+    /// scheme and NTD value.
+    /// </summary>
+    [ObservableProperty] private string _loadFactorValue = "";
+
+    /// <summary>
+    /// Raised whenever this column's SchemeValue or
+    /// LoadFactorBaseParameterId changes — OwnFormViewModel subscribes
+    /// to recompute <see cref="LoadFactorValue"/> and write it into the
+    /// IsLoadFactorResult row's CellValues.
+    /// </summary>
+    public event Action<FormColumnVm>? LoadFactorInputsChanged;
+
+    partial void OnLoadFactorBaseParameterIdChanged(int? value)
+        => LoadFactorInputsChanged?.Invoke(this);
+
     // ── Cell values "в схеме" ─────────────────────────────────────────────────
 
     /// <summary>
@@ -35,7 +66,19 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       CellValues[formParameterId] = value;
       OnPropertyChanged(nameof(CellValues));
+
+      if (formParameterId == LoadFactorBaseParameterId)
+        LoadFactorInputsChanged?.Invoke(this);
     }
+
+    /// <summary>
+    /// Notifies that CellValues changed without going through
+    /// <see cref="SetCellValue"/> — used by OwnFormViewModel when it
+    /// writes the calculated load-factor result directly into the
+    /// dictionary (writing through SetCellValue there would re-trigger
+    /// LoadFactorInputsChanged and recurse).
+    /// </summary>
+    public void NotifyCellValuesChanged() => OnPropertyChanged(nameof(CellValues));
 
     // ── Pin values "номера выводов" (Form 64 only) ────────────────────────────
 
@@ -179,6 +222,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       foreach (var (key, value) in OptionalCellValues)
         cloned.OptionalCellValues[key] = value;
+
+      cloned.LoadFactorBaseParameterId = LoadFactorBaseParameterId;
 
       return cloned;
     }

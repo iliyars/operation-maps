@@ -19,29 +19,31 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public string DisplayName => Unit is not null ? $"{Name}, {Unit}" : Name;
     public IReadOnlyList<FormColumnVm> Columns { get; }
 
-    /// <summary>
-    /// True for parameters that are themselves an optional second value
-    /// of another parameter (e.g. Form 64's second supply voltage row).
-    /// These rows are never rendered directly in the parameter list — the
-    /// primary parameter (see <see cref="OptionalForRowNumber"/> being null
-    /// but <see cref="CanHaveOptionalRow"/> true on IT) renders the
-    /// "+ Добавить" affordance instead.
-    /// </summary>
+    /// <summary>True for parameters that represent an optional second row (e.g. Form 64's second voltage).</summary>
     public bool IsOptional { get; }
 
     /// <summary>RowNumber of the primary parameter this one extends, if <see cref="IsOptional"/>.</summary>
     public int? OptionalForRowNumber { get; }
 
-    /// <summary>
-    /// FormParameterId of this row's optional counterpart, if one exists
-    /// in the form (e.g. the primary "напряжение питания" row's id pointing
-    /// to the optional second-voltage parameter's id). Null when this
-    /// parameter has no optional counterpart.
-    /// </summary>
+    /// <summary>FormParameterId of this row's optional counterpart, if one exists in the form.</summary>
     public int? OptionalCounterpartId { get; set; }
 
-    /// <summary>True when this parameter has an optional counterpart — i.e. <see cref="OptionalCounterpartId"/> is set.</summary>
+    /// <summary>True when this parameter has an optional counterpart.</summary>
     public bool CanHaveOptionalRow => OptionalCounterpartId.HasValue;
+
+    /// <summary>
+    /// True for parameters eligible to be the "base" for load-factor
+    /// calculation (e.g. row 13 "Постоянное напряжение"). A form may have
+    /// several such candidates.
+    /// </summary>
+    public bool CanBeLoadFactorBase { get; }
+
+    /// <summary>
+    /// True for the ONE parameter that displays the calculated load
+    /// factor result — OwnFormViewModel writes into this row
+    /// automatically and the UI marks it read-only.
+    /// </summary>
+    public bool IsLoadFactorResult { get; }
 
     public FormParameterRowVm(
       FormParameter parameter,
@@ -57,6 +59,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       IsRequired = parameter.IsRequired;
       IsOptional = parameter.IsOptional;
       OptionalForRowNumber = parameter.OptionalForRowNumber;
+      CanBeLoadFactorBase = parameter.CanBeLoadFactorBase;
+      IsLoadFactorResult = parameter.IsLoadFactorResult;
     }
 
     // ── Per-column note state ─────────────────────────────────────────────────

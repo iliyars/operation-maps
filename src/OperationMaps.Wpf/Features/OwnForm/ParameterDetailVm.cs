@@ -18,6 +18,25 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public bool IsRequired { get; init; }
     public bool IsDerived => Formula is not null;
 
+    /// <summary>
+    /// True for any row whose SchemeValue is computed by the app rather
+    /// than typed by the user — covers both Formula-derived rows (e.g.
+    /// "Суммарное напряжение") and the load-factor result row. The UI
+    /// uses this single flag to decide TextBox vs. read-only display,
+    /// so a new kind of computed row only needs to extend this property
+    /// rather than touch the XAML again.
+    /// </summary>
+    public bool IsReadOnlyValue => IsDerived || IsLoadFactorResult;
+
+    /// <summary>
+    /// True for the load-factor result row (коэффициент нагрузки) —
+    /// its SchemeValue is written automatically by OwnFormViewModel
+    /// whenever the chosen base parameter changes, so the UI shows it
+    /// read-only instead of an editable TextBox, same treatment as
+    /// IsDerived rows.
+    /// </summary>
+    public bool IsLoadFactorResult { get; init; }
+
     [ObservableProperty] private string _schemeValue = "";
     [ObservableProperty] private bool _isAddingNote;
     [ObservableProperty] private string _pendingNoteText = "";
@@ -83,7 +102,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       bool hasOptionalRow = false,
       int optionalFormParameterId = 0,
       string optionalNtdValue = "—",
-      string optionalPinsValue = "")
+      string optionalPinsValue = "",
+      bool isLoadFactorResult = false)
     {
       _column = column;
       FormParameterId = parameterId;
@@ -93,6 +113,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       Formula = formula;
       _schemeValue = column.GetCellValue(parameterId);
       IsRequired = isRequired;
+      IsLoadFactorResult = isLoadFactorResult;
 
       ShowPins = showPins;
       PinsValue = pinsValue;

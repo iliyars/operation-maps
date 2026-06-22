@@ -53,6 +53,10 @@ public class Component
   public int? OwnFormId { get; set; }
   public Form? OwnForm { get; set; }
   public bool NeedsAdminReview { get; set; }
+
+  public int? LoadFactorParameterId { get; set; }
+  public FormParameter? LoadFactorParameter { get; set; }
+
   public List<ComponentNtdValue> NtdValues { get; set; } = new();
   public List<ComponentPinValue> PinValues { get; set; } = new();
   public List<ComponentNote> ComponentNotes { get; set; } = new();

@@ -3917,10 +3917,10 @@ public static class DatabaseSeeder
     new() { Form = form67, Section = sec67V, RowNumber =  2, Order = 2,
             Name = "Переменное (амплитудное)",         Unit = "В" },
     new() { Form = form67, Section = sec67V, RowNumber =  3, Order = 3,
-            Name = "Импульсное",                      Unit = "В" },
+            Name = "Импульсное",                      Unit = "В", CanBeLoadFactorBase=true },
     new() { Form = form67, Section = sec67V, RowNumber =  4, Order = 4,
             Name = "Суммарное",                       Unit = "В",
-            Formula = "row1+row2+row3",
+            Formula = "row1+row2+row3", CanBeLoadFactorBase = true,
             IsRequired = true },
     new() { Form = form67, Section = sec67I, RowNumber =  5, Order = 1,
             Name = "Переменный",                      Unit = "А" },
@@ -3943,7 +3943,7 @@ public static class DatabaseSeeder
             Name = "Температура перегрева",           Unit = "°С" },
     new() { Form = form67, Section = sec67O, RowNumber = 14, Order = 7,
             Name = "Коэффициент нагрузки",            Unit = null,
-            IsRequired = true },
+            IsRequired = true, IsLoadFactorResult = true },
 
 
         };

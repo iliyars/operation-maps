@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:converters="clr-namespace:OperationMaps.Wpf.Shared.Converters"
+             xmlns:shared="clr-namespace:OperationMaps.Wpf.Shared"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.OwnForm"
              mc:Ignorable="d"
              Background="{DynamicResource BgAppBrush}">
@@ -393,7 +394,8 @@
           <ScrollViewer Grid.Row="0"
               VerticalScrollBarVisibility="Auto"
               Padding="24,16,24,8">
-            <StackPanel DataContext="{Binding SelectedColumn}">
+            <StackPanel DataContext="{Binding SelectedColumn}"
+                        shared:TextBoxNavigationHelper.Enable="True">
 
               <TextBlock Text="{Binding Name}"
                   FontSize="16"

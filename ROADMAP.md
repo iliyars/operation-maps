@@ -63,6 +63,15 @@
       примечания. Также добавил try/catch вокруг экспорта в
       `OwnFormViewModel` — раньше отсутствующий/битый map.json ронял
       приложение (нет глобального обработчика исключений)
+- [x] **Активный краш-баг**, найден вручную Ильёй при тестировании
+      импорта `sample_pe3.XML`: `MatchResult.RequiredForms` не имело
+      значения по умолчанию, а `ComponentMatcher.Unmatched(...)` его не
+      заполнял — оставалось `null`. `ShellViewModel.OnProjectLoaded` делает
+      `Matched.Concat(Unresolved).SelectMany(e => e.MatchResult.RequiredForms)`
+      по всем импортированным компонентам — падало с
+      `NullReferenceException`, ронял всё приложение, как только в
+      перечне попадался хотя бы один совсем неопознанный тип компонента.
+      Поставил дефолт `= []` на свойстве; добавил regression-тесты
 - [ ] **Form75** не засеян в БД (`// TODO: Form75` в DatabaseSeeder,
       недоступен в UI), **Form83/Form86** засеяны, но у них вообще нет
       map.json — экспорт для них невозможен. Пока не привязаны ни к одному

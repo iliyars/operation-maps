@@ -103,6 +103,14 @@ public class ComponentMatcherTests : IDisposable
     Assert.False(result.IsMatched);
     Assert.Null(result.MatchedType);
     Assert.Contains("Неизвестный тип", result.Warning);
+
+    // Regression: RequiredForms used to have no default, so it was null
+    // here — ShellViewModel.OnProjectLoaded does
+    // .SelectMany(e => e.MatchResult.RequiredForms) over every imported
+    // component, which threw NullReferenceException the moment a project
+    // contained even one totally unrecognized component type.
+    Assert.NotNull(result.RequiredForms);
+    Assert.Empty(result.RequiredForms);
   }
 
   [Fact]
@@ -134,6 +142,15 @@ public class ComponentMatcherTests : IDisposable
     Assert.Equal(known, result.Matched[0].Imported);
     Assert.Equal(unknownType, result.Unresolved[0].Imported);
     Assert.Single(result.Warnings);
+
+    // Regression: this is the exact shape ShellViewModel.OnProjectLoaded
+    // consumes (matchResult.Matched.Concat(Unresolved).SelectMany(e =>
+    // e.MatchResult.RequiredForms)) — it crashed on any project containing
+    // an unrecognized component type before RequiredForms got a default.
+    var allForms = result.Matched.Concat(result.Unresolved)
+        .SelectMany(e => e.MatchResult.RequiredForms)
+        .ToList();
+    Assert.Single(allForms);
   }
 
   public void Dispose()

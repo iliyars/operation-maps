@@ -85,6 +85,8 @@ public class WordServiceTests
   [InlineData("67")]
   [InlineData("68")]
   [InlineData("69")]
+  [InlineData("83")]
+  [InlineData("86")]
   public async Task Export_then_import_round_trips_simple_forms(string formNumber)
   {
     var mapLoader = new WordFormMapLoader(ResourcesDir);

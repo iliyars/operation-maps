@@ -9,6 +9,8 @@
         Title="{Binding Title}"
         Height="700"
         Width="1100"
+        MinHeight="600"
+        MinWidth="1360"
         WindowStartupLocation="CenterScreen">
   <!--
         ShellViewModel is exposed by MainViewModel.Shell.

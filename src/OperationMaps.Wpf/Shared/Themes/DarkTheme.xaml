@@ -47,6 +47,9 @@
   <Color x:Key="StatusSuccessBgColor">#1B3A1B</Color>
   <Color x:Key="StatusWarningBgColor">#3A2F00</Color>
 
+  <Color x:Key="StatusInfoColor">#4FC1FF</Color>
+  <Color x:Key="StatusInfoBgColor">#16324A</Color>
+
   <!-- ── Brushes ────────────────────────────────────────────────────── -->
   <SolidColorBrush x:Key="BgAppBrush"
       Color="{StaticResource BgAppColor}"/>
@@ -113,4 +116,8 @@
       Color="{StaticResource StatusSuccessBgColor}"/>
   <SolidColorBrush x:Key="StatusWarningBgBrush"
       Color="{StaticResource StatusWarningBgColor}"/>
+  <SolidColorBrush x:Key="StatusInfoBrush"
+      Color="{StaticResource StatusInfoColor}"/>
+  <SolidColorBrush x:Key="StatusInfoBgBrush"
+      Color="{StaticResource StatusInfoBgColor}"/>
 </ResourceDictionary>

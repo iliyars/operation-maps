@@ -53,6 +53,18 @@
                                 <Setter Property="Foreground"
                                         Value="{DynamicResource AccentBrush}"/>
                             </Trigger>
+                            <!-- Active tab: bound via Tag (see EnumEqualsToBoolConverter) since
+                                 Button has no built-in checked state to compare the shared
+                                 ActiveFilter against. -->
+                            <Trigger Property="Tag"
+                                    Value="True">
+                                <Setter Property="BorderBrush"
+                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter Property="Foreground"
+                                        Value="{DynamicResource TextPrimaryBrush}"/>
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold"/>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -119,21 +131,24 @@
                         Margin="8,0">
                     <Button Style="{StaticResource FilterTab}"
                             Command="{Binding SetFilterCommand}"
-                            CommandParameter="{x:Static local:ComponentFilter.All}">
+                            CommandParameter="{x:Static local:ComponentFilter.All}"
+                            Tag="{Binding ActiveFilter, Converter={StaticResource EnumEqualsToBoolConverter}, ConverterParameter=All}">
                         <TextBlock>
                             <Run Text="Все "/><Run Text="("/><Run Text="{Binding CountAll, Mode=OneWay}"/><Run Text=")"/>
                         </TextBlock>
                     </Button>
                     <Button Style="{StaticResource FilterTab}"
                             Command="{Binding SetFilterCommand}"
-                            CommandParameter="{x:Static local:ComponentFilter.Matched}">
+                            CommandParameter="{x:Static local:ComponentFilter.Matched}"
+                            Tag="{Binding ActiveFilter, Converter={StaticResource EnumEqualsToBoolConverter}, ConverterParameter=Matched}">
                         <TextBlock>
                             <Run Text="Найдены "/><Run Text="("/><Run Text="{Binding CountMatched, Mode=OneWay}"/><Run Text=")"/>
                         </TextBlock>
                     </Button>
                     <Button Style="{StaticResource FilterTab}"
                             Command="{Binding SetFilterCommand}"
-                            CommandParameter="{x:Static local:ComponentFilter.Unresolved}">
+                            CommandParameter="{x:Static local:ComponentFilter.Unresolved}"
+                            Tag="{Binding ActiveFilter, Converter={StaticResource EnumEqualsToBoolConverter}, ConverterParameter=Unresolved}">
                         <TextBlock>
                             <Run Text="Не найдены "/><Run Text="("/><Run Text="{Binding CountUnresolved, Mode=OneWay}"/><Run Text=")"/>
                         </TextBlock>
@@ -157,6 +172,7 @@
                       ItemsSource="{Binding FilteredComponents}"
                       SelectedItem="{Binding SelectedComponent}"
                       SelectionMode="Single"
+                      AlternationCount="2"
                       BorderThickness="0"
                       Background="{DynamicResource BgAppBrush}"
                       Foreground="{DynamicResource TextPrimaryBrush}"
@@ -201,6 +217,15 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
+                        <Style.Triggers>
+                            <!-- Subtle zebra striping so rows are easier to scan across
+                                 five columns of similar-looking text. -->
+                            <Trigger Property="ItemsControl.AlternationIndex"
+                                    Value="1">
+                                <Setter Property="Background"
+                                        Value="{DynamicResource BgPanelBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.View>
@@ -263,7 +288,7 @@
                                                     <DataTrigger Binding="{Binding MatchStatus}"
                                                             Value="FamilyFound">
                                                         <Setter Property="Background"
-                                                                Value="#E8F0FE"/>
+                                                                Value="{DynamicResource StatusInfoBgBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding MatchStatus}"
                                                             Value="Unresolved">
@@ -289,7 +314,7 @@
                                                             <DataTrigger Binding="{Binding MatchStatus}"
                                                                     Value="FamilyFound">
                                                                 <Setter Property="Fill"
-                                                                        Value="#4285F4"/>
+                                                                        Value="{DynamicResource StatusInfoBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
                                                                     Value="Unresolved">
@@ -317,7 +342,7 @@
                                                                 <Setter Property="Text"
                                                                         Value="Семейство"/>
                                                                 <Setter Property="Foreground"
-                                                                        Value="#1A73E8"/>
+                                                                        Value="{DynamicResource StatusInfoBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
                                                                     Value="Unresolved">
@@ -446,9 +471,9 @@
                                                 <Setter Property="Visibility"
                                                         Value="Visible"/>
                                                 <Setter Property="Background"
-                                                        Value="#E8F0FE"/>
+                                                        Value="{DynamicResource StatusInfoBgBrush}"/>
                                                 <Setter Property="BorderBrush"
-                                                        Value="#4285F4"/>
+                                                        Value="{DynamicResource StatusInfoBrush}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -456,6 +481,7 @@
                                 <StackPanel>
                                     <TextBlock FontSize="12"
                                             FontWeight="Medium"
+                                            TextWrapping="Wrap"
                                             Margin="0,0,0,6">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -472,7 +498,7 @@
                                                         <Setter Property="Text"
                                                                 Value="Семейство найдено, но не хватает данных по компоненту"/>
                                                         <Setter Property="Foreground"
-                                                                Value="#1A73E8"/>
+                                                                Value="{DynamicResource StatusInfoBrush}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>

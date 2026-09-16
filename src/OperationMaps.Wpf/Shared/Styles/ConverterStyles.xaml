@@ -10,4 +10,5 @@
   <converters:FractionToWidthConverter            x:Key="FractionToWidth"/>
   <converters:CornerVisibilityConverter x:Key="CornerVisibilityConverter"/>
   <converters:EnumEqualsToVisConverter x:Key="EnumEqualsToVisConverter"/>
+  <converters:EnumEqualsToBoolConverter x:Key="EnumEqualsToBoolConverter"/>
 </ResourceDictionary>

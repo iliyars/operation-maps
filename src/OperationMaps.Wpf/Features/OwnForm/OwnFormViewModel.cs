@@ -349,6 +349,16 @@ namespace OperationMaps.Wpf.Features.OwnForm
         if (File.Exists(outputPath)) File.Delete(outputPath);
         File.Move(tmpPath, outputPath);
       }
+      catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
+      {
+        // map.json/template.docx missing or malformed for this form — a
+        // config gap, not something the user can fix by retrying. Surface
+        // it instead of crashing (no global exception handler exists).
+        _dialogService.ShowError(
+            $"Не удалось экспортировать форму {FormNumber}: отсутствуют или повреждены " +
+            $"файлы шаблона (map.json/template.docx).\n\n{ex.Message}",
+            "Экспорт невозможен");
+      }
       finally
       {
         IsExporting = false;

@@ -23,6 +23,7 @@ namespace OperationMaps.Wpf.Features.Welcome
     private readonly IComponentMatcher _matcher;
     private readonly ProjectStore _store;
     private readonly ShellViewModel _shell;
+    private readonly IDialogService _dialogService;
     private INavigationService _navigation;
 
     public WelcomeViewModel(
@@ -31,6 +32,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       IComponentMatcher matcher,
       ProjectStore store,
       ShellViewModel shell,
+      IDialogService dialogService,
       INavigationService navigation)
     {
       _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
@@ -38,6 +40,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       _matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _shell = shell ?? throw new ArgumentNullException(nameof(shell));
+      _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
     }
     [RelayCommand]
@@ -51,7 +54,7 @@ namespace OperationMaps.Wpf.Features.Welcome
 
       if (!_importer.CanImport(path))
       {
-        //TODO: IDialogService.ShowError(...)
+        _dialogService.ShowError($"Файл не является поддерживаемым перечнем элементов:\n{path}");
         return;
       }
 
@@ -64,7 +67,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
                                 or InvalidDataException or OperationCanceledException)
       {
-        //TODO: IDialogService.ShowError($"Не удалось открыть файл: {ex.Message}");
+        _dialogService.ShowError($"Не удалось открыть файл: {ex.Message}");
         return;
       }
 
@@ -75,7 +78,7 @@ namespace OperationMaps.Wpf.Features.Welcome
       }
       catch (Exception ex) when (ex is not OperationCanceledException)
       {
-        //TODO: IDialogService.ShowError($"Ошибка при сопоставлении компонентов: {ex.Message}");
+        _dialogService.ShowError($"Ошибка при сопоставлении компонентов: {ex.Message}");
         return;
       }
 

@@ -27,6 +27,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private readonly CatalogDbContext _db;
     private readonly IWordService _wordService;
     private readonly WordFormMapLoader _mapLoader;
+    private readonly IDialogService _dialogService;
 
     // ── Form metadata ─────────────────────────────────────────────────────────
 
@@ -99,12 +100,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
         ProjectStore store,
         CatalogDbContext db,
         IWordService wordService,
-        WordFormMapLoader mapLoader)
+        WordFormMapLoader mapLoader,
+        IDialogService dialogService)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _db = db ?? throw new ArgumentNullException(nameof(db));
       _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
+      _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -331,11 +334,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
         }
         catch (IOException)
         {
-          System.Windows.MessageBox.Show(
+          _dialogService.ShowWarning(
               $"Файл уже открыт в другой программе:\n{outputPath}\n\nЗакройте файл и повторите экспорт.",
-              "Файл занят",
-              System.Windows.MessageBoxButton.OK,
-              System.Windows.MessageBoxImage.Warning);
+              "Файл занят");
           return;
         }
       }

@@ -19,7 +19,7 @@ using OperationMaps.Wpf.Features.OwnForm;
 
 namespace OperationMaps.Wpf
 {
-  public static class ServiceCollectionExtensionпше 
+  public static class ServiceCollectionExtension
   {
     public static IServiceCollection AddPresentation(this IServiceCollection services)
     {
@@ -28,6 +28,7 @@ namespace OperationMaps.Wpf
 
       //services
       services.AddSingleton<IFilePicker, FilePicker>();
+      services.AddSingleton<IDialogService, DialogService>();
 
       // Stores
       services.AddSingleton<ProjectStore>();

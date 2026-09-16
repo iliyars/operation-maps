@@ -44,7 +44,7 @@ class Program
 
 
     using var scope = host.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<OperationMapsDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<CatalogDbContext>();
     await db.Database.MigrateAsync();
     await DatabaseSeeder.SeedAsync(db);
     var importer = host.Services.GetRequiredService<IComponentListImporter>();
@@ -106,7 +106,7 @@ class Program
   static async Task ShowMatching(IServiceProvider services, ImportResult result)
   {
     var matcher = services.GetRequiredService<IComponentMatcher>();
-    var db = services.GetRequiredService<OperationMapsDbContext>();
+    var db = services.GetRequiredService<CatalogDbContext>();
 
     System.Console.WriteLine("\n\n🔍 МАТЧИНГ С БАЗОЙ ДАННЫХ");
     System.Console.WriteLine(new string('-', 85));

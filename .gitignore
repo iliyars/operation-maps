@@ -6,6 +6,10 @@
 # dotenv files
 .env
 
+# Local scratch artifacts (not build outputs, just accidental dumps)
+/src.zip
+/tree.txt
+
 # User-specific files
 *.rsuser
 *.suo

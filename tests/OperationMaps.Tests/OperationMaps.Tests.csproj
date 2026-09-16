@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!-- windows-specific so this project can reference OperationMaps.Wpf
+         (net10.0-windows) and test ViewModels / extracted helpers directly.
+         The whole solution is Windows-only (WPF) anyway. -->
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -23,6 +26,7 @@
     <ProjectReference Include="..\..\src\OperationMaps.Domain\OperationMaps.Domain.csproj" />
     <ProjectReference Include="..\..\src\OperationMaps.Application\OperationMaps.Application.csproj" />
     <ProjectReference Include="..\..\src\OperationMaps.Infrastructure\OperationMaps.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\OperationMaps.Wpf\OperationMaps.Wpf.csproj" />
   </ItemGroup>
 
   <ItemGroup>

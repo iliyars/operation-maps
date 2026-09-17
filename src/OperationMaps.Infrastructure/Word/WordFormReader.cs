@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using OperationMaps.Application.Word;
@@ -10,8 +11,44 @@ namespace OperationMaps.Infrastructure.Word
   /// <c>WordService</c> — split out so it can be reasoned about (and tested)
   /// independently of the write half (<see cref="WordFormWriter"/>).
   /// </summary>
-  public static class WordFormReader
+  public static partial class WordFormReader
   {
+    // Matches the "ФОРМА <number>" header every template's first cell starts
+    // with (e.g. "ФОРМА 67 ", "ФОРМА 65А", "ФОРМА 64" with no trailing space).
+    [GeneratedRegex(@"ФОРМА\s+([0-9]+[^\s|]*)", RegexOptions.IgnoreCase)]
+    private static partial Regex HeaderFormNumberRegex();
+
+    /// <summary>
+    /// Scans every table in the document and returns the distinct form
+    /// numbers found in their headers, in first-appearance order. Used to
+    /// discover what a combined work-order document (Form4 + Form67 +
+    /// Form68 + ... all in one file) actually contains before deciding
+    /// which per-form map.json files to read it with.
+    /// </summary>
+    public static IReadOnlyList<string> DetectFormNumbers(string documentPath)
+    {
+      using var doc = WordprocessingDocument.Open(documentPath, isEditable: false);
+
+      var result = new List<string>();
+      var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+      foreach (var table in doc.MainDocumentPart!.Document.Body!.Elements<Table>())
+      {
+        var headerCell = WordTableHelper.TryGetCell(table, 0, 0);
+        if (headerCell is null) continue;
+
+        var firstLine = WordTableHelper.GetCellText(headerCell).Split('\n')[0];
+        var match = HeaderFormNumberRegex().Match(firstLine);
+        if (!match.Success) continue;
+
+        var number = match.Groups[1].Value;
+        if (seen.Add(number))
+          result.Add(number);
+      }
+
+      return result;
+    }
+
     public static WordFormData Read(
         string formNumber,
         string documentPath,
@@ -19,9 +56,17 @@ namespace OperationMaps.Infrastructure.Word
     {
       using var doc = WordprocessingDocument.Open(documentPath, isEditable: false);
 
-      // Each page is a separate table — collect all tables in document order
+      // A single document may contain many forms (a combined work-order
+      // export has one table — or a run of tables, when a form spills onto
+      // more pages than its componentsPerPage allows — per form number, back
+      // to back). Only read tables that actually belong to THIS form number:
+      // otherwise, reading e.g. Form 67 against a document that also has
+      // Form 4/64/68/... tables would risk misinterpreting unrelated cells
+      // that happen to land on the same coordinates as real Form 67 data.
       var allTables = doc.MainDocumentPart!.Document.Body!
-          .Elements<Table>().ToList();
+          .Elements<Table>()
+          .Where(t => TableBelongsToForm(t, formNumber))
+          .ToList();
 
       var components = new List<WordComponentData>();
 
@@ -131,6 +176,23 @@ namespace OperationMaps.Infrastructure.Word
       if (!cellDict.TryGetValue(key, out var coord)) return "";
       var cell = WordTableHelper.TryGetCell(table, coord.Row, coord.Col);
       return cell is null ? "" : WordTableHelper.GetCellText(cell).Trim();
+    }
+
+    /// <summary>
+    /// True when the table's first cell's first line reads "ФОРМА
+    /// &lt;formNumber&gt;" (case-insensitive). Used to pick out only the
+    /// tables belonging to one form out of a document that may contain many.
+    /// </summary>
+    internal static bool TableBelongsToForm(Table table, string formNumber)
+    {
+      var headerCell = WordTableHelper.TryGetCell(table, 0, 0);
+      if (headerCell is null) return false;
+
+      var firstLine = WordTableHelper.GetCellText(headerCell).Split('\n')[0];
+      var match = HeaderFormNumberRegex().Match(firstLine);
+      if (!match.Success) return false;
+
+      return string.Equals(match.Groups[1].Value, formNumber, StringComparison.OrdinalIgnoreCase);
     }
   }
 }

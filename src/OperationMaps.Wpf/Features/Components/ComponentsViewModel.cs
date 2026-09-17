@@ -57,8 +57,14 @@ namespace OperationMaps.Wpf.Features.Components
     // ── Counts (for filter tabs) ──────────────────────────────────────────────
 
     public int CountAll => Components.Count;
-    public int CountMatched => Components.Count(c => c.MatchStatus != ComponentMatchStatus.Unresolved);
-    public int CountUnresolved => Components.Count(c => c.MatchStatus == ComponentMatchStatus.Unresolved);
+
+    // Must mirror FilteredComponents' predicates above exactly (IsMatched /
+    // !IsMatched) — these used to count by MatchStatus instead (treating
+    // "family found, component missing" as matched), so the tab label
+    // showed a different count than the number of rows the same click
+    // actually filtered down to.
+    public int CountMatched => Components.Count(c => c.IsMatched);
+    public int CountUnresolved => Components.Count(c => !c.IsMatched);
 
     // ── Selection ─────────────────────────────────────────────────────────────
 

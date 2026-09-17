@@ -1,0 +1,50 @@
+<UserControl x:Class="OperationMaps.Wpf.Shared.Controls.AutoCompleteComboBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <!--
+        A hand-rolled Popup+ListBox version of this control (v1) had clicks
+        and mouse-wheel scrolling silently do nothing inside the dropdown —
+        classic symptoms of a Popup not routing input correctly. Rather than
+        keep fighting that, this reuses the stock, editable WPF ComboBox for
+        the dropdown/popup/input plumbing (proven, not reinvented) and only
+        adds custom substring filtering on top via a ListCollectionView.
+        Visual styling is intentionally minimal for now — functionality
+        first, polish later.
+    -->
+    <!--
+        IsSynchronizedWithCurrentItem=False: by default a ComboBox syncs
+        SelectedItem with the bound CollectionView's CurrentItem, and a
+        freshly built ListCollectionView defaults CurrentItem to the first
+        entry — so without this the box silently "selects" item 0 the
+        moment the filtered view is assigned. Selection should only ever
+        come from an explicit user pick.
+    -->
+    <ComboBox x:Name="PART_ComboBox"
+              IsEditable="True"
+              IsTextSearchEnabled="False"
+              StaysOpenOnEdit="True"
+              IsSynchronizedWithCurrentItem="False"
+              FontSize="13"
+              Height="32"
+              Padding="6,0"
+              Background="{DynamicResource BgInputBrush}"
+              BorderBrush="{DynamicResource BorderInputBrush}"
+              Foreground="{DynamicResource TextPrimaryBrush}"
+              DisplayMemberPath="{Binding DisplayMemberPath, ElementName=Root}">
+        <ComboBox.ItemContainerStyle>
+            <Style TargetType="ComboBoxItem">
+                <!-- Long form titles must not force the drop-down wider than
+                     the screen — cap width and ellipsize instead of letting
+                     WPF's default "grow to fit the widest item" behavior
+                     push the popup off both edges of the window. -->
+                <Setter Property="MaxWidth" Value="520"/>
+                <Style.Resources>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </ComboBox.ItemContainerStyle>
+    </ComboBox>
+</UserControl>

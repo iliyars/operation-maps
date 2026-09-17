@@ -49,23 +49,31 @@ namespace OperationMaps.Infrastructure.Word
         await fs.CopyToAsync(ms, ct);
       ms.Position = 0;
 
-      using var report = WordprocessingDocument.Open(ms, isEditable: true);
-      var reportBody = report.MainDocumentPart!.Document.Body!;
-
-      // ── 2. Export each form and merge into report body ─────────────────────
-      foreach (var (data, templatePath) in forms)
+      // The package (a zip archive under the hood) only flushes its central
+      // directory to `ms` on Dispose — reading ms.ToArray() while `report`
+      // is still open returns the ORIGINAL cover bytes, silently dropping
+      // everything appended below. Scope it so disposal happens before we
+      // read the bytes back out.
+      using (var report = WordprocessingDocument.Open(ms, isEditable: true))
       {
-        ct.ThrowIfCancellationRequested();
+        var reportBody = report.MainDocumentPart!.Document.Body!;
 
-        // Page break before each new form section
-        reportBody.AppendChild(MakePageBreak());
+        // ── 2. Export each form and merge into report body ───────────────────
+        foreach (var (data, templatePath) in forms)
+        {
+          ct.ThrowIfCancellationRequested();
 
-        var formBytes = await _wordService.ExportAsync(data, templatePath, ct);
-        MergeBodyContent(formBytes, reportBody);
+          // Page break before each new form section
+          reportBody.AppendChild(MakePageBreak());
+
+          var formBytes = await _wordService.ExportAsync(data, templatePath, ct);
+          MergeBodyContent(formBytes, reportBody);
+        }
+
+        // ── 3. Save ─────────────────────────────────────────────────────────
+        report.MainDocumentPart!.Document.Save();
       }
 
-      // ── 3. Save ───────────────────────────────────────────────────────────
-      report.MainDocumentPart!.Document.Save();
       ms.Position = 0;
       return ms.ToArray();
     }

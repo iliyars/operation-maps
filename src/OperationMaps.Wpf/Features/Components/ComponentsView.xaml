@@ -24,11 +24,11 @@
             <Setter Property="Background"
                     Value="Transparent"/>
             <Setter Property="BorderThickness"
-                    Value="0,0,0,2"/>
-            <Setter Property="BorderBrush"
-                    Value="Transparent"/>
+                    Value="0"/>
             <Setter Property="Padding"
-                    Value="12,8"/>
+                    Value="12,6"/>
+            <Setter Property="Margin"
+                    Value="0,0,4,0"/>
             <Setter Property="FontSize"
                     Value="13"/>
             <Setter Property="Cursor"
@@ -40,9 +40,12 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
+                        <!-- An underline alone read as plain text, not as a clickable
+                             segmented control — a filled pill is a much stronger signal
+                             for "these three are one mutually-exclusive control". -->
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="14"
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"
                                               VerticalAlignment="Center"/>
@@ -50,18 +53,20 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver"
                                     Value="True">
-                                <Setter Property="Foreground"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="{DynamicResource BgHoverBrush}"/>
                             </Trigger>
                             <!-- Active tab: bound via Tag (see EnumEqualsToBoolConverter) since
                                  Button has no built-in checked state to compare the shared
                                  ActiveFilter against. -->
                             <Trigger Property="Tag"
                                     Value="True">
-                                <Setter Property="BorderBrush"
-                                        Value="{DynamicResource AccentBrush}"/>
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="{DynamicResource StatusInfoBgBrush}"/>
                                 <Setter Property="Foreground"
-                                        Value="{DynamicResource TextPrimaryBrush}"/>
+                                        Value="{DynamicResource StatusInfoBrush}"/>
                                 <Setter Property="FontWeight"
                                         Value="SemiBold"/>
                             </Trigger>
@@ -76,11 +81,21 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Page heading — the sidebar highlight alone is a weak signal for
+             which screen is active; every content area should restate it. -->
+        <TextBlock Grid.Row="0"
+                   Text="Компоненты"
+                   FontSize="18"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   Margin="16,14,16,4"/>
+
         <!-- SEARCH + FILTER TABS -->
-        <Border Grid.Row="0"
+        <Border Grid.Row="1"
                 BorderBrush="{DynamicResource BorderDefaultBrush}"
                 BorderThickness="0,0,0,1">
             <Grid>
@@ -97,9 +112,9 @@
                             BorderBrush="{DynamicResource BorderInputBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
-                            Padding="8,0"
-                            Height="30"
-                            MaxWidth="320"
+                            Padding="10,0"
+                            Height="34"
+                            MaxWidth="420"
                             HorizontalAlignment="Left">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -118,6 +133,7 @@
                                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0"
                                      Background="Transparent"
+                                     VerticalContentAlignment="Center"
                                      Foreground="{DynamicResource TextPrimaryBrush}"
                                      VerticalAlignment="Center"
                                      FontSize="13"/>
@@ -158,7 +174,7 @@
         </Border>
 
         <!-- LIST + DETAIL -->
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="1"/>

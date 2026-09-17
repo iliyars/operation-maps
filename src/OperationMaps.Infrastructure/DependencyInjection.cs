@@ -38,6 +38,7 @@ public static class DependencyInjection
     services.AddSingleton<IWordService, WordService>();
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
     services.AddScoped<IComponentEntryService, ComponentEntryService>();
+    services.AddScoped<IWordCatalogImportService, WordCatalogImportService>();
 
     // Singleton: orchestrates export + merge, no mutable state
     services.AddSingleton<WordReportBuilder>();

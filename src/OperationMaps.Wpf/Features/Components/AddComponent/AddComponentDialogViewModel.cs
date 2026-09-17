@@ -21,6 +21,7 @@ public sealed partial class WizardParameterRowVm : ObservableObject
   public int FormParameterId { get; }
   public int RowNumber { get; }
   public string DisplayName { get; }
+  public string? Unit { get; }
 
   [ObservableProperty] private string _value = "";
 
@@ -58,8 +59,9 @@ public sealed partial class WizardParameterRowVm : ObservableObject
   {
     FormParameterId = parameter.Id;
     RowNumber = parameter.RowNumber;
-    DisplayName = parameter.Unit is { Length: > 0 }
-        ? $"{parameter.Name}, {parameter.Unit}"
+    Unit = parameter.Unit is { Length: > 0 } ? parameter.Unit : null;
+    DisplayName = Unit is not null
+        ? $"{parameter.Name}, {Unit}"
         : parameter.Name;
   }
 }
@@ -68,6 +70,11 @@ public sealed partial class WizardParameterRowVm : ObservableObject
 public sealed record OwnFormOption(int Id, string Number, string Title)
 {
   public string Display => $"Форма {Number} — {Title}";
+
+  // AutoCompleteComboBox's editable ComboBox falls back to ToString() for
+  // the text box when a selection is applied programmatically; keep it in
+  // sync with Display so it never shows the record's default field dump.
+  public override string ToString() => Display;
 }
 
 /// <summary>
@@ -216,14 +223,22 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         }
       }
 
-      // Own form options — all forms except Form 4
+      // Own form options — all forms except Form 4. Number is a string
+      // ("6", "13", "65А", ...), so ordering by it directly sorts
+      // lexicographically ("6" ends up after "59") — order by the leading
+      // numeric part instead, falling back to the full string for ties
+      // like "65" vs "65А".
       var forms = await _db.Forms
           .Where(f => f.Number != "4")
-          .OrderBy(f => f.Number)
           .ToListAsync(ct);
 
+      var orderedForms = forms
+          .OrderBy(f => LeadingNumber(f.Number))
+          .ThenBy(f => f.Number, StringComparer.OrdinalIgnoreCase)
+          .ToList();
+
       OwnFormOptions.Clear();
-      foreach (var f in forms)
+      foreach (var f in orderedForms)
         OwnFormOptions.Add(new OwnFormOption(f.Id, f.Number, f.Title));
 
       if (existingFamily is not null)
@@ -388,5 +403,12 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
     {
       IsSaving = false;
     }
+  }
+
+  /// <summary>Leading digits of a form number ("65А" -> 65, "13" -> 13), for numeric sort order.</summary>
+  private static int LeadingNumber(string number)
+  {
+    var digits = new string(number.TakeWhile(char.IsDigit).ToArray());
+    return int.TryParse(digits, out var n) ? n : int.MaxValue;
   }
 }

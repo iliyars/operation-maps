@@ -191,7 +191,8 @@
                         </Grid.RowDefinitions>
 
                         <ScrollContentPresenter Grid.Column="0"
-                                                Grid.Row="0"/>
+                                                Grid.Row="0"
+                                                Margin="{TemplateBinding Padding}"/>
 
                         <ScrollBar x:Name="PART_VerticalScrollBar"
                                    Grid.Column="1"

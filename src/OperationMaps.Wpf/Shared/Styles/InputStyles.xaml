@@ -30,7 +30,9 @@
                   CornerRadius="2">
             <ScrollViewer x:Name="PART_ContentHost"
                           Focusable="False"
-                          Margin="{TemplateBinding Padding}"/>
+                          Margin="{TemplateBinding Padding}"
+                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsKeyboardFocused"

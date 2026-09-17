@@ -2,6 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Components.AddComponent"
+        xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
+        xmlns:behaviors="clr-namespace:OperationMaps.Wpf.Shared.Behaviors"
         Title="Ввод данных компонента"
         Width="680"
         Height="680"
@@ -25,15 +27,29 @@
             <StackPanel>
                 <TextBlock Text="Ввод данных компонента"
                         Style="{StaticResource TitleText}"/>
+                <!-- What's being edited is the context-anchor for this whole dialog —
+                     it needs to read as more important than the generic dialog
+                     title above it, not less. -->
                 <StackPanel Orientation="Horizontal"
                         Margin="0,4,0,0">
-                    <TextBlock Text="{Binding ComponentRawName}"
-                               FontSize="13"
+                    <TextBlock Text="{Binding ComponentTypeName}"
+                               FontSize="12"
                                Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    <TextBlock Text=" — "
-                            Style="{StaticResource PositionsText}"/>
+                    <TextBlock Text="   •   "
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="{Binding ComponentRawName}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="   •   "
+                               FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                     <TextBlock Text="{Binding ComponentPositions}"
-                            Style="{StaticResource PositionsText}"/>
+                               FontFamily="Consolas"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <!-- Step indicator -->
                 <StackPanel Orientation="Horizontal"
@@ -166,11 +182,40 @@
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding DisplayName}"
                                                VerticalAlignment="Center"
-                                               FontSize="12"
+                                               FontSize="13"
                                                Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    <TextBox Grid.Column="1"
-                                             Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-                                             Padding="6,4"/>
+                                    <!-- Unit shown inline (not just in the label to the left) so it
+                                         stays visible right next to the number as you type it. -->
+                                    <Border Grid.Column="1"
+                                            Background="{DynamicResource BgInputBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="2">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderInputBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsKeyboardFocusWithin, ElementName=Form4ValueInput}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderFocusBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <TextBox x:Name="Form4ValueInput"
+                                                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                     Background="Transparent"
+                                                     BorderThickness="0"
+                                                     Padding="6,4,30,4"
+                                                     behaviors:TextBoxNavigation.EnterAndArrowsMoveFocus="True"/>
+                                            <TextBlock Text="{Binding Unit}"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       FontSize="12"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,0,8,0"
+                                                       IsHitTestVisible="False"/>
+                                        </Grid>
+                                    </Border>
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -188,7 +233,7 @@
                     <TextBlock Text="Собственная форма компонента"
                             Style="{StaticResource SectionLabel}"
                             Margin="0,0,0,4"/>
-                    <ComboBox ItemsSource="{Binding OwnFormOptions}"
+                    <controls:AutoCompleteComboBox ItemsSource="{Binding OwnFormOptions}"
                               SelectedItem="{Binding SelectedOwnForm}"
                               DisplayMemberPath="Display"
                               Margin="0,0,0,16"/>
@@ -203,8 +248,12 @@
                                    Foreground="{DynamicResource TextPrimaryBrush}"
                                    Margin="0,0,0,12"/>
 
-                        <!-- Column headers, mirroring the row layout below -->
-                        <Grid Margin="0,0,0,6">
+                        <!-- Column headers, mirroring the row layout below. Styled to read
+                             as an actual table header (like GridViewColumnHeader elsewhere) —
+                             at 11px muted gray it was easy to mistake for decorative
+                             secondary text rather than "this column is where you type the
+                             datasheet/NTD value". -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="160"/>
@@ -221,16 +270,22 @@
                                     </ColumnDefinition.Style>
                                 </ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0"/>
+                            <Border Grid.Column="0"
+                                    Grid.ColumnSpan="3"
+                                    BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                    BorderThickness="0,0,0,1"/>
                             <TextBlock Grid.Column="1"
                                        Text="Параметр по НТД"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource TextMutedBrush}"
-                                       Margin="0,0,8,0"/>
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,0,8,4"/>
                             <TextBlock Grid.Column="2"
                                        Text="№ выводов"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource TextMutedBrush}"
+                                       FontSize="12"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,0,0,4"
                                        Visibility="{Binding OwnFormShowsPins, Converter={StaticResource BoolToVis}}"/>
                         </Grid>
 
@@ -258,17 +313,47 @@
                                             <TextBlock Grid.Column="0"
                                                        Text="{Binding DisplayName}"
                                                        VerticalAlignment="Center"
-                                                       FontSize="12"
+                                                       FontSize="13"
                                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBox Grid.Column="1"
-                                                     Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
-                                                     Padding="6,4"
-                                                     Margin="0,0,8,0"/>
+                                            <!-- Unit shown inline (not just in the label to the left) so it
+                                                 stays visible right next to the number as you type it. -->
+                                            <Border Grid.Column="1"
+                                                    Background="{DynamicResource BgInputBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="2"
+                                                    Margin="0,0,8,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderInputBrush}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsKeyboardFocusWithin, ElementName=OwnFormValueInput}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource BorderFocusBrush}"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <Grid>
+                                                    <TextBox x:Name="OwnFormValueInput"
+                                                             Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                             Background="Transparent"
+                                                             BorderThickness="0"
+                                                             Padding="6,4,30,4"
+                                                             behaviors:TextBoxNavigation.EnterAndArrowsMoveFocus="True"/>
+                                                    <TextBlock Text="{Binding Unit}"
+                                                               Foreground="{DynamicResource TextMutedBrush}"
+                                                               FontSize="12"
+                                                               VerticalAlignment="Center"
+                                                               HorizontalAlignment="Right"
+                                                               Margin="0,0,8,0"
+                                                               IsHitTestVisible="False"/>
+                                                </Grid>
+                                            </Border>
                                             <TextBox Grid.Column="2"
                                                      Text="{Binding PinsValue, UpdateSourceTrigger=PropertyChanged}"
                                                      Padding="6,4"
                                                      ToolTip="Номера выводов"
-                                                     Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"/>
+                                                     Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"
+                                                     behaviors:TextBoxNavigation.EnterAndArrowsMoveFocus="True"/>
                                         </Grid>
 
                                         <!-- Optional second-value row, e.g. Form 64's second supply voltage -->
@@ -318,10 +403,12 @@
                                                                Foreground="{DynamicResource TextMutedBrush}"/>
                                                     <TextBox Grid.Column="1"
                                                              Text="{Binding OptionalValue, UpdateSourceTrigger=PropertyChanged}"
-                                                             Padding="6,4" Margin="0,0,8,0"/>
+                                                             Padding="6,4" Margin="0,0,8,0"
+                                                             behaviors:TextBoxNavigation.EnterAndArrowsMoveFocus="True"/>
                                                     <TextBox Grid.Column="2"
                                                              Text="{Binding OptionalPinsValue, UpdateSourceTrigger=PropertyChanged}"
                                                              Padding="6,4"
+                                                             behaviors:TextBoxNavigation.EnterAndArrowsMoveFocus="True"
                                                              ToolTip="Номера выводов"
                                                              Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"/>
                                                     <Button Grid.Column="3"

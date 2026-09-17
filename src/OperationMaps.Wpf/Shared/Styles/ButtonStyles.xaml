@@ -22,8 +22,22 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Button">
+          <!--
+            BorderThickness is reserved at 1px ALL the time (transparent
+            when not focused) rather than growing 0->N only on focus. A v1
+            that toggled thickness on IsKeyboardFocused made Save's own
+            text overflow/clip the moment it got focus — the fixed-Height
+            button's content area shrank by the border's thickness right
+            as it appeared, since nothing was reserving that space
+            beforehand. Keeping the size constant and only swapping the
+            border's color avoids that class of bug entirely. 1px (not 2)
+            because these buttons are short (28px) enough that 2px eats
+            into the text's own vertical room.
+          -->
           <Border x:Name="Bd"
                   Background="{TemplateBinding Background}"
+                  BorderThickness="1"
+                  BorderBrush="Transparent"
                   CornerRadius="4"
                   Padding="{TemplateBinding Padding}">
             <ContentPresenter HorizontalAlignment="Center"
@@ -41,6 +55,15 @@
               <Setter TargetName="Bd"
                   Property="Background"
                       Value="{DynamicResource BgActiveBrush}"/>
+            </Trigger>
+            <!-- FocusVisualStyle is disabled (no dotted rectangle) — this
+                 border is the ONLY indicator a keyboard user gets of which
+                 button Tab landed on/Enter would activate. -->
+            <Trigger Property="IsKeyboardFocused"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="BorderBrush"
+                      Value="{DynamicResource BorderFocusBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled"
                 Value="False">
@@ -86,6 +109,12 @@
                   Property="Background"
                       Value="{DynamicResource BgActiveBrush}"/>
             </Trigger>
+            <Trigger Property="IsKeyboardFocused"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="BorderBrush"
+                      Value="{DynamicResource BorderFocusBrush}"/>
+            </Trigger>
             <Trigger Property="IsEnabled"
                 Value="False">
               <Setter Property="Opacity"
@@ -119,8 +148,12 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="Button">
+          <!-- Same fixed-thickness/color-only-on-focus approach as
+               GhostButton/OutlineButton — see the comment there. -->
           <Border x:Name="Bd"
                   Background="{TemplateBinding Background}"
+                  BorderThickness="1"
+                  BorderBrush="Transparent"
                   CornerRadius="4"
                   Padding="{TemplateBinding Padding}">
             <ContentPresenter HorizontalAlignment="Center"
@@ -132,6 +165,12 @@
               <Setter TargetName="Bd"
                   Property="Background"
                       Value="{DynamicResource AccentHoverBrush}"/>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="BorderBrush"
+                      Value="{DynamicResource TextPrimaryBrush}"/>
             </Trigger>
             <Trigger Property="IsEnabled"
                 Value="False">
@@ -148,8 +187,12 @@
   <Style x:Key="IconButton"
       TargetType="Button"
       BasedOn="{StaticResource GhostButton}">
+    <!-- Padding trimmed from 4 to 3: GhostButton's template now permanently
+         reserves a 1px border (see its Template comment) instead of only
+         on focus, and this button's fixed 20x20 size has no slack to
+         absorb that without shrinking the icon's own room otherwise. -->
     <Setter Property="Padding"
-        Value="4"/>
+        Value="3"/>
     <Setter Property="Height"
         Value="20"/>
     <Setter Property="Width"

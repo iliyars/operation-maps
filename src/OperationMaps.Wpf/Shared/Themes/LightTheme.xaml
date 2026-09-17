@@ -49,7 +49,10 @@
 
   <!-- ── Status ────────────────────────────────────────────────────── -->
   <Color x:Key="StatusSuccessColor">#388A34</Color>
-  <Color x:Key="StatusWarningColor">#B8891C</Color>
+  <!-- Darkened from #B8891C: that gave ~3.17:1 contrast on white, which
+       fails WCAG AA (4.5:1) for the small (11-12px) text it's used for.
+       #946200 measures ~5.25:1. -->
+  <Color x:Key="StatusWarningColor">#946200</Color>
   <Color x:Key="StatusErrorColor">#E51400</Color>
   <Color x:Key="StatusRequiredColor">#E51400</Color>
 

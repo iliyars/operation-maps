@@ -1,0 +1,65 @@
+<UserControl x:Class="OperationMaps.Wpf.Shared.Controls.CustomTitleBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+             x:Name="Root"
+             Height="32">
+    <!--
+        Placed as ordinary window CONTENT (the first row of a window's own
+        Grid) rather than inside a Window's own ControlTemplate — see
+        WindowStyles.xaml for why: DynamicResource inside a Window template
+        didn't track theme switches, while the same brushes used as regular
+        content (like this) do, the same way every other themed control in
+        the app already does.
+    -->
+    <Border Background="{DynamicResource SidebarBgBrush}"
+            BorderBrush="{DynamicResource BorderDefaultBrush}"
+            BorderThickness="0,0,0,1">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- App icon + title — the rest of this row's empty space is
+                 the drag region, handled natively via WindowChrome
+                 (CaptionHeight set on the containing Window's style). -->
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center">
+                <TextBlock Text="&#xE9D9;"
+                           FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                           FontSize="13"
+                           Foreground="{DynamicResource SidebarAccentBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
+                           FontSize="12"
+                           Margin="8,0,0,0"
+                           Foreground="{DynamicResource SidebarTextBrush}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Caption buttons -->
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        wshell:WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="PART_MinimizeButton"
+                        Style="{DynamicResource CaptionButton}"
+                        Content="&#xE921;"
+                        ToolTip="Свернуть"
+                        Click="OnMinimizeClick"/>
+                <Button x:Name="PART_MaximizeRestoreButton"
+                        Style="{DynamicResource CaptionButton}"
+                        Content="&#xE922;"
+                        ToolTip="Развернуть"
+                        Click="OnMaximizeRestoreClick"/>
+                <Button x:Name="PART_CloseButton"
+                        Style="{DynamicResource CaptionCloseButton}"
+                        Content="&#xE8BB;"
+                        ToolTip="Закрыть"
+                        Click="OnCloseClick"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

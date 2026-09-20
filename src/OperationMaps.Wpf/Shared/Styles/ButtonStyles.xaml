@@ -198,4 +198,96 @@
     <Setter Property="Width"
         Value="20"/>
   </Style>
+
+  <!-- ── Title bar caption buttons (minimize/maximize/close) ─────────────── -->
+  <Style x:Key="CaptionButton"
+      TargetType="Button">
+    <Setter Property="Background"
+        Value="Transparent"/>
+    <Setter Property="BorderThickness"
+        Value="0"/>
+    <Setter Property="Foreground"
+        Value="{DynamicResource SidebarTextBrush}"/>
+    <Setter Property="FontFamily"
+        Value="Segoe Fluent Icons, Segoe MDL2 Assets"/>
+    <Setter Property="FontSize"
+        Value="10"/>
+    <Setter Property="Width"
+        Value="46"/>
+    <Setter Property="Height"
+        Value="32"/>
+    <Setter Property="Cursor"
+        Value="Arrow"/>
+    <Setter Property="FocusVisualStyle"
+        Value="{x:Null}"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Bd"
+                  Background="{TemplateBinding Background}">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <!-- A theme-matched hover brush (BgHoverBrush) is nearly
+                 invisible here — it was calibrated for contrast against
+                 BgPanel/BgApp, not against this button's SidebarBg parent,
+                 and the two are very close in both themes. A semi-
+                 transparent gray overlay reads clearly against light OR
+                 dark backgrounds without needing its own theme tokens —
+                 the same technique native Windows 11 caption buttons use. -->
+            <Trigger Property="IsMouseOver"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="Background"
+                      Value="#33808080"/>
+            </Trigger>
+            <Trigger Property="IsPressed"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="Background"
+                      Value="#4D808080"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+  <!-- Close button: same shape, but hovers Windows' universal "danger" red
+       instead of the neutral hover — the one caption button convention
+       every Windows user already knows, in light and dark theme alike. -->
+  <Style x:Key="CaptionCloseButton"
+      TargetType="Button"
+      BasedOn="{StaticResource CaptionButton}">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="Button">
+          <Border x:Name="Bd"
+                  Background="{TemplateBinding Background}">
+            <ContentPresenter HorizontalAlignment="Center"
+                              VerticalAlignment="Center"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="Background"
+                      Value="#E81123"/>
+              <Setter Property="Foreground"
+                  Value="White"/>
+            </Trigger>
+            <Trigger Property="IsPressed"
+                Value="True">
+              <Setter TargetName="Bd"
+                  Property="Background"
+                      Value="#F1707A"/>
+              <Setter Property="Foreground"
+                  Value="White"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 </ResourceDictionary>

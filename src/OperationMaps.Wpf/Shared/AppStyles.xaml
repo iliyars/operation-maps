@@ -1,5 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
   <!-- Theme (switched at runtime by ThemeManager) -->
     <ResourceDictionary.MergedDictionaries>
 
@@ -12,6 +13,37 @@
         <ResourceDictionary Source="Styles/ButtonStyles.xaml"/>
         <ResourceDictionary Source="Styles/InputStyles.xaml"/>
         <ResourceDictionary Source="Styles/ListStyles.xaml"/>
+        <ResourceDictionary Source="Styles/MenuStyles.xaml"/>
 
     </ResourceDictionary.MergedDictionaries>
+
+    <!--
+      Shared by every custom-chrome window (see CustomTitleBar.xaml). Kept
+      as a plain resource, NOT as an implicit Window Style setter: setting
+      WindowStyle via a Style didn't reliably take effect before the native
+      title bar had already been created — each Window sets
+      WindowStyle="None" as a direct local attribute instead (can't be
+      shared the same way an object resource can), but WindowChrome CAN be
+      shared safely since it doesn't have that early-binding problem.
+    -->
+    <!-- x:Shared="False": WindowChrome hooks into ONE specific window's
+         message loop internally — every window needs its OWN instance,
+         never the same shared object (multiple windows can be open at
+         once, e.g. a dialog over the main window). -->
+    <!-- GlassFrameThickness="-1" (extend "glass" over the whole window,
+         not "0" for none) — needed to keep DWM treating this as a normal
+         composited window: with it at 0, Windows 11's automatic rounded
+         corners and the native minimize/maximize/restore zoom animation
+         both silently stop happening. CornerRadius stays 0 (WPF's own
+         corner-drawing, unrelated to DWM's) — actual Win11 corner
+         rounding is requested separately via DWMWA_WINDOW_CORNER_PREFERENCE
+         in WindowChromeFixes, since GlassFrameThickness alone isn't
+         guaranteed to bring it back on every Windows build. -->
+    <wshell:WindowChrome x:Key="AppWindowChrome"
+                          x:Shared="False"
+                          CaptionHeight="32"
+                          ResizeBorderThickness="6"
+                          GlassFrameThickness="-1"
+                          CornerRadius="0"
+                          UseAeroCaptionButtons="False"/>
 </ResourceDictionary>

@@ -1,29 +1,87 @@
-﻿<Window x:Class="OperationMaps.Wpf.Main.MainWindow"
+<Window x:Class="OperationMaps.Wpf.Main.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:shell="clr-namespace:OperationMaps.Wpf.Shell"
         xmlns:local="clr-namespace:OperationMaps.Wpf.Main"
+        xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
+        xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         Title="{Binding Title}"
         Height="700"
         Width="1100"
         MinHeight="600"
         MinWidth="1360"
-        WindowStartupLocation="CenterScreen">
-  <!--
-        ShellViewModel is exposed by MainViewModel.Shell.
-        ShellView is resolved automatically via DataTemplate registered
-        by ViewTemplateRegistrar — but ShellView is not a ScreenViewModel,
-        so we bind it explicitly here.
-    -->
-  <ContentControl Content="{Binding Shell}">
-    <ContentControl.Resources>
-      <DataTemplate DataType="{x:Type shell:ShellViewModel}">
-        <shell:ShellView/>
-      </DataTemplate>
-    </ContentControl.Resources>
-  </ContentControl>
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
+    <!-- WindowStyle has to be a direct local attribute (see AppStyles.xaml's
+         AppWindowChrome comment) — setting it via a Style didn't reliably
+         take effect before the native title bar was already created,
+         leaving BOTH the native chrome AND CustomTitleBar visible at once.
+         CustomTitleBar itself is ordinary content (not inside a Window
+         template) — that's the combination confirmed to actually re-theme
+         live. -->
+    <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
+            BorderThickness="1"
+            Background="{DynamicResource BgAppBrush}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- title bar -->
+                <RowDefinition Height="Auto"/>
+                <!-- menu bar  -->
+                <RowDefinition Height="*"/>
+                <!-- shell     -->
+            </Grid.RowDefinitions>
+
+            <controls:CustomTitleBar Grid.Row="0"/>
+
+            <!-- ══════════════════ Menu bar ══════════════════ -->
+            <Menu Grid.Row="1"
+                  DataContext="{Binding Shell}">
+                <MenuItem Header="Файл">
+                    <MenuItem Header="Начало работы"
+                              Command="{Binding GoToWelcomeCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Сохранить итоговый документ"
+                              Command="{Binding ExportReportCommand}"/>
+                    <Separator/>
+                    <MenuItem Header="Выход"
+                              Command="{Binding ExitCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Правка">
+                    <MenuItem Header="Отменить"
+                              Command="{Binding ActiveUndoCommand}"/>
+                    <MenuItem Header="Повторить"
+                              Command="{Binding ActiveRedoCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Вид">
+                    <MenuItem Header="{Binding ThemeLabel}"
+                              Command="{Binding ToggleThemeCommand}"/>
+                </MenuItem>
+                <MenuItem Header="Справка">
+                    <MenuItem Header="О программе"
+                              Command="{Binding ShowAboutCommand}"/>
+                </MenuItem>
+            </Menu>
+
+            <!--
+                  ShellViewModel is exposed by MainViewModel.Shell.
+                  ShellView is resolved automatically via DataTemplate registered
+                  by ViewTemplateRegistrar — but ShellView is not a ScreenViewModel,
+                  so we bind it explicitly here.
+            -->
+            <ContentControl Grid.Row="2"
+                            Content="{Binding Shell}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type shell:ShellViewModel}">
+                        <shell:ShellView/>
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+        </Grid>
+    </Border>
 
 </Window>

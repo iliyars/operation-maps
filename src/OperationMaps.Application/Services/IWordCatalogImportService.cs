@@ -56,12 +56,14 @@ public sealed class WordImportedComponent
 
   public IReadOnlyList<string> Warnings { get; init; } = [];
 
-  // ── Payload for ImportAsync — keyed by FormParameter.RowNumber. Not for
-  //    display; consumed by IWordCatalogImportService.ImportAsync only. ──
+  // ── Payload for ImportAsync — keyed by FormParameter.RowNumber. Not
+  //    meant for display as-is (no parameter name/unit attached), but
+  //    mutable so the review screen can let the user correct a value read
+  //    from the document before it's persisted. ──
 
-  public IReadOnlyDictionary<int, string> Form4NtdValuesByRow { get; init; } = new Dictionary<int, string>();
-  public IReadOnlyDictionary<int, string> OwnFormNtdValuesByRow { get; init; } = new Dictionary<int, string>();
-  public IReadOnlyDictionary<int, string> OwnFormPinValuesByRow { get; init; } = new Dictionary<int, string>();
+  public Dictionary<int, string> Form4NtdValuesByRow { get; init; } = new();
+  public Dictionary<int, string> OwnFormNtdValuesByRow { get; init; } = new();
+  public Dictionary<int, string> OwnFormPinValuesByRow { get; init; } = new();
 }
 
 public sealed class WordImportScanResult

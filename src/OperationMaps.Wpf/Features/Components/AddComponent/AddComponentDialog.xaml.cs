@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using OperationMaps.Wpf.Shared.Controls;
 
 namespace OperationMaps.Wpf.Features.Components.AddComponent
 {
@@ -7,6 +8,7 @@ namespace OperationMaps.Wpf.Features.Components.AddComponent
         public AddComponentDialog(AddComponentDialogViewModel viewModel)
         {
             InitializeComponent();
+            WindowChromeFixes.Apply(this);
             DataContext = viewModel;
 
             viewModel.PropertyChanged += (_, e) =>

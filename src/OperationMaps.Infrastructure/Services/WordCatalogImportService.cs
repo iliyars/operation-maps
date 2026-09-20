@@ -63,6 +63,16 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     var unsupported = new List<string>();
     var resolved = new List<WordImportedComponent>();
 
+    // The same full designation legitimately appears in several own-form
+    // slots — e.g. positions C1 and C2 use the identical capacitor value,
+    // each tracked as its own slot so their "в схеме" values can differ —
+    // but "по НТД" (the reference values this feature actually reads) is
+    // the SAME for every slot sharing a designation, and Form4 is written
+    // per-designation, never per-slot. Keep only the first occurrence of
+    // each FullName across the whole document instead of proposing the
+    // same catalog component several times.
+    var seenFullNames = new HashSet<string>(StringComparer.Ordinal);
+
     foreach (var formNumber in formNumbersInDoc)
     {
       // Form 4 itself and the cover/TOC/changelog pages aren't own-forms.
@@ -77,7 +87,10 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       var formData = WordFormReader.Read(formNumber, documentPath, map!);
 
       foreach (var slot in formData.Components)
+      {
+        if (!seenFullNames.Add(slot.Name)) continue;
         resolved.Add(await ResolveComponentAsync(slot, form, form4Data, typesByName, ct));
+      }
     }
 
     return new WordImportScanResult
@@ -247,9 +260,9 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       AlreadyInCatalog = alreadyExists,
       Form4DataFound = form4Match is not null,
       Warnings = warnings,
-      Form4NtdValuesByRow = form4Match?.NtdValues ?? new Dictionary<int, string>(),
-      OwnFormNtdValuesByRow = slot.NtdValues,
-      OwnFormPinValuesByRow = slot.PinValues,
+      Form4NtdValuesByRow = form4Match is null ? [] : new Dictionary<int, string>(form4Match.NtdValues),
+      OwnFormNtdValuesByRow = new Dictionary<int, string>(slot.NtdValues),
+      OwnFormPinValuesByRow = new Dictionary<int, string>(slot.PinValues),
     };
   }
 

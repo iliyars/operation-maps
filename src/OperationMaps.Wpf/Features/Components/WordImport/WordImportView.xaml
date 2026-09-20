@@ -1,0 +1,362 @@
+<UserControl x:Class="OperationMaps.Wpf.Features.Components.WordImport.WordImportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Components.WordImport"
+             xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
+             Background="{DynamicResource BgAppBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- heading   -->
+            <RowDefinition Height="Auto"/>
+            <!-- warnings  -->
+            <RowDefinition Height="*"/>
+            <!-- list+detail -->
+            <RowDefinition Height="Auto"/>
+            <!-- footer    -->
+        </Grid.RowDefinitions>
+
+        <!-- Heading -->
+        <Grid Grid.Row="0"
+              Margin="16,14,16,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Content="&#xE72B;"
+                    FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                    Style="{StaticResource IconButton}"
+                    ToolTip="Назад"
+                    Margin="0,0,10,0"
+                    Command="{Binding GoBackCommand}"/>
+
+            <StackPanel Grid.Column="1"
+                        VerticalAlignment="Center">
+                <TextBlock Text="Импорт из Word"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding DocumentFileName}"
+                           FontSize="12"
+                           Margin="0,2,0,0"
+                           TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Unsupported forms warning -->
+        <Border Grid.Row="1"
+                Margin="16,0,16,8"
+                Padding="10,7"
+                CornerRadius="4"
+                Background="{DynamicResource StatusWarningBgBrush}"
+                Visibility="{Binding HasUnsupportedForms, Converter={StaticResource BoolToVis}}">
+            <TextBlock TextWrapping="Wrap"
+                    FontSize="12"
+                    Foreground="{DynamicResource StatusWarningBrush}">
+                <Run Text="Не поддерживаются (пропущены): Форма"/>
+                <Run Text="{Binding UnsupportedFormsDisplay, Mode=OneWay, StringFormat=' {0}'}"/>
+            </TextBlock>
+        </Border>
+
+        <!-- Loading / error -->
+        <StackPanel Grid.Row="2"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="Чтение документа..."
+                    Foreground="{DynamicResource TextSecondaryBrush}"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2"
+                Text="{Binding ErrorMessage}"
+                Margin="20"
+                TextWrapping="Wrap"
+                Foreground="{DynamicResource StatusErrorBrush}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVis}}"/>
+
+        <!-- List + detail -->
+        <Grid Grid.Row="2"
+              Margin="16,0,16,8"
+              Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Master list -->
+            <ListBox Grid.Column="0"
+                     ItemsSource="{Binding Rows}"
+                     SelectedItem="{Binding SelectedRow}"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     Padding="0,0,8,0">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding"
+                                Value="0"/>
+                        <Setter Property="Margin"
+                                Value="0,0,0,6"/>
+                        <Setter Property="HorizontalContentAlignment"
+                                Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Bd"
+                                            Background="{DynamicResource BgPanelBrush}"
+                                            BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            Padding="10,8">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected"
+                                                Value="True">
+                                            <Setter TargetName="Bd"
+                                                    Property="BorderBrush"
+                                                    Value="{DynamicResource AccentBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver"
+                                                Value="True">
+                                            <Setter TargetName="Bd"
+                                                    Property="Background"
+                                                    Value="{DynamicResource BgHoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:WordImportRowVm}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <CheckBox Grid.Column="0"
+                                    VerticalAlignment="Top"
+                                    Margin="0,2,8,0"
+                                    IsChecked="{Binding IsSelected}"
+                                    IsEnabled="{Binding CanToggleSelection}"/>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding FullName}"
+                                        FontWeight="SemiBold"
+                                        FontSize="13"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding OwnFormLabel}"
+                                        FontSize="11"
+                                        Margin="0,2,0,0"
+                                        TextTrimming="CharacterEllipsis"
+                                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <Border Margin="0,4,0,0"
+                                        Padding="6,2"
+                                        CornerRadius="4"
+                                        Background="{DynamicResource BgHoverBrush}"
+                                        HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding StatusText}"
+                                            FontSize="10"
+                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- Divider -->
+            <Border Grid.Column="1"
+                    Background="{DynamicResource BorderDefaultBrush}"/>
+
+            <!-- Detail panel -->
+            <ScrollViewer Grid.Column="2"
+                          Padding="16,0,0,0"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel DataContext="{Binding SelectedRow}"
+                            Visibility="{Binding Converter={StaticResource NullToVis}}">
+                    <TextBlock Text="{Binding FullName}"
+                            FontSize="15"
+                            FontWeight="SemiBold"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{Binding OwnFormLabel}"
+                            FontSize="12"
+                            Margin="0,2,0,0"
+                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                    <ItemsControl ItemsSource="{Binding Warnings}"
+                            Margin="0,8,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
+                                        FontSize="12"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource StatusWarningBrush}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="{Binding ImportError}"
+                            FontSize="12"
+                            Margin="0,8,0,0"
+                            TextWrapping="Wrap"
+                            Foreground="{DynamicResource StatusErrorBrush}"
+                            Visibility="{Binding ImportError, Converter={StaticResource NullToVis}}"/>
+
+                    <!-- Type + Family -->
+                    <Grid Margin="0,16,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="16"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Тип компонента"
+                                    FontSize="11"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding TypeText}"
+                                    Margin="0,4,0,0"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource TextPrimaryBrush}"
+                                    Visibility="{Binding IsTypeResolved, Converter={StaticResource BoolToVis}}"/>
+                            <controls:AutoCompleteComboBox Margin="0,4,0,0"
+                                    Height="30"
+                                    ItemsSource="{Binding DataContext.ComponentTypeOptions,
+                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    Text="{Binding TypeText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    DisplayMemberPath="Name"
+                                    Visibility="{Binding ShowTypeEditor, Converter={StaticResource BoolToVis}}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Семейство"
+                                    FontSize="11"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding FamilyDisplay}"
+                                    Margin="0,4,0,0"
+                                    FontSize="13"
+                                    Height="30"
+                                    VerticalAlignment="Center"
+                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Form 4 summary (read-only) -->
+                    <StackPanel Margin="0,16,0,0"
+                            Visibility="{Binding DataContext.HasForm4Summary,
+                                                 RelativeSource={RelativeSource AncestorType=UserControl},
+                                                 Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="Форма 4 (справочно)"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <ItemsControl ItemsSource="{Binding DataContext.SelectedForm4Summary,
+                                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                Margin="0,4,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:Form4SummaryRowVm}">
+                                    <Grid Margin="0,2,0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                Text="{Binding DisplayName}"
+                                                FontSize="12"
+                                                TextWrapping="Wrap"
+                                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        <TextBlock Grid.Column="1"
+                                                Text="{Binding Value}"
+                                                FontSize="12"
+                                                Margin="12,0,0,0"
+                                                Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Own-form parameters (editable) -->
+                    <TextBlock Text="Параметры по НТД"
+                            Margin="0,16,0,0"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <ItemsControl ItemsSource="{Binding DataContext.SelectedParameters,
+                                                        RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Margin="0,6,0,20">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:WordImportParameterRowVm}">
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition Width="12"/>
+                                        <ColumnDefinition Width="120"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                            Text="{Binding DisplayName}"
+                                            FontSize="12"
+                                            TextWrapping="Wrap"
+                                            VerticalAlignment="Center"
+                                            Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                                    <TextBox Grid.Column="2"
+                                            Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                            Height="30"
+                                            Padding="8,0"
+                                            VerticalContentAlignment="Center"/>
+
+                                    <TextBox Grid.Column="4"
+                                            Text="{Binding PinsValue, UpdateSourceTrigger=PropertyChanged}"
+                                            Height="30"
+                                            Padding="8,0"
+                                            VerticalContentAlignment="Center"
+                                            ToolTip="Номера выводов"
+                                            Visibility="{Binding ShowPins, Converter={StaticResource BoolToVis}}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="3"
+                Background="{DynamicResource BgPanelBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                        Text="{Binding ResultSummary}"
+                        VerticalAlignment="Center"
+                        TextWrapping="Wrap"
+                        Foreground="{DynamicResource TextSecondaryBrush}"/>
+
+                <Button Grid.Column="1"
+                        Content="Импортировать выбранные"
+                        Style="{StaticResource PrimaryButton}"
+                        Command="{Binding ImportSelectedCommand}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

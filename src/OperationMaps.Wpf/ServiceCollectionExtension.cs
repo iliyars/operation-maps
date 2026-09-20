@@ -16,6 +16,7 @@ using OperationMaps.Wpf.Features.Welcome;
 using OperationMaps.Wpf.Stores;
 using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm;
+using OperationMaps.Wpf.Features.Components.WordImport;
 
 namespace OperationMaps.Wpf
 {
@@ -46,6 +47,7 @@ namespace OperationMaps.Wpf
       services.AddTransient<Form4ViewModel>();
       services.AddTransient<OwnFormViewModel>();
       services.AddTransient<UnresolvedViewModel>();
+      services.AddTransient<WordImportViewModel>();
 
       return services;
     }

@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using OperationMaps.Wpf.Shared.Controls;
 
 namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
 {
@@ -24,6 +25,7 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
     public SplitDialog(IReadOnlyList<string> positions)
     {
       InitializeComponent();
+      WindowChromeFixes.Apply(this);
       DataContext = new SplitDialogViewModel(positions);
 
       // Source list drop — move back to unassigned

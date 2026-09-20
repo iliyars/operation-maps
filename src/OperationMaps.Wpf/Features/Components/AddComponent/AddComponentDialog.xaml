@@ -4,22 +4,29 @@
         xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Components.AddComponent"
         xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
         xmlns:behaviors="clr-namespace:OperationMaps.Wpf.Shared.Behaviors"
+        xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="Ввод данных компонента"
         Width="680"
         Height="680"
         MinWidth="600"
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource BgAppBrush}">
+        Background="{DynamicResource BgAppBrush}"
+        WindowStyle="None"
+        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- title bar -->
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <controls:CustomTitleBar Grid.Row="0"/>
+
         <!-- Header -->
-        <Border Grid.Row="0"
+        <Border Grid.Row="1"
                 Background="{DynamicResource BgPanelBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}"
                 BorderThickness="0,0,0,1"
@@ -127,7 +134,7 @@
         </Border>
 
         <!-- Loading -->
-        <StackPanel Grid.Row="1"
+        <StackPanel Grid.Row="2"
                     VerticalAlignment="Center"
                 HorizontalAlignment="Center"
                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}">
@@ -137,7 +144,7 @@
         </StackPanel>
 
         <!-- Body -->
-        <Grid Grid.Row="1"
+        <Grid Grid.Row="2"
                 Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
 
             <!-- Step 1: Family + Form 4 -->
@@ -433,7 +440,7 @@
         </Grid>
 
         <!-- Footer -->
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Background="{DynamicResource BgPanelBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}"
                 BorderThickness="0,1,0,0"

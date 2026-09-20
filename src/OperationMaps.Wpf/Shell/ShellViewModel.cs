@@ -1,4 +1,6 @@
 ﻿using System.Collections.ObjectModel;
+using System.Windows;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OperationMaps.Application.Importing;
@@ -68,7 +70,19 @@ namespace OperationMaps.Wpf.Shell
             ? activeFormId.HasValue && item.FormId == activeFormId
             : item.ScreenType == e.CurrentScreen?.GetType();
       }
+
+      OnPropertyChanged(nameof(ActiveUndoCommand));
+      OnPropertyChanged(nameof(ActiveRedoCommand));
     }
+
+    // ── Edit menu — delegates to whatever the active screen exposes; Undo/Redo
+    //    history is scoped per-OwnFormViewModel (editing Form67 shouldn't let
+    //    you undo something done in Form68), so there's no single global
+    //    stack to bind to. Null when the active screen isn't an own-form,
+    //    which WPF's Command binding renders as disabled. ─────────────────────
+
+    public ICommand? ActiveUndoCommand => (CurrentScreen as OwnFormViewModel)?.UndoCommand;
+    public ICommand? ActiveRedoCommand => (CurrentScreen as OwnFormViewModel)?.RedoCommand;
 
     // ── Export Report command ─────────────────────────────────────────────────
 
@@ -264,6 +278,26 @@ namespace OperationMaps.Wpf.Shell
 
       return new WordFormData { FormNumber = formNumber };
     }
+
+    // ── Menu bar ──────────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task GoToWelcomeAsync() => await _navigation.NavigateAsync<WelcomeViewModel>();
+
+    [RelayCommand]
+    private void ShowAbout()
+    {
+      var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+      MessageBox.Show(
+          $"OperationMaps{Environment.NewLine}Версия {version}{Environment.NewLine}{Environment.NewLine}" +
+          "Подготовка карт эксплуатации ЭРИ по ГОСТ.",
+          "О программе",
+          MessageBoxButton.OK,
+          MessageBoxImage.Information);
+    }
+
+    [RelayCommand]
+    private void Exit() => System.Windows.Application.Current.Shutdown();
 
     // ── Theme ─────────────────────────────────────────────────────────────────
 

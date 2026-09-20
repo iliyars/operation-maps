@@ -4,6 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OperationMaps.Wpf.Features.OwnForm.SplitDialog"
+        xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
+        xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         mc:Ignorable="d"
         Title="Разбить компонент"
         Width="800"
@@ -12,7 +14,9 @@
         MinHeight="400"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
-        ResizeMode="CanResize">
+        ResizeMode="CanResize"
+        WindowStyle="None"
+        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
   <Window.Resources>
 
     <!-- Drag source style — position pill -->
@@ -53,18 +57,29 @@
 
   </Window.Resources>
 
-  <Grid Margin="16">
+  <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto"/>
-      <!-- header         -->
+      <!-- title bar -->
       <RowDefinition Height="*"/>
-      <!-- lists          -->
-      <RowDefinition Height="Auto"/>
-      <!-- footer buttons -->
+      <!-- content   -->
     </Grid.RowDefinitions>
 
-    <!-- Header -->
-    <StackPanel Grid.Row="0"
+    <controls:CustomTitleBar Grid.Row="0"/>
+
+    <Grid Grid.Row="1"
+          Margin="16">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto"/>
+        <!-- header         -->
+        <RowDefinition Height="*"/>
+        <!-- lists          -->
+        <RowDefinition Height="Auto"/>
+        <!-- footer buttons -->
+      </Grid.RowDefinitions>
+
+      <!-- Header -->
+      <StackPanel Grid.Row="0"
                 Margin="0,0,0,12">
       <TextBlock Text="Распределите позиции по группам"
                  FontSize="14"
@@ -273,7 +288,8 @@
               Foreground="White"
               BorderThickness="0"
               Click="OkButton_Click"/>
-    </StackPanel>
+      </StackPanel>
+    </Grid>
   </Grid>
 </Window>
 

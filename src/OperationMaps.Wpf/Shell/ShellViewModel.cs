@@ -17,6 +17,7 @@ using OperationMaps.Application.Word;
 using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using OperationMaps.Application.Services;
+using OperationMaps.Wpf.Features.Project;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -28,6 +29,8 @@ namespace OperationMaps.Wpf.Shell
     private readonly WordReportBuilder _reportBuilder;
     private readonly WordFormMapLoader _mapLoader;
     private readonly IDialogService _dialogService;
+    private readonly IFilePicker _filePicker;
+    private readonly ProjectFileService _projectFile;
     private readonly IServiceProvider _services;
 
     // One data builder per form of the current project, in report order.
@@ -50,6 +53,8 @@ namespace OperationMaps.Wpf.Shell
         WordReportBuilder reportBuilder,
         WordFormMapLoader mapLoader,
         IDialogService dialogService,
+        IFilePicker filePicker,
+        ProjectFileService projectFile,
         IServiceProvider services)
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
@@ -57,7 +62,18 @@ namespace OperationMaps.Wpf.Shell
       _reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+      _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
+      _projectFile = projectFile ?? throw new ArgumentNullException(nameof(projectFile));
       _services = services ?? throw new ArgumentNullException(nameof(services));
+
+      _store.PropertyChanged += (_, e) =>
+      {
+        if (e.PropertyName == nameof(ProjectStore.HasProject))
+        {
+          SaveProjectCommand.NotifyCanExecuteChanged();
+          SaveProjectAsCommand.NotifyCanExecuteChanged();
+        }
+      };
 
       _navigation.CurrentScreenChanged += OnCurrentScreenChanged;
 
@@ -93,6 +109,86 @@ namespace OperationMaps.Wpf.Shell
 
     public ICommand? ActiveUndoCommand => (CurrentScreen as OwnFormViewModel)?.UndoCommand;
     public ICommand? ActiveRedoCommand => (CurrentScreen as OwnFormViewModel)?.RedoCommand;
+
+    // ── Project file (.omaps) ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Saves to the file the project came from; a project imported from XML
+    /// and never saved goes next to that XML, named after it.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanSaveProject))]
+    private async Task<bool> SaveProjectAsync(CancellationToken ct = default)
+    {
+      var path = _store.ProjectFilePath ?? _projectFile.DefaultSavePath;
+      return path is not null && await SaveProjectToAsync(path, ct);
+    }
+
+    [RelayCommand(CanExecute = nameof(CanSaveProject))]
+    private async Task SaveProjectAsAsync(CancellationToken ct = default)
+    {
+      var path = _filePicker.SaveFile("Сохранить проект как", ProjectFileService.FileFilter);
+      if (path is null) return;
+      await SaveProjectToAsync(path, ct);
+    }
+
+    private bool CanSaveProject => _store.HasProject;
+
+    private async Task<bool> SaveProjectToAsync(string path, CancellationToken ct)
+    {
+      try
+      {
+        await _projectFile.SaveAsync(path, ct);
+        return true;
+      }
+      catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+      {
+        _dialogService.ShowError($"Не удалось сохранить проект:\n{path}\n\n{ex.Message}", "Сохранение");
+        return false;
+      }
+    }
+
+    [RelayCommand]
+    private async Task OpenProjectAsync(CancellationToken ct = default)
+    {
+      if (!await ConfirmCloseProjectAsync()) return;
+
+      var path = await _filePicker.PickAsync("Открыть проект", ProjectFileService.FileFilter);
+      if (path is null) return;
+
+      ProjectMatchResult matchResult;
+      try
+      {
+        matchResult = await _projectFile.OpenAsync(path, ct);
+      }
+      catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+      {
+        _dialogService.ShowError($"Не удалось открыть проект:\n{path}\n\n{ex.Message}", "Открытие проекта");
+        return;
+      }
+
+      OnProjectLoaded(_store.ProjectName!, matchResult);
+      await _navigation.NavigateAsync<ComponentsViewModel>(parameter: matchResult, addToHistory: false, ct);
+    }
+
+    /// <summary>
+    /// Before the current project is replaced or the app closes: if there are
+    /// unsaved edits, asks whether to save them. False means "stay" — the
+    /// user cancelled, or chose to save and saving failed.
+    /// </summary>
+    public async Task<bool> ConfirmCloseProjectAsync()
+    {
+      if (!_store.HasProject || !_store.IsDirty) return true;
+
+      var answer = _dialogService.AskYesNoCancel(
+          $"Сохранить изменения в проекте «{_store.ProjectName}»?", "Несохранённые изменения");
+
+      return answer switch
+      {
+        true => await SaveProjectAsync(),
+        false => true,
+        null => false,
+      };
+    }
 
     // ── Export Report command ─────────────────────────────────────────────────
 
@@ -240,11 +336,11 @@ namespace OperationMaps.Wpf.Shell
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Сохранить .omaps",
+        Label = "Сохранить проект",
         Icon = "\uE74E",
         IsVisible = false,
         ScreenType = null,
-        Command = new AsyncRelayCommand(() => Task.CompletedTask),
+        Command = SaveProjectCommand,
       });
 
       NavItems.Add(new NavItemViewModel
@@ -285,7 +381,7 @@ namespace OperationMaps.Wpf.Shell
           case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;
-          case null when item.Label is "Сохранить .omaps" or "Итоговый документ":
+          case null when item.Label is "Сохранить проект" or "Итоговый документ":
             item.IsVisible = true;
             break;
         }
@@ -379,7 +475,7 @@ namespace OperationMaps.Wpf.Shell
     }
 
     [RelayCommand]
-    private void Exit() => System.Windows.Application.Current.Shutdown();
+    private void Exit() => System.Windows.Application.Current.MainWindow?.Close(); // Close, not Shutdown: lets MainWindow ask about unsaved changes
 
     // ── Theme ─────────────────────────────────────────────────────────────────
 

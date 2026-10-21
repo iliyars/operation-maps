@@ -19,5 +19,15 @@ namespace OperationMaps.Wpf.Services
     {
       MessageBox.Show(message, title ?? "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
     }
+
+    public bool? AskYesNoCancel(string message, string? title = null)
+    {
+      return MessageBox.Show(message, title ?? "OperationMaps", MessageBoxButton.YesNoCancel, MessageBoxImage.Question) switch
+      {
+        MessageBoxResult.Yes => true,
+        MessageBoxResult.No => false,
+        _ => null,
+      };
+    }
   }
 }

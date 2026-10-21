@@ -212,6 +212,10 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       foreach (var ntdParam in form4Group.NtdValues)
         ntdParam.RecalculateGroupOrders = form4Group.RecalculateNoteOrders;
 
+      // Notes restored from a saved project were added before this group
+      // existed, so their * / ** numbering is only per-row until now.
+      form4Group.RecalculateNoteOrders();
+
       groups.Add(form4Group);
     }
 

@@ -184,23 +184,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private void ConfirmAddNote()
     {
       if (string.IsNullOrWhiteSpace(PendingNoteText)) return;
-      var note = new OwnFormNoteVm
-      {
-        FormParameterId = FormParameterId,
-        NoteText = PendingNoteText,
-        Order = 1,
-      };
-      note.DeleteRequested += OnNoteDeleteRequested;
-      Notes.Add(note);
-      _column.RecalculateNoteOrders();
+      _column.AddNote(FormParameterId, PendingNoteText);
       PendingNoteText = "";
       IsAddingNote = false;
-    }
-
-    private void OnNoteDeleteRequested(OwnFormNoteVm note)
-    {
-      Notes.Remove(note);
-      _column.RecalculateNoteOrders();
     }
   }
 }

@@ -51,6 +51,18 @@ namespace OperationMaps.Wpf.Features.Components
     [ObservableProperty] private bool _isLoadingNtd;
     [ObservableProperty] private bool _ntdLoaded;
 
+    /// <summary>
+    /// Raised when the user adds/removes a Form 4 note on one of this
+    /// component's NTD rows — drives the project's "unsaved changes" flag.
+    /// </summary>
+    public event Action? Edited;
+
+    partial void OnNtdValuesChanged(IReadOnlyList<NtdParameterVm> value)
+    {
+      foreach (var row in value)
+        row.Notes.CollectionChanged += (_, _) => Edited?.Invoke();
+    }
+
     // ── Constructor ───────────────────────────────────────────────────────────
 
     public ProjectComponentVm(ComponentMatchEntry entry)

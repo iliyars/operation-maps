@@ -15,7 +15,13 @@
         MinWidth="1360"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
-        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
+        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}"
+        Closing="Window_Closing">
+    <Window.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{Binding Shell.SaveProjectCommand}"/>
+        <KeyBinding Key="S" Modifiers="Control+Shift" Command="{Binding Shell.SaveProjectAsCommand}"/>
+        <KeyBinding Key="O" Modifiers="Control" Command="{Binding Shell.OpenProjectCommand}"/>
+    </Window.InputBindings>
     <!-- WindowStyle has to be a direct local attribute (see AppStyles.xaml's
          AppWindowChrome comment) — setting it via a Style didn't reliably
          take effect before the native title bar was already created,
@@ -44,6 +50,15 @@
                 <MenuItem Header="Файл">
                     <MenuItem Header="Начало работы"
                               Command="{Binding GoToWelcomeCommand}"/>
+                    <MenuItem Header="Открыть проект…"
+                              InputGestureText="Ctrl+O"
+                              Command="{Binding OpenProjectCommand}"/>
+                    <MenuItem Header="Сохранить проект"
+                              InputGestureText="Ctrl+S"
+                              Command="{Binding SaveProjectCommand}"/>
+                    <MenuItem Header="Сохранить проект как…"
+                              InputGestureText="Ctrl+Shift+S"
+                              Command="{Binding SaveProjectAsCommand}"/>
                     <Separator/>
                     <MenuItem Header="Сохранить итоговый документ"
                               Command="{Binding ExportReportCommand}"/>

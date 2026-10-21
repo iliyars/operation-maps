@@ -13,7 +13,6 @@ using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Components.WordImport;
 using OperationMaps.Wpf.Shell;
 using OperationMaps.Wpf.Stores;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace OperationMaps.Wpf.Features.Welcome
 {
@@ -52,6 +51,8 @@ namespace OperationMaps.Wpf.Features.Welcome
         filter: "Pe3 XML файлы (*.xml)|*.xml|Все файлы (*.*)|*.*");
 
       if (path is null) return;
+
+      if (!await _shell.ConfirmCloseProjectAsync()) return;
 
       if (!_importer.CanImport(path))
       {
@@ -95,6 +96,10 @@ namespace OperationMaps.Wpf.Features.Welcome
             addToHistory: false,
             cancellationToken);
     }
+
+    [RelayCommand]
+    private Task OpenProjectAsync()
+        => _shell.OpenProjectCommand.ExecuteAsync(null);
 
     /// <summary>
     /// Opens the "Импорт из Word" flow: picks a filled work-order document

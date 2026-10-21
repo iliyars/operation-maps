@@ -51,7 +51,17 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public event Action<FormColumnVm>? LoadFactorInputsChanged;
 
     partial void OnLoadFactorBaseParameterIdChanged(int? value)
-        => LoadFactorInputsChanged?.Invoke(this);
+    {
+      LoadFactorInputsChanged?.Invoke(this);
+      Edited?.Invoke();
+    }
+
+    /// <summary>
+    /// Raised on every user edit of this column (values, notes, load-factor
+    /// base) — drives the project's "unsaved changes" flag. Not raised for
+    /// the calculated load-factor result, which isn't user input.
+    /// </summary>
+    public event Action? Edited;
 
     // ── Cell values "в схеме" ─────────────────────────────────────────────────
 
@@ -69,6 +79,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       if (formParameterId == LoadFactorBaseParameterId)
         LoadFactorInputsChanged?.Invoke(this);
+
+      Edited?.Invoke();
     }
 
     /// <summary>
@@ -120,6 +132,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       OptionalCellValues[optionalFormParameterId] = value;
       OnPropertyChanged(nameof(OptionalCellValues));
+      Edited?.Invoke();
     }
 
     // ── NTD values "по НТД" ───────────────────────────────────────────────────
@@ -143,10 +156,32 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (!Notes.TryGetValue(formParameterId, out var notes))
       {
         notes = [];
-        notes.CollectionChanged += (_, _) => RecalculateNoteOrders();
+        notes.CollectionChanged += (_, _) =>
+        {
+          RecalculateNoteOrders();
+          Edited?.Invoke();
+        };
         Notes[formParameterId] = notes;
       }
       return notes;
+    }
+
+    /// <summary>
+    /// Appends a note to a parameter of this column; the note removes itself
+    /// from the column when its Delete command is invoked.
+    /// </summary>
+    public OwnFormNoteVm AddNote(int formParameterId, string text)
+    {
+      var notes = GetNotes(formParameterId);
+      var note = new OwnFormNoteVm
+      {
+        FormParameterId = formParameterId,
+        NoteText = text,
+        Order = 1,
+      };
+      note.DeleteRequested += n => notes.Remove(n);
+      notes.Add(note);
+      return note;
     }
 
     /// <summary>

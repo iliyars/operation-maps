@@ -90,20 +90,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       if (_addingNoteColumn is null) return;
       if (string.IsNullOrWhiteSpace(PendingNoteText)) return;
-      var note = new OwnFormNoteVm
-      {
-        FormParameterId = FormParameterId,
-        NoteText = PendingNoteText,
-        Order = 1,
-      };
-      var notes = _addingNoteColumn.GetNotes(FormParameterId);
-      note.DeleteRequested += n =>
-      {
-        notes.Remove(n);
-        _addingNoteColumn.RecalculateNoteOrders();
-      };
-      notes.Add(note);
-      _addingNoteColumn.RecalculateNoteOrders();
+      _addingNoteColumn.AddNote(FormParameterId, PendingNoteText);
       PendingNoteText = "";
       IsAddingNote = false;
       _addingNoteColumn = null;

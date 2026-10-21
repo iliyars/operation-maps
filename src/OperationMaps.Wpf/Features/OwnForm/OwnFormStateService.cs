@@ -37,7 +37,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       var state = await LoadAsync(formId, ct);
       if (state is not null)
-        _store.OwnForms[formId] = state;
+        _store.AddOwnForm(state);
 
       return state;
     }

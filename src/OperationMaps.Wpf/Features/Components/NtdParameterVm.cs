@@ -78,18 +78,25 @@ public sealed partial class NtdParameterVm : ObservableObject
   private void ConfirmAddNote()
   {
     if (string.IsNullOrWhiteSpace(PendingNoteText)) return;
+    var note = AddNote(PendingNoteText);
+    PendingNoteText = "";
+    IsAddingNote = false;
+    NoteSaved?.Invoke(note);
+  }
+
+  /// <summary>Appends a note to this row (also used when restoring a saved project).</summary>
+  public Form4.Form4NoteVm AddNote(string text)
+  {
     var note = new Form4.Form4NoteVm
     {
       FormParameterId = FormParameterId,
-      NoteText = PendingNoteText,
-      Order = 1,
+      NoteText = text,
+      Order = Notes.Count + 1,
     };
     note.DeleteRequested += OnNoteDeleteRequested;
     Notes.Add(note);
-    PendingNoteText = "";
-    IsAddingNote = false;
     RecalculateGroupOrders?.Invoke();
-    NoteSaved?.Invoke(note);
+    return note;
   }
 
   private void OnNoteDeleteRequested(Form4.Form4NoteVm note)

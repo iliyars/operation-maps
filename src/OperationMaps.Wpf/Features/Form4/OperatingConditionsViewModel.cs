@@ -25,62 +25,62 @@ public sealed partial class OperatingConditionsViewModel : ObservableObject
   public string? Resource
   {
     get => _store.Conditions.Resource;
-    set { _store.Conditions.Resource = value; OnPropertyChanged(); }
+    set { _store.Conditions.Resource = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? ServiceLife
   {
     get => _store.Conditions.ServiceLife;
-    set { _store.Conditions.ServiceLife = value; OnPropertyChanged(); }
+    set { _store.Conditions.ServiceLife = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? StorageLife
   {
     get => _store.Conditions.StorageLife;
-    set { _store.Conditions.StorageLife = value; OnPropertyChanged(); }
+    set { _store.Conditions.StorageLife = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? AcousticNoiseFrequency
   {
     get => _store.Conditions.AcousticNoiseFrequency;
-    set { _store.Conditions.AcousticNoiseFrequency = value; OnPropertyChanged(); }
+    set { _store.Conditions.AcousticNoiseFrequency = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? AcousticNoisePressure
   {
     get => _store.Conditions.AcousticNoisePressure;
-    set { _store.Conditions.AcousticNoisePressure = value; OnPropertyChanged(); }
+    set { _store.Conditions.AcousticNoisePressure = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? LinearAcceleration
   {
     get => _store.Conditions.LinearAcceleration;
-    set { _store.Conditions.LinearAcceleration = value; OnPropertyChanged(); }
+    set { _store.Conditions.LinearAcceleration = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? PressureLow
   {
     get => _store.Conditions.PressureLow;
-    set { _store.Conditions.PressureLow = value; OnPropertyChanged(); }
+    set { _store.Conditions.PressureLow = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? PressureHigh
   {
     get => _store.Conditions.PressureHigh;
-    set { _store.Conditions.PressureHigh = value; OnPropertyChanged(); }
+    set { _store.Conditions.PressureHigh = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? TemperatureLow
   {
     get => _store.Conditions.TemperatureLow;
-    set { _store.Conditions.TemperatureLow = value; OnPropertyChanged(); }
+    set { _store.Conditions.TemperatureLow = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? TemperatureHigh
   {
     get => _store.Conditions.TemperatureHigh;
-    set { _store.Conditions.TemperatureHigh = value; OnPropertyChanged(); }
+    set { _store.Conditions.TemperatureHigh = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? Humidity
   {
     get => _store.Conditions.Humidity;
-    set { _store.Conditions.Humidity = value; OnPropertyChanged(); }
+    set { _store.Conditions.Humidity = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
   public string? HumidityTemperature
   {
     get => _store.Conditions.HumidityTemperature;
-    set { _store.Conditions.HumidityTemperature = value; OnPropertyChanged(); }
+    set { _store.Conditions.HumidityTemperature = value; OnPropertyChanged(); _store.MarkDirty(); }
   }
 
   public OperatingConditionsViewModel(ProjectStore store, IOperatingConditionsService service)
@@ -122,6 +122,7 @@ public sealed partial class OperatingConditionsViewModel : ObservableObject
 
     var loaded = await _service.LoadAsync(dlg.FileName, ct);
     _store.Conditions = loaded;
+    _store.MarkDirty();
     RefreshAllProperties();
   }
 
@@ -131,6 +132,7 @@ public sealed partial class OperatingConditionsViewModel : ObservableObject
     if (_store.ConditionsFilePath is null) return;
     var loaded = await _service.LoadAsync(_store.ConditionsFilePath, ct);
     _store.Conditions = loaded;
+    _store.MarkDirty();
     RefreshAllProperties();
   }
 

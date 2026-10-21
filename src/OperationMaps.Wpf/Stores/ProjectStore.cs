@@ -50,6 +50,17 @@ public sealed partial class ProjectStore : ObservableObject
   public bool HasProject => ProjectName is not null;
 
   /// <summary>
+  /// Path of the .omaps file this project was opened from / last saved to.
+  /// Null for a project freshly imported from XML and not yet saved.
+  /// </summary>
+  [ObservableProperty] private string? _projectFilePath;
+
+  /// <summary>True when the project has edits not yet written to <see cref="ProjectFilePath"/>.</summary>
+  [ObservableProperty] private bool _isDirty;
+
+  public void MarkDirty() => IsDirty = true;
+
+  /// <summary>
   /// Absolute path to the Forms subfolder: <c>{ProjectFolderPath}/Forms</c>.
   /// Created on first export if it does not exist.
   /// Returns null when no project is open.
@@ -90,6 +101,18 @@ public sealed partial class ProjectStore : ObservableObject
 
   public ObservableCollection<ProjectComponentVm> Components { get; } = [];
 
+  public ProjectStore()
+  {
+    // Form 4 notes live on the components themselves
+    Components.CollectionChanged += (_, e) =>
+    {
+      if (e.OldItems is not null)
+        foreach (ProjectComponentVm c in e.OldItems) c.Edited -= MarkDirty;
+      if (e.NewItems is not null)
+        foreach (ProjectComponentVm c in e.NewItems) c.Edited += MarkDirty;
+    };
+  }
+
   public ProjectMatchResult? MatchResult { get; private set; }
 
   // ── Own-form tables ───────────────────────────────────────────────────────
@@ -99,7 +122,14 @@ public sealed partial class ProjectStore : ObservableObject
   /// keyed by FormId. Filled lazily by <see cref="OwnFormStateService"/> and
   /// kept for the project's lifetime, so edits survive navigation.
   /// </summary>
-  public Dictionary<int, OwnFormState> OwnForms { get; } = [];
+  public IReadOnlyDictionary<int, OwnFormState> OwnForms => _ownForms;
+  private readonly Dictionary<int, OwnFormState> _ownForms = [];
+
+  public void AddOwnForm(OwnFormState state)
+  {
+    _ownForms[state.FormId] = state;
+    state.Edited += MarkDirty;
+  }
 
   // ── Undo / Redo ───────────────────────────────────────────────────────────
 
@@ -120,6 +150,7 @@ public sealed partial class ProjectStore : ObservableObject
   {
     ProjectName = projectName;
     ProjectFolderPath = projectFolderPath;
+    ProjectFilePath = null;
     MatchResult = matchResult;
     DocumentTitle = importResult?.DocumentTitle;
     DocumentNumber = importResult?.DocumentNumber;
@@ -128,8 +159,9 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = importResult?.ApprovedBy;
 
     Components.Clear();
-    OwnForms.Clear();
+    ClearOwnForms();
     History.Clear();
+    IsDirty = false;
 
     // Preserve original XML order by sorting on import index
     foreach (var entry in matchResult.Matched
@@ -138,8 +170,16 @@ public sealed partial class ProjectStore : ObservableObject
       Components.Add(new ProjectComponentVm(entry));
   }
 
+  private void ClearOwnForms()
+  {
+    foreach (var state in _ownForms.Values)
+      state.Edited -= MarkDirty;
+    _ownForms.Clear();
+  }
+
   public void Clear()
   {
+    ProjectFilePath = null;
     ProjectName = null;
     ProjectFolderPath = null;
     MatchResult = null;
@@ -150,7 +190,8 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = null;
     Conditions = new();
     Components.Clear();
-    OwnForms.Clear();
+    ClearOwnForms();
     History.Clear();
+    IsDirty = false;
   }
 }

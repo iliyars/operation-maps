@@ -48,6 +48,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// </summary>
     public event Action<FormColumnVm>? LoadFactorRecalculated;
 
+    /// <summary>
+    /// Raised on any user edit of this form: a column's values/notes, or the
+    /// column set itself (split/merge/undo). Drives "unsaved changes".
+    /// </summary>
+    public event Action? Edited;
+
     public OwnFormState(
         int formId,
         string formNumber,
@@ -70,6 +76,22 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public void SetParameters(IReadOnlyList<FormParameterRowVm> parameters)
         => Parameters = parameters;
+
+    /// <summary>
+    /// Swaps the whole column set (used when restoring a saved project).
+    /// Done item by item rather than Clear() — a Reset notification carries
+    /// no OldItems, so the removed columns' handlers couldn't be detached.
+    /// </summary>
+    public void ReplaceColumns(IEnumerable<FormColumnVm> columns)
+    {
+      foreach (var col in Columns.ToList())
+        Columns.Remove(col);
+      foreach (var col in columns)
+        Columns.Add(col);
+      foreach (var col in Columns)
+        RecalculateLoadFactor(col);
+      History.Clear();
+    }
 
     /// <summary>
     /// Recomputes the load-factor result for one column and writes it
@@ -101,7 +123,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       if (e.OldItems is not null)
         foreach (FormColumnVm col in e.OldItems)
+        {
           col.LoadFactorInputsChanged -= RecalculateLoadFactor;
+          col.Edited -= OnColumnEdited;
+        }
 
       if (e.NewItems is not null)
         foreach (FormColumnVm col in e.NewItems)
@@ -109,7 +134,13 @@ namespace OperationMaps.Wpf.Features.OwnForm
           // -= first: undo re-inserts the very same instance that was removed
           col.LoadFactorInputsChanged -= RecalculateLoadFactor;
           col.LoadFactorInputsChanged += RecalculateLoadFactor;
+          col.Edited -= OnColumnEdited;
+          col.Edited += OnColumnEdited;
         }
+
+      Edited?.Invoke();
     }
+
+    private void OnColumnEdited() => Edited?.Invoke();
   }
 }

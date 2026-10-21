@@ -17,6 +17,7 @@ using OperationMaps.Wpf.Stores;
 using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm;
 using OperationMaps.Wpf.Features.Components.WordImport;
+using OperationMaps.Wpf.Features.Project;
 
 namespace OperationMaps.Wpf
 {
@@ -34,6 +35,7 @@ namespace OperationMaps.Wpf
       // Stores
       services.AddSingleton<ProjectStore>();
       services.AddTransient<OwnFormStateService>();
+      services.AddSingleton<ProjectFileService>();
 
       // Shell
       services.AddSingleton<ShellViewModel>();

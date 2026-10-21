@@ -350,16 +350,63 @@
                     <StackPanel Margin="16"
                                 DataContext="{Binding Card}">
 
+                        <!-- Title: text, or an input while editing -->
                         <TextBlock Text="{Binding Title}"
                                    FontSize="14"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextWrapping="Wrap"/>
+                                   TextWrapping="Wrap"
+                                   Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVis}}"/>
+                        <TextBox Text="{Binding DataContext.EditName, RelativeSource={RelativeSource AncestorType=UserControl}, UpdateSourceTrigger=PropertyChanged}"
+                                 FontWeight="SemiBold"
+                                 Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
                         <TextBlock Text="{Binding Subtitle}"
                                    FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                    TextWrapping="Wrap"
                                    Margin="0,2,0,12"/>
+
+                        <!-- Admin actions -->
+                        <StackPanel Visibility="{Binding DataContext.IsAdmin, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"
+                                    Margin="0,0,0,16">
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVis}}">
+                                <Button Content="Изменить"
+                                        Style="{StaticResource OutlineButton}"
+                                        Padding="12,4"
+                                        Margin="0,0,8,0"
+                                        Command="{Binding DataContext.StartEditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                <Button Content="Удалить"
+                                        Style="{StaticResource OutlineButton}"
+                                        Padding="12,4"
+                                        Foreground="{DynamicResource StatusErrorBrush}"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                            </StackPanel>
+                            <StackPanel Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}">
+                                <TextBlock Text="Пустое значение удаляет его из справочника (будет «—»)."
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextMutedBrush}"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding DataContext.EditError, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                           Foreground="{DynamicResource StatusErrorBrush}"
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,8"
+                                           Visibility="{Binding DataContext.EditError, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullToVis}}"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="Сохранить"
+                                            Style="{StaticResource PrimaryButton}"
+                                            Padding="12,4"
+                                            Margin="0,0,8,0"
+                                            Command="{Binding DataContext.SaveEditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    <Button Content="Отмена"
+                                            Style="{StaticResource OutlineButton}"
+                                            Padding="12,4"
+                                            Command="{Binding DataContext.CancelEditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
 
                         <Border Padding="10,8"
                                 Margin="0,0,0,16"
@@ -418,6 +465,21 @@
                                                        Visibility="{Binding Pins, Converter={StaticResource NullToVis}}">
                                                 <Run Text="выводы: "/><Run Text="{Binding Pins, Mode=OneWay}"/>
                                             </TextBlock>
+                                            <!-- Form 64 pins, editable -->
+                                            <StackPanel Orientation="Horizontal"
+                                                        Margin="0,3,0,0"
+                                                        Visibility="{Binding DataContext.ShowsPins, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="выводы:"
+                                                           FontSize="11"
+                                                           VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource TextMutedBrush}"
+                                                           Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBox Text="{Binding EditPins, UpdateSourceTrigger=PropertyChanged}"
+                                                         Width="100"
+                                                         FontSize="11"
+                                                         Margin="6,0,0,0"
+                                                         Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                                            </StackPanel>
                                         </StackPanel>
                                         <TextBlock Grid.Column="2"
                                                    Text="{Binding Value}"
@@ -427,7 +489,15 @@
                                                    MaxWidth="160"
                                                    TextAlignment="Right"
                                                    HorizontalAlignment="Right"
-                                                   Margin="8,0,0,0"/>
+                                                   Margin="8,0,0,0"
+                                                   Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVis}}"/>
+                                        <TextBox Grid.Column="2"
+                                                 Text="{Binding EditValue, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="140"
+                                                 FontSize="12"
+                                                 VerticalAlignment="Top"
+                                                 Margin="8,0,0,0"
+                                                 Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

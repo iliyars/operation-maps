@@ -112,7 +112,7 @@ public sealed class CatalogAddComponentTests : IDisposable
   public async Task Add_buttons_are_available_only_in_admin_mode()
   {
     var session = new SessionStore();
-    var catalog = new CatalogViewModel(_db, session, new ComponentEntryService(_db), new ComponentNameParser());
+    var catalog = new CatalogViewModel(_db, session, new ComponentEntryService(_db), new ComponentNameParser(), new CatalogEditService(_db), new Moq.Mock<IDialogService>().Object);
     await catalog.OnNavigatedToAsync();
     await catalog.SelectFamilyCommand.ExecuteAsync(catalog.Types.SelectMany(t => t.AllFamilies).Single());
 
@@ -133,7 +133,7 @@ public sealed class CatalogAddComponentTests : IDisposable
     await _db.SaveChangesAsync();
 
     var session = new SessionStore();
-    var catalog = new CatalogViewModel(_db, session, new ComponentEntryService(_db), new ComponentNameParser());
+    var catalog = new CatalogViewModel(_db, session, new ComponentEntryService(_db), new ComponentNameParser(), new CatalogEditService(_db), new Moq.Mock<IDialogService>().Object);
     await catalog.OnNavigatedToAsync();
     Assert.Equal(1, catalog.UnverifiedCount);
 
@@ -162,7 +162,7 @@ public sealed class CatalogAddComponentTests : IDisposable
     _db.Components.Add(new Component { FullName = "К10-79-16В-10мкФ", FamilyId = _family.Id, OwnFormId = _form67.Id, NeedsAdminReview = true });
     await _db.SaveChangesAsync();
 
-    var catalog = new CatalogViewModel(_db, new SessionStore(), new ComponentEntryService(_db), new ComponentNameParser());
+    var catalog = new CatalogViewModel(_db, new SessionStore(), new ComponentEntryService(_db), new ComponentNameParser(), new CatalogEditService(_db), new Moq.Mock<IDialogService>().Object);
     await catalog.OnNavigatedToAsync();
     await catalog.SelectFamilyCommand.ExecuteAsync(catalog.Types.SelectMany(t => t.AllFamilies).Single());
     await catalog.SelectComponentCommand.ExecuteAsync(catalog.VisibleComponents.Single(c => c.NeedsReview));

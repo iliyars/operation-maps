@@ -19,7 +19,8 @@ namespace OperationMaps.Wpf.Features.Catalog;
 /// (Form 67, 68, ...). In admin mode the catalog can also be extended:
 /// a component into the selected family, or a new family with its first
 /// component — both through the same wizard as in a project, but with the
-/// name typed in and the result counted as verified.
+/// name typed in and the result counted as verified. Admins can also edit
+/// the selected record in place (name + values) and delete it.
 /// </summary>
 public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 {
@@ -29,6 +30,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   private readonly SessionStore _session;
   private readonly IComponentEntryService _entryService;
   private readonly IComponentNameParser _nameParser;
+  private readonly ICatalogEditService _editService;
+  private readonly IDialogService _dialogs;
 
   public IReadOnlyList<CatalogTypeNode> Types { get; private set; } = [];
 
@@ -47,7 +50,21 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   [NotifyCanExecuteChangedFor(nameof(VerifyCommand))]
   private CatalogComponentItem? _selectedComponent;
   [ObservableProperty] private IReadOnlyList<CatalogComponentItem> _visibleComponents = [];
-  [ObservableProperty] private CatalogCard? _card;
+  [ObservableProperty]
+  [NotifyCanExecuteChangedFor(nameof(StartEditCommand))]
+  [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
+  private CatalogCard? _card;
+
+  // ── Edit mode (admin) ─────────────────────────────────────────────────────
+
+  [ObservableProperty]
+  [NotifyCanExecuteChangedFor(nameof(StartEditCommand))]
+  [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
+  [NotifyCanExecuteChangedFor(nameof(VerifyCommand))]
+  private bool _isEditing;
+
+  [ObservableProperty] private string _editName = "";
+  [ObservableProperty] private string? _editError;
 
   public int FamilyCount => Types.Sum(t => t.AllFamilies.Count);
   public int ComponentCount => Types.Sum(t => t.AllFamilies.Sum(f => f.Components.Count));
@@ -58,12 +75,16 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
       CatalogDbContext db,
       SessionStore session,
       IComponentEntryService entryService,
-      IComponentNameParser nameParser)
+      IComponentNameParser nameParser,
+      ICatalogEditService editService,
+      IDialogService dialogs)
   {
     _db = db ?? throw new ArgumentNullException(nameof(db));
     _session = session ?? throw new ArgumentNullException(nameof(session));
     _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
+    _editService = editService ?? throw new ArgumentNullException(nameof(editService));
+    _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
 
     // Signing in/out while the catalog is open shows/hides the admin buttons.
     _session.PropertyChanged += OnSessionChanged;
@@ -76,7 +97,13 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     AddComponentCommand.NotifyCanExecuteChanged();
     AddFamilyCommand.NotifyCanExecuteChanged();
     VerifyCommand.NotifyCanExecuteChanged();
-    if (!IsAdmin) OnlyUnverified = false;
+    StartEditCommand.NotifyCanExecuteChanged();
+    DeleteCommand.NotifyCanExecuteChanged();
+    if (!IsAdmin)
+    {
+      OnlyUnverified = false;
+      CancelEdit();
+    }
   }
 
   public async Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
@@ -179,6 +206,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   [RelayCommand]
   private async Task SelectFamilyAsync(CatalogFamilyNode family, CancellationToken ct)
   {
+    CancelEdit();
     if (SelectedFamily is not null) SelectedFamily.IsSelected = false;
     SelectComponentItem(null);
 
@@ -192,6 +220,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   [RelayCommand]
   private async Task SelectComponentAsync(CatalogComponentItem component, CancellationToken ct)
   {
+    CancelEdit();
     SelectComponentItem(component);
     Card = await BuildComponentCardAsync(component, ct);
   }
@@ -222,19 +251,138 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
     if (dialog.ShowDialog() != true || vm.CreatedComponent is not { } created) return;
 
-    // Show the result right away: reload, then select its family and itself.
+    // Show the result right away.
+    await ReloadAndSelectAsync(created.FamilyId, created.Id);
+  }
+
+  /// <summary>Re-reads the catalog and re-selects a family (and a component in it), if they still exist.</summary>
+  private async Task ReloadAndSelectAsync(int? familyId, int? componentId)
+  {
+    SelectComponentItem(null);
+    SelectedFamily = null;
+    Card = null;
+
     await LoadTreeAsync(CancellationToken.None);
 
-    var family = Types.SelectMany(t => t.AllFamilies).FirstOrDefault(f => f.Id == created.FamilyId);
+    var family = Types.SelectMany(t => t.AllFamilies).FirstOrDefault(f => f.Id == familyId);
     if (family is null) return;
 
-    var type = Types.First(t => t.AllFamilies.Contains(family));
-    type.IsExpanded = true;
+    Types.First(t => t.AllFamilies.Contains(family)).IsExpanded = true;
     await SelectFamilyAsync(family, CancellationToken.None);
 
-    var item = family.Components.FirstOrDefault(c => c.Id == created.Id);
+    var item = family.Components.FirstOrDefault(c => c.Id == componentId);
     if (item is not null)
       await SelectComponentAsync(item, CancellationToken.None);
+  }
+
+  // ── Admin: editing and deleting ───────────────────────────────────────────
+
+  [RelayCommand(CanExecute = nameof(CanEditCard))]
+  private void StartEdit()
+  {
+    if (Card is null) return;
+
+    EditName = Card.Title;
+    EditError = null;
+    foreach (var row in Card.Parameters)
+    {
+      row.EditValue = row.StoredValue;
+      row.EditPins = row.Pins ?? "";
+    }
+    IsEditing = true;
+  }
+
+  private bool CanEditCard => IsAdmin && !IsEditing && Card is { EntityId: > 0 };
+
+  [RelayCommand]
+  private async Task SaveEditAsync()
+  {
+    if (Card is null) return;
+
+    EditError = null;
+    var values = Card.Parameters.ToDictionary(r => r.FormParameterId, r => r.EditValue);
+
+    try
+    {
+      if (Card.Kind == CatalogCardKind.Family)
+        await _editService.UpdateFamilyAsync(Card.EntityId, EditName, values);
+      else
+        await _editService.UpdateComponentAsync(
+            Card.EntityId,
+            EditName,
+            values,
+            Card.ShowsPins ? Card.Parameters.ToDictionary(r => r.FormParameterId, r => r.EditPins) : new Dictionary<int, string>());
+    }
+    catch (InvalidOperationException ex)
+    {
+      EditError = ex.Message;
+      return;
+    }
+
+    IsEditing = false;
+    // Names may have changed — the tree and search need a fresh read.
+    await ReloadAndSelectAsync(SelectedFamily?.Id, Card.Kind == CatalogCardKind.Component ? Card.EntityId : null);
+  }
+
+  [RelayCommand]
+  private void CancelEdit()
+  {
+    IsEditing = false;
+    EditError = null;
+  }
+
+  [RelayCommand(CanExecute = nameof(CanEditCard))]
+  private async Task DeleteAsync()
+  {
+    if (Card is null || SelectedFamily is not { } family) return;
+
+    try
+    {
+      if (Card.Kind == CatalogCardKind.Component)
+      {
+        if (_dialogs.AskYesNoCancel(
+                $"Удалить компонент «{Card.Title}» из справочника вместе со всеми его данными?\n\nОтменить это действие нельзя.",
+                "Удаление компонента") != true)
+          return;
+
+        var familyEmpty = await _editService.DeleteComponentAsync(Card.EntityId);
+
+        // Microcircuits & co.: family and component share a name — an empty
+        // family left behind is almost always just clutter.
+        if (familyEmpty && _dialogs.AskYesNoCancel(
+                $"В семействе «{family.Name}» больше нет компонентов. Удалить и семейство?",
+                "Удаление семейства") == true)
+        {
+          await _editService.DeleteFamilyAsync(family.Id);
+          await ReloadAndSelectAsync(null, null);
+          return;
+        }
+
+        await ReloadAndSelectAsync(family.Id, null);
+      }
+      else
+      {
+        if (family.Components.Count > 0)
+        {
+          _dialogs.ShowWarning(
+              $"В семействе «{family.Name}» есть компоненты ({family.Components.Count}). Сначала удалите их.",
+              "Удаление семейства");
+          return;
+        }
+
+        if (_dialogs.AskYesNoCancel(
+                $"Удалить семейство «{family.Name}» вместе с его данными Формы 4?\n\nОтменить это действие нельзя.",
+                "Удаление семейства") != true)
+          return;
+
+        await _editService.DeleteFamilyAsync(family.Id);
+        await ReloadAndSelectAsync(null, null);
+      }
+    }
+    catch (InvalidOperationException ex)
+    {
+      _dialogs.ShowWarning(ex.Message, "Удаление");
+    }
   }
 
   // ── Admin: confirming user-added components ───────────────────────────────
@@ -253,7 +401,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     Card = await BuildComponentCardAsync(item, CancellationToken.None);
   }
 
-  private bool CanVerify => IsAdmin && SelectedComponent is { NeedsReview: true };
+  private bool CanVerify => IsAdmin && !IsEditing && SelectedComponent is { NeedsReview: true };
 
   // ── Cards ─────────────────────────────────────────────────────────────────
 
@@ -288,15 +436,19 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
     return new CatalogCard
     {
+      Kind = CatalogCardKind.Family,
+      EntityId = family.Id,
       Title = family.Name,
       Subtitle = subtitle,
       ParametersHeader = "ФОРМА 4 — ПО НТД",
       Parameters = form4Params
           .Select(p => new CatalogParamRow
           {
+            FormParameterId = p.Id,
             RowNumber = p.RowNumber,
             Name = DisplayName(p),
             Value = values.TryGetValue(p.Id, out var v) && !string.IsNullOrWhiteSpace(v) ? v : NoValue,
+            StoredValue = values.GetValueOrDefault(p.Id) ?? "",
           })
           .ToList(),
       Notes = notes
@@ -317,6 +469,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     if (entity is null)
       return new CatalogCard
       {
+        Kind = CatalogCardKind.Component,
         Title = component.FullName,
         Subtitle = "",
         ParametersHeader = "",
@@ -328,6 +481,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     if (entity.OwnForm is null)
       return new CatalogCard
       {
+        Kind = CatalogCardKind.Component,
+        EntityId = entity.Id,
         Title = entity.FullName,
         Subtitle = subtitle,
         NeedsReview = entity.NeedsAdminReview,
@@ -359,6 +514,9 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
     return new CatalogCard
     {
+      Kind = CatalogCardKind.Component,
+      EntityId = entity.Id,
+      ShowsPins = entity.OwnForm.Number == "64", // pin numbers are unique to Form 64
       Title = entity.FullName,
       Subtitle = $"{subtitle} · форма {entity.OwnForm.Number}",
       NeedsReview = entity.NeedsAdminReview,
@@ -369,9 +527,11 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
           .Where(p => !p.IsOptional || values.ContainsKey(p.Id))
           .Select(p => new CatalogParamRow
           {
+            FormParameterId = p.Id,
             RowNumber = p.RowNumber,
             Name = DisplayName(p),
             Value = values.TryGetValue(p.Id, out var v) && !string.IsNullOrWhiteSpace(v) ? v : NoValue,
+            StoredValue = values.GetValueOrDefault(p.Id) ?? "",
             Pins = pins.TryGetValue(p.Id, out var pn) && !string.IsNullOrWhiteSpace(pn) ? pn : null,
           })
           .ToList(),

@@ -1,5 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using OperationMaps.Application.Services;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
@@ -44,7 +45,7 @@ public sealed class CatalogViewModelTests : IDisposable
     _db.ComponentNtdValues.Add(new ComponentNtdValue { ComponentId = verified.Id, FormParameterId = voltage.Id, Value = "50" });
     _db.SaveChanges();
 
-    _vm = new CatalogViewModel(_db, new SessionStore(), new ComponentEntryService(_db), new ComponentNameParser());
+    _vm = new CatalogViewModel(_db, new SessionStore(), new ComponentEntryService(_db), new ComponentNameParser(), new CatalogEditService(_db), new Moq.Mock<IDialogService>().Object);
   }
 
   private CatalogFamilyNode Family(string name) => _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == name);

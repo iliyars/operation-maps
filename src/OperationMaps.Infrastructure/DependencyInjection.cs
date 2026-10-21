@@ -39,6 +39,7 @@ public static class DependencyInjection
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
     services.AddScoped<IComponentEntryService, ComponentEntryService>();
     services.AddScoped<IAdminAccountService, AdminAccountService>();
+    services.AddScoped<ICatalogEditService, CatalogEditService>();
     services.AddScoped<IWordCatalogImportService, WordCatalogImportService>();
 
     // Singleton: orchestrates export + merge, no mutable state

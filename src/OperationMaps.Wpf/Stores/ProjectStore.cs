@@ -3,6 +3,7 @@ using OperationMaps.Application.Importing;
 using OperationMaps.Application.Models;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Components.Commands;
+using OperationMaps.Wpf.Features.OwnForm;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -91,6 +92,15 @@ public sealed partial class ProjectStore : ObservableObject
 
   public ProjectMatchResult? MatchResult { get; private set; }
 
+  // ── Own-form tables ───────────────────────────────────────────────────────
+
+  /// <summary>
+  /// Per-form table state (values, notes, splits/merges, undo history),
+  /// keyed by FormId. Filled lazily by <see cref="OwnFormStateService"/> and
+  /// kept for the project's lifetime, so edits survive navigation.
+  /// </summary>
+  public Dictionary<int, OwnFormState> OwnForms { get; } = [];
+
   // ── Undo / Redo ───────────────────────────────────────────────────────────
 
   public UndoRedoStack History { get; } = new();
@@ -118,6 +128,7 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = importResult?.ApprovedBy;
 
     Components.Clear();
+    OwnForms.Clear();
     History.Clear();
 
     // Preserve original XML order by sorting on import index
@@ -139,6 +150,7 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = null;
     Conditions = new();
     Components.Clear();
+    OwnForms.Clear();
     History.Clear();
   }
 }

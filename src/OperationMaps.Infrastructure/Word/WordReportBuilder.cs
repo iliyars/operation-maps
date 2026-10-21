@@ -29,8 +29,9 @@ namespace OperationMaps.Infrastructure.Word
     /// Builds the complete report document.
     /// </summary>
     /// <param name="coverTemplatePath">
-    /// Absolute path to the cover page template.
-    /// All form sections are appended after its body content.
+    /// Absolute path to the cover page template; all form sections are
+    /// appended after its body content. Null when there is no cover — the
+    /// first form's document then serves as the base.
     /// </param>
     /// <param name="forms">
     /// Ordered list of (formData, templatePath) pairs.
@@ -39,14 +40,30 @@ namespace OperationMaps.Infrastructure.Word
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Raw bytes of the assembled .docx file.</returns>
     public async Task<byte[]> BuildAsync(
-        string coverTemplatePath,
+        string? coverTemplatePath,
         IReadOnlyList<(WordFormData Data, string TemplatePath)> forms,
         CancellationToken ct = default)
     {
-      // ── 1. Load cover into working stream ─────────────────────────────────
+      if (coverTemplatePath is null && forms.Count == 0)
+        throw new ArgumentException("Nothing to build: no cover and no forms.", nameof(forms));
+
+      // ── 1. Load base document (cover, or the first form) into working stream
       var ms = new MemoryStream();
-      await using (var fs = File.OpenRead(coverTemplatePath))
+      var appended = forms;
+
+      if (coverTemplatePath is not null)
+      {
+        await using var fs = File.OpenRead(coverTemplatePath);
         await fs.CopyToAsync(ms, ct);
+      }
+      else
+      {
+        var (firstData, firstTemplate) = forms[0];
+        var firstBytes = await _wordService.ExportAsync(firstData, firstTemplate, ct);
+        await ms.WriteAsync(firstBytes, ct);
+        appended = forms.Skip(1).ToList();
+      }
+
       ms.Position = 0;
 
       // The package (a zip archive under the hood) only flushes its central
@@ -59,7 +76,7 @@ namespace OperationMaps.Infrastructure.Word
         var reportBody = report.MainDocumentPart!.Document.Body!;
 
         // ── 2. Export each form and merge into report body ───────────────────
-        foreach (var (data, templatePath) in forms)
+        foreach (var (data, templatePath) in appended)
         {
           ct.ThrowIfCancellationRequested();
 

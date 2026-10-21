@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,6 +15,8 @@ using OperationMaps.Wpf.Stores;
 using OperationMaps.Infrastructure.Word;
 using OperationMaps.Application.Word;
 using System.IO;
+using Microsoft.Extensions.DependencyInjection;
+using OperationMaps.Application.Services;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -25,11 +27,15 @@ namespace OperationMaps.Wpf.Shell
     private readonly ProjectStore _store;
     private readonly WordReportBuilder _reportBuilder;
     private readonly WordFormMapLoader _mapLoader;
+    private readonly IDialogService _dialogService;
+    private readonly IServiceProvider _services;
 
-    // Keeps references to dynamic form ViewModels so we can call
-    // BuildWordFormData() on each during report export.
-    // Populated in OnProjectLoaded, cleared on next project load.
-    private readonly List<(string FormNumber, Func<WordFormData> BuildData)> _formBuilders = [];
+    // One data builder per form of the current project, in report order.
+    // Populated in OnProjectLoaded, cleared on next project load. Builders
+    // read project state (ProjectStore), not whichever screen happens to be
+    // open — so every form lands in the report with its data, not just the
+    // one on screen.
+    private readonly List<(string FormNumber, Func<CancellationToken, Task<WordFormData>> BuildData)> _formBuilders = [];
 
     [ObservableProperty] private IScreen? _currentScreen;
     [ObservableProperty] private bool _isExportingReport;
@@ -42,12 +48,16 @@ namespace OperationMaps.Wpf.Shell
         INavigationService navigation,
         ProjectStore store,
         WordReportBuilder reportBuilder,
-        WordFormMapLoader mapLoader)
+        WordFormMapLoader mapLoader,
+        IDialogService dialogService,
+        IServiceProvider services)
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
+      _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+      _services = services ?? throw new ArgumentNullException(nameof(services));
 
       _navigation.CurrentScreenChanged += OnCurrentScreenChanged;
 
@@ -93,24 +103,94 @@ namespace OperationMaps.Wpf.Shell
       var outputPath = _store.ReportDocumentPath;
       if (formsFolder is null || outputPath is null) return;
 
-      Directory.CreateDirectory(formsFolder);
+      if (IsFileLocked(outputPath))
+      {
+        _dialogService.ShowWarning(
+            $"Файл уже открыт в другой программе:\n{outputPath}\n\nЗакройте файл и повторите экспорт.",
+            "Файл занят");
+        return;
+      }
 
       IsExportingReport = true;
       try
       {
-        var coverPath = _mapLoader.GetTemplatePath("Cover");
+        // Forms without a Word template/map yet are skipped (and listed to
+        // the user) instead of failing the whole report.
+        var forms = new List<(WordFormData, string)>();
+        var skipped = new List<string>();
 
-        // Build (data, templatePath) for each form in order
-        var forms = _formBuilders
-            .Select(f => (f.BuildData(), _mapLoader.GetTemplatePath(f.FormNumber)))
-            .ToList();
+        foreach (var (formNumber, buildData) in _formBuilders)
+        {
+          string templatePath;
+          try
+          {
+            templatePath = _mapLoader.GetTemplatePath(formNumber);
+            _mapLoader.Load(formNumber);
+          }
+          catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
+          {
+            skipped.Add(formNumber);
+            continue;
+          }
 
-        var bytes = await _reportBuilder.BuildAsync(coverPath, forms, ct);
+          forms.Add((await buildData(ct), templatePath));
+        }
+
+        if (forms.Count == 0)
+        {
+          _dialogService.ShowWarning(
+              "Ни для одной формы проекта нет шаблона Word — собирать нечего.",
+              "Итоговый документ");
+          return;
+        }
+
+        var bytes = await _reportBuilder.BuildAsync(TryGetCoverTemplatePath(), forms, ct);
+
+        Directory.CreateDirectory(formsFolder);
         await File.WriteAllBytesAsync(outputPath, bytes, ct);
+
+        var message = $"Итоговый документ сохранён:\n{outputPath}";
+        if (skipped.Count > 0)
+          message += "\n\nПропущены формы без шаблона Word: " +
+                     string.Join(", ", skipped.Select(n => $"Форма {n}"));
+        _dialogService.ShowInfo(message, "Итоговый документ");
+      }
+      catch (OperationCanceledException)
+      {
+      }
+      catch (Exception ex)
+      {
+        _dialogService.ShowError(
+            $"Не удалось собрать итоговый документ.\n\n{ex.Message}",
+            "Итоговый документ");
       }
       finally
       {
         IsExportingReport = false;
+      }
+    }
+
+    /// <summary>
+    /// Cover page template, if one is shipped (Word/Resources/FormCover).
+    /// Without it the report starts directly with the first form.
+    /// </summary>
+    private string? TryGetCoverTemplatePath()
+    {
+      try { return _mapLoader.GetTemplatePath("Cover"); }
+      catch (FileNotFoundException) { return null; }
+    }
+
+    private static bool IsFileLocked(string path)
+    {
+      if (!File.Exists(path)) return false;
+      try
+      {
+        using var fs = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        return false;
+      }
+      catch (IOException)
+      {
+        return true;
       }
     }
 
@@ -212,7 +292,7 @@ namespace OperationMaps.Wpf.Shell
       }
 
       // Register Form 4 builder
-      _formBuilders.Add(("4", BuildForm4Data));
+      _formBuilders.Add(("4", BuildForm4DataAsync));
 
       // Dynamic own-form nav items
       var formsSection = NavItems.FirstOrDefault(i => i.IsSeparator && i.Label == "ФОРМЫ");
@@ -247,12 +327,7 @@ namespace OperationMaps.Wpf.Shell
                 () => _navigation.NavigateAsync<OwnFormViewModel>(parameter: formId)),
         });
 
-        // Register own-form builder — captured by lambda when ViewModel is active
-        // We use a deferred lookup: at export time the current screen may already
-        // hold the populated ViewModel. If not navigated yet, data will be empty
-        // (the user hasn't opened that form). This is fine — WordService writes
-        // empty strings into those slots, and the user can always re-export.
-        _formBuilders.Add((formNumber, () => BuildOwnFormData(formNumber, formId)));
+        _formBuilders.Add((formNumber, ct => BuildOwnFormDataAsync(formNumber, formId, ct)));
       }
 
       ExportReportCommand.NotifyCanExecuteChanged();
@@ -260,23 +335,30 @@ namespace OperationMaps.Wpf.Shell
 
     // ── Data builders (called at export time) ─────────────────────────────────
 
-    private WordFormData BuildForm4Data()
+    private async Task<WordFormData> BuildForm4DataAsync(CancellationToken ct)
     {
-      // If Form4ViewModel is currently active — use its builder directly
-      if (_navigation.CurrentScreen is Form4ViewModel form4)
-        return form4.BuildWordFormData();
+      if (_navigation.CurrentScreen is Form4ViewModel shown)
+        return shown.BuildWordFormData();
 
-      // Not navigated yet — return empty data with the correct FormNumber
-      // so WordService fills blank pages (preserves template structure)
-      return new WordFormData { FormNumber = "4" };
+      // Form 4 has no table state of its own beyond what ProjectStore holds
+      // (notes live on the project's components), so a fresh, off-screen
+      // instance builds exactly what the screen would show.
+      var form4 = _services.GetRequiredService<Form4ViewModel>();
+      await form4.OnNavigatedToAsync(cancellationToken: ct);
+      return form4.BuildWordFormData();
     }
 
-    private WordFormData BuildOwnFormData(string formNumber, int formId)
+    private async Task<WordFormData> BuildOwnFormDataAsync(string formNumber, int formId, CancellationToken ct)
     {
-      if (_navigation.CurrentScreen is OwnFormViewModel own && own.FormId == formId)
-        return own.BuildWordFormData();
+      var state = await _services.GetRequiredService<OwnFormStateService>().GetAsync(formId, ct);
+      if (state is null)
+        return new WordFormData { FormNumber = formNumber };
 
-      return new WordFormData { FormNumber = formNumber };
+      return OwnFormWordDataBuilder.Build(
+          state.FormNumber,
+          _store.DocumentNumber ?? _store.ProjectName ?? "",
+          state.Parameters,
+          state.Columns);
     }
 
     // ── Menu bar ──────────────────────────────────────────────────────────────

@@ -14,5 +14,10 @@ namespace OperationMaps.Wpf.Services
     {
       MessageBox.Show(message, title ?? "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
+
+    public void ShowInfo(string message, string? title = null)
+    {
+      MessageBox.Show(message, title ?? "Готово", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
   }
 }

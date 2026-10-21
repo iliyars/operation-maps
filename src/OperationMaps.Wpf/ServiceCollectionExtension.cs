@@ -33,6 +33,7 @@ namespace OperationMaps.Wpf
 
       // Stores
       services.AddSingleton<ProjectStore>();
+      services.AddTransient<OwnFormStateService>();
 
       // Shell
       services.AddSingleton<ShellViewModel>();

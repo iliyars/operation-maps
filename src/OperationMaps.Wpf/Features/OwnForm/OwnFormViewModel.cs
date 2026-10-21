@@ -1,11 +1,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
-using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Word;
-using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using OperationMaps.Wpf.Infrastructure.Navigation;
@@ -21,10 +18,10 @@ using System.Threading.Tasks;
 
 namespace OperationMaps.Wpf.Features.OwnForm
 {
-  public sealed partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo
+  public sealed partial class OwnFormViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
   {
     private readonly ProjectStore _store;
-    private readonly CatalogDbContext _db;
+    private readonly OwnFormStateService _stateService;
     private readonly IWordService _wordService;
     private readonly WordFormMapLoader _mapLoader;
     private readonly IDialogService _dialogService;
@@ -32,8 +29,15 @@ namespace OperationMaps.Wpf.Features.OwnForm
     // ── Form metadata ─────────────────────────────────────────────────────────
 
     public int FormId { get; private set; }
-    public string FormNumber { get; private set; } = "";
-    public string FormTitle { get; private set; } = "";
+    public string FormNumber => _state?.FormNumber ?? "";
+    public string FormTitle => _state?.FormTitle ?? "";
+
+    /// <summary>
+    /// The form's table data. Owned by <see cref="ProjectStore"/> (via
+    /// <see cref="OwnFormStateService"/>), not by this transient ViewModel —
+    /// so edits survive navigating to another screen and back.
+    /// </summary>
+    private OwnFormState? _state;
 
     /// <summary>
     /// True when the current form has a "номера выводов" column (Form 64).
@@ -49,24 +53,21 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// </summary>
     public ObservableCollection<LoadFactorOptionVm> LoadFactorOptions { get; } = [];
 
-    /// <summary>FormParameterId of the row that displays the calculated load factor, if any.</summary>
-    private int? _loadFactorResultParameterId;
-
-    /// <summary>Form.DefaultLoadFactorParameterId, used when a Component has no explicit override.</summary>
-    private int? _defaultLoadFactorParameterId;
-
     // ── Table data ────────────────────────────────────────────────────────────
 
-    public ObservableCollection<FormColumnVm> Columns { get; } = [];
+    /// <summary>Same collection instance as <see cref="OwnFormState.Columns"/> once loaded.</summary>
+    public ObservableCollection<FormColumnVm> Columns => _state?.Columns ?? _noColumns;
+    private readonly ObservableCollection<FormColumnVm> _noColumns = [];
     public ObservableCollection<ColumnListItemVm> ColumnItems { get; } = [];
     public ObservableCollection<FormParameterRowVm> Parameters { get; } = [];
 
     // ── Undo / Redo ───────────────────────────────────────────────────────────
 
-    // Per-form history — a fresh instance per OwnFormViewModel (it's
-    // transient), cleared on every navigation in BuildTableAsync. Not the
-    // same object as ProjectStore.History, which is project-wide.
-    private readonly UndoRedoStack _history = new();
+    // Per-form history lives in OwnFormState next to the columns it edits,
+    // so undo keeps working after navigating away and back. Not the same
+    // object as ProjectStore.History, which is project-wide.
+    private UndoRedoStack _history => _state?.History ?? _noHistory;
+    private readonly UndoRedoStack _noHistory = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanUndo))]
@@ -100,13 +101,13 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public OwnFormViewModel(
         ProjectStore store,
-        CatalogDbContext db,
+        OwnFormStateService stateService,
         IWordService wordService,
         WordFormMapLoader mapLoader,
         IDialogService dialogService)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
-      _db = db ?? throw new ArgumentNullException(nameof(db));
+      _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
       _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
@@ -125,12 +126,20 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       try
       {
-        await BuildTableAsync(cancellationToken);
+        await LoadStateAsync(cancellationToken);
       }
       finally
       {
         IsLoading = false;
       }
+    }
+
+    public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+    {
+      // The state outlives this ViewModel — don't let it keep us alive.
+      if (_state is not null)
+        _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+      return Task.CompletedTask;
     }
 
     // ── Commands: Undo / Redo ─────────────────────────────────────────────────
@@ -407,191 +416,63 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     // ── Private: table builder ────────────────────────────────────────────────
 
-    private async Task BuildTableAsync(CancellationToken ct)
+    private async Task LoadStateAsync(CancellationToken ct)
     {
-      Columns.Clear();
+      if (_state is not null)
+        _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+
       Parameters.Clear();
-      _history.Clear();
-      RefreshHistory(); // ← reset Undo/Redo buttons state for the new form
-
-      var form = await _db.Forms
-          .Include(f => f.Parameters)
-          .FirstOrDefaultAsync(f => f.Id == FormId, ct);
-
-      if (form is null) return;
-
-      FormNumber = form.Number;
-      FormTitle = form.Title;
-
-      var parameters = form.Parameters.OrderBy(p => p.RowNumber).ToList();
-
-      _loadFactorResultParameterId = parameters.FirstOrDefault(p => p.IsLoadFactorResult)?.Id;
-
+      ColumnItems.Clear();
       LoadFactorOptions.Clear();
-      var loadFactorCandidates = parameters.Where(p => p.CanBeLoadFactorBase).OrderBy(p => p.RowNumber).ToList();
-      foreach (var p in loadFactorCandidates)
-        LoadFactorOptions.Add(new LoadFactorOptionVm(p.Id, p.RowNumber, p.Name));
 
-      // Form.DefaultLoadFactorParameterId is the explicit, admin-set default.
-      // When it's not set but there's exactly ONE candidate parameter, that
-      // candidate is the obvious choice — falling back to it here means the
-      // seeder/admin doesn't need to separately wire up
-      // DefaultLoadFactorParameterId for the common single-candidate case;
-      // it only matters when there are multiple candidates and a specific
-      // one should be pre-selected over the others.
-      _defaultLoadFactorParameterId = form.DefaultLoadFactorParameterId
-          ?? (loadFactorCandidates.Count == 1 ? loadFactorCandidates[0].Id : null);
+      _state = await _stateService.GetAsync(FormId, ct);
 
-      var relevantComponents = _store.Components
-          .Where(c => c.Entry.MatchResult.MatchedComponent?.OwnFormId == FormId
-                   || c.Entry.MatchResult.MatchedComponent?.OwnForm?.Id == FormId)
-          .ToList();
+      OnPropertyChanged(nameof(Columns));
+      OnPropertyChanged(nameof(FormNumber));
+      OnPropertyChanged(nameof(FormTitle));
+      RefreshHistory();
+      ExportWordCommand.NotifyCanExecuteChanged();
 
-      var componentIds = relevantComponents
-          .Select(c => c.Entry.MatchResult.MatchedComponent?.Id)
-          .Where(id => id is not null)
-          .Select(id => id!.Value)
-          .ToHashSet();
+      if (_state is null) return;
 
-      // Component.LoadFactorParameterId — per-component override of which
-      // base parameter feeds the load-factor calculation. Loaded from the
-      // EF entity directly (no separate table) since it lives on Component.
-      var loadFactorOverrideByComponent = componentIds.Count > 0
-          ? await _db.Components
-              .Where(c => componentIds.Contains(c.Id))
-              .ToDictionaryAsync(c => c.Id, c => c.LoadFactorParameterId, ct)
-          : [];
+      _state.LoadFactorRecalculated += OnLoadFactorRecalculated;
 
-      var allNtdValues = componentIds.Count > 0
-          ? await _db.ComponentNtdValues
-              .Where(v => componentIds.Contains(v.ComponentId)
-                       && v.FormParameter.FormId == FormId)
-              .ToListAsync(ct)
-          : [];
+      foreach (var option in _state.LoadFactorOptions)
+        LoadFactorOptions.Add(option);
 
-      var ntdByComponent = allNtdValues
-          .GroupBy(v => v.ComponentId)
-          .ToDictionary(g => g.Key, g => g.ToList());
+      foreach (var param in _state.Parameters)
+        Parameters.Add(param);
 
-      // Pin numbers (Form 64's "номера выводов" column) — catalog data,
-      // entered once per Component via the "add component" wizard.
-      var allPinValues = componentIds.Count > 0
-          ? await _db.ComponentPinValues
-              .Where(v => componentIds.Contains(v.ComponentId)
-                       && v.FormParameter.FormId == FormId)
-              .ToListAsync(ct)
-          : [];
+      ShowsPins = _state.ShowsPins;
 
-      var pinsByComponent = allPinValues
-          .GroupBy(v => v.ComponentId)
-          .ToDictionary(g => g.Key, g => g.ToList());
-
-      // Which FormParameterIds are optional (e.g. the second supply voltage)
-      // — their NTD values go into OptionalNtdValues, not NtdValues, since
-      // they don't represent a normal table row.
-      var optionalParamIds = parameters.Where(p => p.IsOptional).Select(p => p.Id).ToHashSet();
-
-      foreach (var component in relevantComponents)
-      {
-        var column = new FormColumnVm(component);
-        var componentId = component.Entry.MatchResult.MatchedComponent?.Id;
-
-        if (componentId is not null)
-        {
-          if (ntdByComponent.TryGetValue(componentId.Value, out var ntdValues))
-            foreach (var ntd in ntdValues)
-              if (optionalParamIds.Contains(ntd.FormParameterId))
-                column.OptionalNtdValues[ntd.FormParameterId] = ntd.Value;
-              else
-                column.NtdValues[ntd.FormParameterId] = ntd.Value;
-
-          if (pinsByComponent.TryGetValue(componentId.Value, out var pinValues))
-            foreach (var pin in pinValues)
-              column.PinValues[pin.FormParameterId] = pin.Pins;
-
-          // Resolve which base parameter drives this component's load
-          // factor: explicit Component.LoadFactorParameterId if set,
-          // otherwise the form's default.
-          loadFactorOverrideByComponent.TryGetValue(componentId.Value, out var explicitOverride);
-          column.LoadFactorBaseParameterId = explicitOverride ?? _defaultLoadFactorParameterId;
-        }
-
-        column.LoadFactorInputsChanged += RecalculateLoadFactor;
-        Columns.Add(column);
-      }
-
-      foreach (var param in parameters)
-        Parameters.Add(new FormParameterRowVm(param, Columns));
-
-      // Link each "primary" parameter to its optional counterpart, if any.
-      // The counterpart is identified by IsOptional=true + OptionalForRowNumber
-      // pointing back at the primary's RowNumber.
-      foreach (var primary in Parameters.Where(p => !p.IsOptional))
-      {
-        var counterpart = Parameters.FirstOrDefault(
-            p => p.IsOptional && p.OptionalForRowNumber == primary.RowNumber);
-        if (counterpart is not null)
-          primary.OptionalCounterpartId = counterpart.FormParameterId;
-      }
-
-      // Form 64 shows a "номера выводов" column for every parameter row.
-      // Detected by form number rather than a dedicated flag for now —
-      // straightforward since pin numbers are currently unique to Form 64.
-      ShowsPins = FormNumber == "64";
-
-      foreach (var col in Columns)
-        ColumnItems.Add(new ColumnListItemVm(col, Parameters));
-
-      // Initial calculation in case values were already loaded (e.g. via
-      // Word import) before the user touches anything.
-      foreach (var col in Columns)
-        RecalculateLoadFactor(col);
+      RebuildColumnItems();
+      ExportWordCommand.NotifyCanExecuteChanged();
     }
 
     // ── Private: helpers ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Recomputes the load-factor result for one column and writes it
-    /// into the IsLoadFactorResult row's CellValues, so it shows up in
-    /// the table exactly like any other "в схеме" value — the user just
-    /// never types into it directly.
+    /// <see cref="OwnFormState"/> already wrote the new load-factor result
+    /// into the column; refresh what's on screen for it.
     /// </summary>
-    private void RecalculateLoadFactor(FormColumnVm column)
+    private void OnLoadFactorRecalculated(FormColumnVm column)
     {
-      if (_loadFactorResultParameterId is null) return;
-      if (column.LoadFactorBaseParameterId is not { } baseParamId) return;
+      var resultParamId = _state?.LoadFactorResultParameterId;
+      if (resultParamId is null) return;
 
-      var baseParam = Parameters.FirstOrDefault(p => p.FormParameterId == baseParamId);
-      if (baseParam is null) return;
-
-      var schemeValue = column.GetCellValue(baseParamId);
-      var ntdValue = column.GetNtdValue(baseParamId);
-
-      var result = LoadFactorCalculator.Calculate(schemeValue, ntdValue, baseParam.RowNumber);
-
-      column.LoadFactorValue = result ?? "";
-      column.CellValues[_loadFactorResultParameterId.Value] = result ?? "";
-      column.NotifyCellValuesChanged();
-
-      // If this column is currently selected and its detail rows are on
-      // screen, push the new value into the visible ParameterDetailVm too —
-      // CellValues alone wouldn't refresh the already-built ParameterDetails
-      // list, since each ParameterDetailVm snapshots SchemeValue at
-      // construction time rather than binding live to the column.
+      // Each ParameterDetailVm snapshots SchemeValue at construction time
+      // rather than binding live to the column, so push the value into the
+      // visible detail row of the selected column explicitly.
       if (SelectedColumn == column)
       {
         var resultDetail = ParameterDetails.FirstOrDefault(
-            d => d.FormParameterId == _loadFactorResultParameterId.Value);
+            d => d.FormParameterId == resultParamId.Value);
         if (resultDetail is not null)
-          resultDetail.SchemeValue = result ?? "";
+          resultDetail.SchemeValue = column.LoadFactorValue;
       }
 
-      // Refresh the list item's fill status, since the result row's
-      // completion state just changed without going through the normal
-      // SchemeValue setter (which would have triggered this itself —
-      // avoided here to prevent infinite recursion).
-      var item = ColumnItems.FirstOrDefault(i => i.Column == column);
-      item?.Refresh();
+      // Fill status changed without going through the normal SchemeValue setter.
+      ColumnItems.FirstOrDefault(i => i.Column == column)?.Refresh();
     }
 
     private void RebuildColumnItems()

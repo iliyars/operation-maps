@@ -1,5 +1,3 @@
-using DocumentFormat.OpenXml.Presentation;
-using DocumentFormat.OpenXml.Spreadsheet;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using System;
 using System.Collections.Generic;

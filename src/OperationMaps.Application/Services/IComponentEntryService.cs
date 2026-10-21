@@ -45,6 +45,13 @@ public sealed class NewComponentInput
   /// </summary>
   public IReadOnlyDictionary<int, string> PinValues { get; init; }
       = new Dictionary<int, string>();
+
+  /// <summary>
+  /// True (default) for components a regular user adds while working on a
+  /// project — an admin checks them later. False when an admin adds the
+  /// component in the catalog: it is verified by definition.
+  /// </summary>
+  public bool NeedsAdminReview { get; init; } = true;
 }
 
 public interface IComponentEntryService
@@ -59,4 +66,7 @@ public interface IComponentEntryService
   /// Returns the freshly created Component, with Family and OwnForm loaded.
   /// </summary>
   Task<Component> CreateComponentAsync(NewComponentInput input, CancellationToken ct = default);
+
+  /// <summary>Admin confirms a user-added component: clears NeedsAdminReview.</summary>
+  Task MarkVerifiedAsync(int componentId, CancellationToken ct = default);
 }

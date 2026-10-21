@@ -11,11 +11,11 @@ public sealed partial class CatalogTypeNode : ObservableObject
   [ObservableProperty] private bool _isExpanded;
   [ObservableProperty] private IReadOnlyList<CatalogFamilyNode> _families = [];
 
-  public void ApplyFilter(string search)
+  public void ApplyFilter(string search, bool onlyUnverified)
   {
-    Families = string.IsNullOrEmpty(search)
-        ? AllFamilies
-        : AllFamilies.Where(f => f.Matches(search)).ToList();
+    Families = AllFamilies
+        .Where(f => (search.Length == 0 || f.Matches(search)) && (!onlyUnverified || f.HasUnverified))
+        .ToList();
   }
 }
 
@@ -27,11 +27,14 @@ public sealed partial class CatalogFamilyNode : ObservableObject
 {
   public required int Id { get; init; }
   public required string Name { get; init; }
+  public required string TypeName { get; init; }
   public required IReadOnlyList<CatalogComponentItem> Components { get; init; }
 
   [ObservableProperty] private bool _isSelected;
 
   public bool HasUnverified => Components.Any(c => c.NeedsReview);
+
+  public void NotifyReviewChanged() => OnPropertyChanged(nameof(HasUnverified));
 
   public bool Matches(string search)
       => Name.Contains(search, StringComparison.OrdinalIgnoreCase)
@@ -43,7 +46,7 @@ public sealed partial class CatalogComponentItem : ObservableObject
 {
   public required int Id { get; init; }
   public required string FullName { get; init; }
-  public required bool NeedsReview { get; init; }
+  [ObservableProperty] private bool _needsReview;
   public string? OwnFormNumber { get; init; }
 
   [ObservableProperty] private bool _isSelected;

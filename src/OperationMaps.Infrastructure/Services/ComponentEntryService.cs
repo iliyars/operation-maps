@@ -18,6 +18,13 @@ public sealed class ComponentEntryService : IComponentEntryService
   {
     ArgumentNullException.ThrowIfNull(input);
 
+    // A second component with the same full name would make matching
+    // ambiguous (which one does a re-import pick?) — refuse it up front,
+    // before a family gets created for nothing.
+    var fullName = input.FullName.Trim();
+    if (await _db.Components.AnyAsync(c => c.FullName == fullName, ct))
+      throw new InvalidOperationException($"Компонент «{fullName}» уже есть в справочнике.");
+
     // ── 1. Resolve or create the Family ─────────────────────────────────────
     Family family;
 
@@ -68,10 +75,10 @@ public sealed class ComponentEntryService : IComponentEntryService
     // ── 3. Create the Component ──────────────────────────────────────────────
     var component = new Component
     {
-      FullName = input.FullName,
+      FullName = fullName,
       FamilyId = family.Id,
       OwnFormId = input.OwnFormId,
-      NeedsAdminReview = true,
+      NeedsAdminReview = input.NeedsAdminReview,
     };
     _db.Components.Add(component);
     await _db.SaveChangesAsync(ct); // need component.Id before adding NtdValues/PinValues
@@ -109,5 +116,14 @@ public sealed class ComponentEntryService : IComponentEntryService
         .Include(c => c.Family)
         .Include(c => c.OwnForm)
         .FirstAsync(c => c.Id == component.Id, ct);
+  }
+
+  public async Task MarkVerifiedAsync(int componentId, CancellationToken ct = default)
+  {
+    var component = await _db.Components.FirstOrDefaultAsync(c => c.Id == componentId, ct)
+        ?? throw new InvalidOperationException("Компонент не найден — возможно, он удалён.");
+
+    component.NeedsAdminReview = false;
+    await _db.SaveChangesAsync(ct);
   }
 }

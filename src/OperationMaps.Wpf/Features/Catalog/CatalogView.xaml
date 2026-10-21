@@ -102,12 +102,40 @@
             </TextBlock>
         </StackPanel>
 
-        <!-- Search -->
+        <!-- Search + admin actions -->
         <Border Grid.Row="1"
                 Background="{DynamicResource BgPanelBrush}"
                 BorderBrush="{DynamicResource BorderDefaultBrush}"
                 BorderThickness="0,0,0,1"
                 Padding="12,8">
+            <DockPanel>
+            <StackPanel DockPanel.Dock="Right"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}">
+                <CheckBox IsChecked="{Binding OnlyUnverified}"
+                          VerticalAlignment="Center"
+                          Margin="0,0,16,0"
+                          Foreground="{DynamicResource TextPrimaryBrush}"
+                          ToolTip="Показать только компоненты, которые ждут проверки администратором">
+                    <TextBlock>
+                        <Run Text="Только непроверенные ("/><Run Text="{Binding UnverifiedCount, Mode=OneWay}"/><Run Text=")"/>
+                    </TextBlock>
+                </CheckBox>
+                <Button Style="{StaticResource OutlineButton}"
+                        Padding="12,5"
+                        Margin="0,0,8,0"
+                        Command="{Binding AddFamilyCommand}"
+                        ToolTip="Новое семейство вместе с первым компонентом (для микросхем — семейство и компонент с одним именем)">
+                    <TextBlock Text="+ Семейство"/>
+                </Button>
+                <Button Style="{StaticResource PrimaryButton}"
+                        Padding="12,5"
+                        Command="{Binding AddComponentCommand}"
+                        ToolTip="Добавить компонент в выбранное семейство">
+                    <TextBlock Text="+ Компонент"/>
+                </Button>
+            </StackPanel>
             <Border Background="{DynamicResource BgInputBrush}"
                     BorderBrush="{DynamicResource BorderInputBrush}"
                     BorderThickness="1"
@@ -139,6 +167,7 @@
                              ToolTip="Поиск по семейству или наименованию компонента"/>
                 </Grid>
             </Border>
+            </DockPanel>
         </Border>
 
         <!-- TYPES/FAMILIES | COMPONENTS | CARD -->
@@ -339,10 +368,20 @@
                                 Background="{DynamicResource StatusWarningBgBrush}"
                                 BorderBrush="{DynamicResource StatusWarningBrush}"
                                 Visibility="{Binding NeedsReview, Converter={StaticResource BoolToVis}}">
-                            <TextBlock Text="Компонент добавлен пользователем и ещё не проверен администратором."
-                                       FontSize="12"
-                                       TextWrapping="Wrap"
-                                       Foreground="{DynamicResource StatusWarningBrush}"/>
+                            <StackPanel>
+                                <TextBlock Text="Компонент добавлен пользователем и ещё не проверен администратором."
+                                           FontSize="12"
+                                           TextWrapping="Wrap"
+                                           Foreground="{DynamicResource StatusWarningBrush}"/>
+                                <!-- Card's DataContext is the card itself — reach the screen VM for the command -->
+                                <Button Content="Подтвердить — данные верны"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Padding="10,5"
+                                        Margin="0,8,0,0"
+                                        HorizontalAlignment="Left"
+                                        Command="{Binding DataContext.VerifyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        Visibility="{Binding DataContext.IsAdmin, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
+                            </StackPanel>
                         </Border>
 
                         <TextBlock Text="{Binding EmptyMessage}"

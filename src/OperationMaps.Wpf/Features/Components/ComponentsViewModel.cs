@@ -95,7 +95,8 @@ namespace OperationMaps.Wpf.Features.Components
     {
       if (component is null) return;
 
-      var dialogVm = new AddComponentDialogViewModel(_db, _entryService, _nameParser, component);
+      var dialogVm = new AddComponentDialogViewModel(
+          _db, _entryService, _nameParser, AddComponentTarget.FromProject(component));
       var dialog = new AddComponentDialog(dialogVm)
       {
         Owner = System.Windows.Application.Current.MainWindow,
@@ -103,10 +104,10 @@ namespace OperationMaps.Wpf.Features.Components
 
       var result = dialog.ShowDialog();
 
-      if (result == true)
+      if (result == true && dialogVm.CreatedMatch is not null)
       {
-        // ProjectComponentVm already updated itself via ApplyNewMatch();
-        // just refresh aggregate counts/filters in this screen.
+        // Row moves from "Не найден" to "Найден" right away.
+        component.ApplyNewMatch(dialogVm.CreatedMatch);
         RefreshCounts();
       }
     }

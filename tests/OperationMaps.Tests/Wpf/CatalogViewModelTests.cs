@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Infrastructure.Services;
 using OperationMaps.Wpf.Features.Catalog;
+using OperationMaps.Wpf.Stores;
 using Xunit;
 
 namespace OperationMaps.Tests.Wpf;
@@ -42,7 +44,7 @@ public sealed class CatalogViewModelTests : IDisposable
     _db.ComponentNtdValues.Add(new ComponentNtdValue { ComponentId = verified.Id, FormParameterId = voltage.Id, Value = "50" });
     _db.SaveChanges();
 
-    _vm = new CatalogViewModel(_db);
+    _vm = new CatalogViewModel(_db, new SessionStore(), new ComponentEntryService(_db), new ComponentNameParser());
   }
 
   private CatalogFamilyNode Family(string name) => _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == name);

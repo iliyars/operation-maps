@@ -77,6 +77,52 @@ public sealed record OwnFormOption(int Id, string Number, string Title)
   public override string ToString() => Display;
 }
 
+/// <summary>Selectable component type (catalog mode, new family).</summary>
+public sealed record ComponentTypeOption(int Id, string Name)
+{
+  public override string ToString() => Name;
+}
+
+/// <summary>
+/// What the wizard creates a component for.
+/// <list type="bullet">
+/// <item>Project mode (<see cref="FromProject"/>): a component from the
+/// imported list that wasn't found — name and type come from the XML, the
+/// result is marked "не проверен" for an admin to check.</item>
+/// <item>Catalog mode (<see cref="ForCatalog"/>): an admin adds a component
+/// in "Справочник ЭРИ" — name (and type, for a new family) are typed in,
+/// the result counts as verified.</item>
+/// </list>
+/// </summary>
+public sealed class AddComponentTarget
+{
+  public bool IsCatalogMode { get; private init; }
+  public string TypeName { get; private init; } = "";
+  public string FullName { get; private init; } = "";
+  public string? Positions { get; private init; }
+  public int? ExistingFamilyId { get; private init; }
+  public string? ExistingFamilyName { get; private init; }
+
+  public static AddComponentTarget FromProject(ProjectComponentVm component) => new()
+  {
+    TypeName = component.Entry.Imported.DetectedCategory,
+    FullName = component.Entry.Imported.RawName,
+    Positions = component.Positions,
+    ExistingFamilyId = component.Entry.MatchResult.MatchedFamily?.Id,
+    ExistingFamilyName = component.Entry.MatchResult.MatchedFamily?.Name,
+  };
+
+  /// <param name="familyId">Family to add to; null to create a new family (step 1).</param>
+  /// <param name="typeName">Pre-selected type for a new family, if known.</param>
+  public static AddComponentTarget ForCatalog(int? familyId, string? familyName, string? typeName) => new()
+  {
+    IsCatalogMode = true,
+    TypeName = typeName ?? "",
+    ExistingFamilyId = familyId,
+    ExistingFamilyName = familyName,
+  };
+}
+
 /// <summary>
 /// Two-step wizard for entering NTD values for a component that wasn't
 /// found in the catalog: step 1 collects Form-4 (family-level) values,
@@ -84,15 +130,16 @@ public sealed record OwnFormOption(int Id, string Number, string Title)
 /// and fill its parameters — including pin numbers and an optional
 /// second-value row when the chosen form supports them (Form 64).
 /// On confirm, creates Family (if needed) + Component via
-/// <see cref="IComponentEntryService"/>, then updates the originating
-/// <see cref="ProjectComponentVm"/> in place.
+/// <see cref="IComponentEntryService"/>; the caller picks up
+/// <see cref="CreatedComponent"/>/<see cref="CreatedMatch"/>.
+/// See <see cref="AddComponentTarget"/> for the project and catalog modes.
 /// </summary>
 public sealed partial class AddComponentDialogViewModel : ObservableObject
 {
   private readonly CatalogDbContext _db;
   private readonly IComponentEntryService _entryService;
   private readonly IComponentNameParser _nameParser;
-  private readonly ProjectComponentVm _target;
+  private readonly AddComponentTarget _target;
 
   private int _componentTypeId;
   private int? _existingFamilyId;
@@ -116,9 +163,35 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   // ── Header info (read-only, shown on both steps) ───────────────────────────
 
-  public string ComponentRawName => _target.Entry.Imported.RawName;
-  public string ComponentPositions => _target.Positions;
-  public string ComponentTypeName => _target.ComponentTypeName;
+  public bool IsCatalogMode => _target.IsCatalogMode;
+  public string DialogTitle => IsCatalogMode ? "Новый компонент справочника" : "Ввод данных компонента";
+
+  /// <summary>Editable in catalog mode; fixed (from the XML) in project mode.</summary>
+  [ObservableProperty]
+  [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+  private string _componentFullName = "";
+
+  public string? ComponentPositions => _target.Positions;
+  public bool HasPositions => !string.IsNullOrEmpty(_target.Positions);
+
+  [ObservableProperty] private string _componentTypeName = "";
+
+  // ── Type picker (catalog mode, new family only) ───────────────────────────
+
+  public ObservableCollection<ComponentTypeOption> TypeOptions { get; } = [];
+
+  [ObservableProperty]
+  [NotifyPropertyChangedFor(nameof(CanGoNext))]
+  [NotifyCanExecuteChangedFor(nameof(GoNextCommand))]
+  private ComponentTypeOption? _selectedType;
+
+  public bool ShowTypePicker => IsCatalogMode && !FamilyAlreadyKnown;
+
+  partial void OnSelectedTypeChanged(ComponentTypeOption? value)
+  {
+    _componentTypeId = value?.Id ?? 0;
+    ComponentTypeName = value?.Name ?? "";
+  }
 
   // ── Step 1: Family ────────────────────────────────────────────────────────
 
@@ -142,16 +215,21 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   [ObservableProperty] private bool _isCompleted;
 
+  public Component? CreatedComponent { get; private set; }
+  public MatchResult? CreatedMatch { get; private set; }
+
   public AddComponentDialogViewModel(
       CatalogDbContext db,
       IComponentEntryService entryService,
       IComponentNameParser nameParser,
-      ProjectComponentVm target)
+      AddComponentTarget target)
   {
     _db = db ?? throw new ArgumentNullException(nameof(db));
     _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
     _target = target ?? throw new ArgumentNullException(nameof(target));
+    _componentFullName = target.FullName;
+    _componentTypeName = target.TypeName;
   }
 
   // ── Initialization ───────────────────────────────────────────────────────
@@ -161,18 +239,38 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
     IsLoading = true;
     try
     {
-      var typeName = _target.Entry.Imported.DetectedCategory;
-      var type = await _db.ComponentTypes
-          .FirstOrDefaultAsync(t => t.Name == typeName, ct);
+      var existingFamily = _target.ExistingFamilyId is { } familyId
+          ? await _db.Families.Include(f => f.ComponentType).FirstOrDefaultAsync(f => f.Id == familyId, ct)
+          : null;
 
-      if (type is null)
+      if (existingFamily is not null)
       {
-        ErrorMessage = $"Тип компонента «{typeName}» не найден в справочнике.";
-        return;
+        // The family decides the type — no need to look it up by name.
+        _componentTypeId = existingFamily.ComponentTypeId;
+        ComponentTypeName = existingFamily.ComponentType.Name;
       }
-      _componentTypeId = type.Id;
+      else if (IsCatalogMode)
+      {
+        // New family from the catalog: the admin picks the type.
+        TypeOptions.Clear();
+        foreach (var t in await _db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct))
+          TypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
+        SelectedType = TypeOptions.FirstOrDefault(t => t.Name == _target.TypeName);
+      }
+      else
+      {
+        var typeName = _target.TypeName;
+        var type = await _db.ComponentTypes
+            .FirstOrDefaultAsync(t => t.Name == typeName, ct);
 
-      var existingFamily = _target.Entry.MatchResult.MatchedFamily;
+        if (type is null)
+        {
+          ErrorMessage = $"Тип компонента «{typeName}» не найден в справочнике.";
+          return;
+        }
+        _componentTypeId = type.Id;
+      }
+
       if (existingFamily is not null)
       {
         _existingFamilyId = existingFamily.Id;
@@ -184,6 +282,13 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         HasStep1 = false;
         Step = 2;
       }
+      else if (IsCatalogMode)
+      {
+        // Admin types the family name; for e.g. microcircuits it's simply
+        // the component name, which step 2 then pre-fills from it.
+        FamilyAlreadyKnown = false;
+        FamilyName = "";
+      }
       else
       {
         // Family wasn't resolved by the parser. Pre-fill with the SAME
@@ -191,13 +296,12 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         // component's name — not the raw full name — so a later
         // re-import can find this family again (ComponentMatcher
         // looks up Family by parsed.Family).
-        var parsed = _nameParser.Parse(
-            $"{_target.Entry.Imported.DetectedCategory} {_target.Entry.Imported.RawName}");
+        var parsed = _nameParser.Parse($"{_target.TypeName} {_target.FullName}");
 
         FamilyAlreadyKnown = false;
         FamilyName = !string.IsNullOrWhiteSpace(parsed.Family)
             ? parsed.Family
-            : _target.Entry.Imported.RawName;
+            : _target.FullName;
       }
 
       // Form 4 — always Form.Number == "4"
@@ -261,17 +365,27 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   // ── Step navigation ───────────────────────────────────────────────────────
 
   public bool CanGoNext => IsStep1
-      && (FamilyAlreadyKnown || !string.IsNullOrWhiteSpace(FamilyName));
+      && (FamilyAlreadyKnown || !string.IsNullOrWhiteSpace(FamilyName))
+      && _componentTypeId != 0;
 
   [RelayCommand(CanExecute = nameof(CanGoNext))]
   private void GoNext()
   {
     if (!CanGoNext) return;
+
+    // Microcircuits & co.: the family and its component share the name.
+    if (IsCatalogMode && string.IsNullOrWhiteSpace(ComponentFullName))
+      ComponentFullName = FamilyName.Trim();
+
     Step = 2;
   }
 
   partial void OnFamilyNameChanged(string value) => GoNextCommand.NotifyCanExecuteChanged();
-  partial void OnFamilyAlreadyKnownChanged(bool value) => GoNextCommand.NotifyCanExecuteChanged();
+  partial void OnFamilyAlreadyKnownChanged(bool value)
+  {
+    GoNextCommand.NotifyCanExecuteChanged();
+    OnPropertyChanged(nameof(ShowTypePicker));
+  }
   partial void OnStepChanged(int value)
   {
     GoNextCommand.NotifyCanExecuteChanged();
@@ -333,7 +447,8 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   // ── Save ──────────────────────────────────────────────────────────────────
 
-  public bool CanSave => IsStep2 && SelectedOwnForm is not null && !IsSaving;
+  public bool CanSave => IsStep2 && SelectedOwnForm is not null && !IsSaving
+      && !string.IsNullOrWhiteSpace(ComponentFullName);
 
   [RelayCommand(CanExecute = nameof(CanSave))]
   private async Task SaveAsync(CancellationToken ct = default)
@@ -372,16 +487,18 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         ComponentTypeId = _componentTypeId,
         ExistingFamilyId = _existingFamilyId,
         NewFamilyName = _existingFamilyId is null ? FamilyName : null,
-        FullName = _target.Entry.Imported.RawName,
+        FullName = ComponentFullName.Trim(),
         Form4Values = Form4Rows.ToDictionary(r => r.FormParameterId, r => r.Value),
         OwnFormId = SelectedOwnForm.Id,
         OwnFormValues = ownFormValues,
         PinValues = pinValues,
+        NeedsAdminReview = !IsCatalogMode,
       };
 
       var component = await _entryService.CreateComponentAsync(input, ct);
 
-      var newResult = new MatchResult
+      CreatedComponent = component;
+      CreatedMatch = new MatchResult
       {
         IsMatched = true,
         MatchedType = await _db.ComponentTypes.FindAsync([_componentTypeId], ct),
@@ -391,9 +508,11 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         Warning = null,
       };
 
-      _target.ApplyNewMatch(newResult);
-
       IsCompleted = true;
+    }
+    catch (InvalidOperationException ex)
+    {
+      ErrorMessage = ex.Message;
     }
     catch (Exception ex)
     {

@@ -1,0 +1,425 @@
+<UserControl x:Class="OperationMaps.Wpf.Features.Catalog.CatalogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Catalog"
+             mc:Ignorable="d"
+             Background="{DynamicResource BgAppBrush}">
+
+    <UserControl.Resources>
+
+        <!-- Clickable list row; selection is driven by the item's IsSelected,
+             passed in through Tag (Button has no checked state of its own). -->
+        <Style x:Key="CatalogRow"
+               TargetType="Button">
+            <Setter Property="Background"
+                    Value="Transparent"/>
+            <Setter Property="BorderThickness"
+                    Value="0"/>
+            <Setter Property="Padding"
+                    Value="12,7"/>
+            <Setter Property="Cursor"
+                    Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch"/>
+            <Setter Property="FocusVisualStyle"
+                    Value="{x:Null}"/>
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                                     Value="True">
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="{DynamicResource BgHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="Tag"
+                                     Value="True">
+                                <Setter TargetName="Bd"
+                                        Property="Background"
+                                        Value="{DynamicResource BgActiveBrush}"/>
+                                <Setter Property="FontWeight"
+                                        Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- "Не проверен" badge -->
+        <Style x:Key="ReviewBadge"
+               TargetType="Border">
+            <Setter Property="Background"
+                    Value="{DynamicResource StatusWarningBgBrush}"/>
+            <Setter Property="CornerRadius"
+                    Value="4"/>
+            <Setter Property="Padding"
+                    Value="6,1"/>
+            <Setter Property="VerticalAlignment"
+                    Value="Center"/>
+        </Style>
+
+        <Style x:Key="ColumnHeader"
+               TargetType="TextBlock"
+               BasedOn="{StaticResource SectionLabel}">
+            <Setter Property="Margin"
+                    Value="12,10,12,6"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Page heading -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    Margin="16,14,16,4">
+            <TextBlock Text="Справочник ЭРИ"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Foreground="{DynamicResource TextMutedBrush}"
+                       FontSize="12"
+                       VerticalAlignment="Bottom"
+                       Margin="12,0,0,3">
+                <Run Text="семейств: "/><Run Text="{Binding FamilyCount, Mode=OneWay}"/><Run Text=" · компонентов: "/><Run Text="{Binding ComponentCount, Mode=OneWay}"/>
+            </TextBlock>
+        </StackPanel>
+
+        <!-- Search -->
+        <Border Grid.Row="1"
+                Background="{DynamicResource BgPanelBrush}"
+                BorderBrush="{DynamicResource BorderDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                Padding="12,8">
+            <Border Background="{DynamicResource BgInputBrush}"
+                    BorderBrush="{DynamicResource BorderInputBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="10,0"
+                    Height="34"
+                    MaxWidth="420"
+                    HorizontalAlignment="Left">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0"
+                               Text="&#xE71E;"
+                               Style="{StaticResource IconText}"
+                               FontSize="12"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               VerticalAlignment="Center"
+                               Margin="0,0,6,0"/>
+                    <TextBox Grid.Column="1"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             VerticalContentAlignment="Center"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             VerticalAlignment="Center"
+                             FontSize="13"
+                             ToolTip="Поиск по семейству или наименованию компонента"/>
+                </Grid>
+            </Border>
+        </Border>
+
+        <!-- TYPES/FAMILIES | COMPONENTS | CARD -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"
+                                  MinWidth="180"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="*"
+                                  MinWidth="220"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="400"
+                                  MinWidth="280"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── Types / families ── -->
+            <DockPanel Grid.Column="0">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="ТИПЫ / СЕМЕЙСТВА"
+                           Style="{StaticResource ColumnHeader}"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Types}"
+                                  Focusable="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type local:CatalogTypeNode}">
+                                <StackPanel>
+                                    <!-- Type header: click to expand/collapse -->
+                                    <Button Style="{StaticResource CatalogRow}"
+                                            Padding="8,7"
+                                            Command="{Binding DataContext.ToggleTypeCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                       FontSize="10"
+                                                       Width="16"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextMutedBrush}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text"
+                                                                Value="&#xE76C;"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsExpanded}"
+                                                                         Value="True">
+                                                                <Setter Property="Text"
+                                                                        Value="&#xE70D;"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Foreground="{DynamicResource TextMutedBrush}"
+                                                       FontSize="11"
+                                                       VerticalAlignment="Center"
+                                                       Margin="6,0,0,0">
+                                                <Run Text="("/><Run Text="{Binding Families.Count, Mode=OneWay}"/><Run Text=")"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!-- Families -->
+                                    <ItemsControl ItemsSource="{Binding Families}"
+                                                  Focusable="False"
+                                                  Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type local:CatalogFamilyNode}">
+                                                <Button Style="{StaticResource CatalogRow}"
+                                                        Padding="32,6,12,6"
+                                                        Tag="{Binding IsSelected}"
+                                                        Command="{Binding DataContext.SelectFamilyCommand,
+                                                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right"
+                                                                   Text="&#xE7BA;"
+                                                                   Style="{StaticResource IconText}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource StatusWarningBrush}"
+                                                                   VerticalAlignment="Center"
+                                                                   ToolTip="Есть непроверенные компоненты"
+                                                                   Visibility="{Binding HasUnverified, Converter={StaticResource BoolToVis}}"/>
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   ToolTip="{Binding Name}"/>
+                                                    </DockPanel>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+
+            <Border Grid.Column="1"
+                    Background="{DynamicResource BorderDefaultBrush}"/>
+
+            <!-- ── Components of the selected family ── -->
+            <DockPanel Grid.Column="2">
+                <TextBlock DockPanel.Dock="Top"
+                           Text="КОМПОНЕНТЫ"
+                           Style="{StaticResource ColumnHeader}"/>
+                <Grid>
+                    <TextBlock Text="Выберите семейство слева"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="13"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding SelectedFamily, Converter={StaticResource NotNullToVis}}"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  Visibility="{Binding SelectedFamily, Converter={StaticResource NullToVis}}">
+                        <ItemsControl ItemsSource="{Binding VisibleComponents}"
+                                      Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:CatalogComponentItem}">
+                                    <Button Style="{StaticResource CatalogRow}"
+                                            Tag="{Binding IsSelected}"
+                                            Command="{Binding DataContext.SelectComponentCommand,
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <DockPanel>
+                                            <Border DockPanel.Dock="Right"
+                                                    Style="{StaticResource ReviewBadge}"
+                                                    Margin="8,0,0,0"
+                                                    Visibility="{Binding NeedsReview, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock Text="не проверен"
+                                                           FontSize="11"
+                                                           FontWeight="Normal"
+                                                           Foreground="{DynamicResource StatusWarningBrush}"/>
+                                            </Border>
+                                            <TextBlock DockPanel.Dock="Right"
+                                                       FontSize="11"
+                                                       FontWeight="Normal"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="8,0,0,0"
+                                                       Visibility="{Binding OwnFormNumber, Converter={StaticResource NullToVis}}">
+                                                <Run Text="ф. "/><Run Text="{Binding OwnFormNumber, Mode=OneWay}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding FullName}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       ToolTip="{Binding FullName}"/>
+                                        </DockPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </DockPanel>
+
+            <Border Grid.Column="3"
+                    Background="{DynamicResource BorderDefaultBrush}"/>
+
+            <!-- ── Card ── -->
+            <Grid Grid.Column="4"
+                  Background="{DynamicResource BgSidebarBrush}">
+
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding Card, Converter={StaticResource NotNullToVis}}">
+                    <TextBlock Text="&#xE9CE;"
+                               Style="{StaticResource IconTextMuted}"
+                               FontSize="32"/>
+                    <TextBlock Text="Выберите семейство или компонент"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               FontSize="13"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding Card, Converter={StaticResource NullToVis}}">
+                    <StackPanel Margin="16"
+                                DataContext="{Binding Card}">
+
+                        <TextBlock Text="{Binding Title}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Subtitle}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,2,0,12"/>
+
+                        <Border Padding="10,8"
+                                Margin="0,0,0,16"
+                                CornerRadius="6"
+                                BorderThickness="1"
+                                Background="{DynamicResource StatusWarningBgBrush}"
+                                BorderBrush="{DynamicResource StatusWarningBrush}"
+                                Visibility="{Binding NeedsReview, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Компонент добавлен пользователем и ещё не проверен администратором."
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       Foreground="{DynamicResource StatusWarningBrush}"/>
+                        </Border>
+
+                        <TextBlock Text="{Binding EmptyMessage}"
+                                   Style="{StaticResource MutedText}"
+                                   TextWrapping="Wrap"
+                                   Visibility="{Binding EmptyMessage, Converter={StaticResource NullToVis}}"/>
+
+                        <TextBlock Text="{Binding ParametersHeader}"
+                                   Style="{StaticResource SectionLabel}"
+                                   Margin="0,0,0,8"/>
+
+                        <ItemsControl ItemsSource="{Binding Parameters}"
+                                      Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type local:CatalogParamRow}">
+                                    <Grid Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="24"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"
+                                                              MinWidth="70"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding RowNumber}"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextMutedBrush}"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock FontSize="11"
+                                                       Foreground="{DynamicResource TextMutedBrush}"
+                                                       Visibility="{Binding Pins, Converter={StaticResource NullToVis}}">
+                                                <Run Text="выводы: "/><Run Text="{Binding Pins, Mode=OneWay}"/>
+                                            </TextBlock>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding Value}"
+                                                   Style="{StaticResource ParamValue}"
+                                                   FontSize="12"
+                                                   TextWrapping="Wrap"
+                                                   MaxWidth="160"
+                                                   TextAlignment="Right"
+                                                   HorizontalAlignment="Right"
+                                                   Margin="8,0,0,0"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <StackPanel Visibility="{Binding HasNotes, Converter={StaticResource BoolToVis}}"
+                                    Margin="0,16,0,0">
+                            <TextBlock Text="ПРИМЕЧАНИЯ"
+                                       Style="{StaticResource SectionLabel}"
+                                       Margin="0,0,0,8"/>
+                            <ItemsControl ItemsSource="{Binding Notes}"
+                                          Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type local:CatalogNoteRow}">
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{Binding Parameter}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding Text}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -76,6 +76,17 @@
                     <MenuItem Header="{Binding ThemeLabel}"
                               Command="{Binding ToggleThemeCommand}"/>
                 </MenuItem>
+                <MenuItem Header="Администратор">
+                    <MenuItem Header="Войти как администратор…"
+                              Command="{Binding SignInCommand}"
+                              Visibility="{Binding IsAdmin, Converter={StaticResource InverseBoolToVis}}"/>
+                    <MenuItem Header="Администраторы"
+                              Command="{Binding OpenAdminsCommand}"
+                              Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                    <MenuItem Header="Выйти из режима администратора"
+                              Command="{Binding SignOutCommand}"
+                              Visibility="{Binding IsAdmin, Converter={StaticResource BoolToVis}}"/>
+                </MenuItem>
                 <MenuItem Header="Справка">
                     <MenuItem Header="О программе"
                               Command="{Binding ShowAboutCommand}"/>

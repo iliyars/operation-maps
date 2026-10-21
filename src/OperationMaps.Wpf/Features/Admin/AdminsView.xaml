@@ -1,0 +1,170 @@
+<UserControl x:Class="OperationMaps.Wpf.Features.Admin.AdminsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Admin"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=local:AdminsViewModel}"
+             Background="{DynamicResource BgAppBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0"
+                    Margin="16,14,16,12">
+            <TextBlock Text="Администраторы"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="У каждого администратора свой логин и пароль. Забытый пароль может сменить любой другой администратор."
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"
+                                  MinWidth="260"/>
+                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ── List ── -->
+            <DockPanel Grid.Column="0">
+                <Border DockPanel.Dock="Bottom"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <Button Content="Удалить выбранного"
+                            Style="{StaticResource OutlineButton}"
+                            Padding="12,5"
+                            HorizontalAlignment="Left"
+                            Command="{Binding DeleteCommand}"
+                            ToolTip="Себя удалить нельзя — это может сделать другой администратор"/>
+                </Border>
+                <ListBox ItemsSource="{Binding Admins}"
+                         SelectedItem="{Binding Selected}"
+                         BorderThickness="0"
+                         Background="{DynamicResource BgAppBrush}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:AdminRowVm}">
+                            <StackPanel Margin="6,6">
+                                <TextBlock FontSize="13"
+                                           Foreground="{DynamicResource TextPrimaryBrush}">
+                                    <Run Text="{Binding DisplayName, Mode=OneWay}"
+                                         FontWeight="SemiBold"/>
+                                    <Run Foreground="{DynamicResource TextMutedBrush}">
+                                        <Run.Style>
+                                            <Style TargetType="Run">
+                                                <Setter Property="Text"
+                                                        Value=""/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsYou}"
+                                                                 Value="True">
+                                                        <Setter Property="Text"
+                                                                Value="  (вы)"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Run.Style>
+                                    </Run>
+                                </TextBlock>
+                                <TextBlock Text="{Binding Login}"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextMutedBrush}"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <Border Grid.Column="1"
+                    Background="{DynamicResource BorderDefaultBrush}"/>
+
+            <!-- ── Forms ── -->
+            <ScrollViewer Grid.Column="2"
+                          VerticalScrollBarVisibility="Auto"
+                          Background="{DynamicResource BgSidebarBrush}">
+                <StackPanel Margin="16">
+
+                    <!-- Change password of the selected admin -->
+                    <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}"
+                                Margin="0,0,0,24">
+                        <TextBlock Style="{StaticResource SectionLabel}"
+                                   Margin="0,0,0,8">
+                            <Run Text="НОВЫЙ ПАРОЛЬ ДЛЯ «"/><Run Text="{Binding Selected.Login, Mode=OneWay}"/><Run Text="»"/>
+                        </TextBlock>
+                        <TextBlock Text="Пароль"
+                                   Style="{StaticResource ParamLabel}"
+                                   Margin="0,0,0,4"/>
+                        <PasswordBox x:Name="ChangePassword"
+                                     Margin="0,0,0,10"/>
+                        <TextBlock Text="Повторите пароль"
+                                   Style="{StaticResource ParamLabel}"
+                                   Margin="0,0,0,4"/>
+                        <PasswordBox x:Name="ChangeRepeat"
+                                     Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding PasswordError}"
+                                   Foreground="{DynamicResource StatusErrorBrush}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"
+                                   Visibility="{Binding PasswordError, Converter={StaticResource NullToVis}}"/>
+                        <TextBlock Text="{Binding PasswordMessage}"
+                                   Foreground="{DynamicResource StatusSuccessBrush}"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"
+                                   Visibility="{Binding PasswordMessage, Converter={StaticResource NullToVis}}"/>
+                        <Button Content="Сменить пароль"
+                                Style="{StaticResource OutlineButton}"
+                                Padding="12,5"
+                                HorizontalAlignment="Left"
+                                Click="ChangePassword_Click"/>
+                    </StackPanel>
+
+                    <!-- Add admin -->
+                    <TextBlock Text="ДОБАВИТЬ АДМИНИСТРАТОРА"
+                               Style="{StaticResource SectionLabel}"
+                               Margin="0,0,0,8"/>
+                    <TextBlock Text="Логин"
+                               Style="{StaticResource ParamLabel}"
+                               Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewLogin, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+                    <TextBlock Text="Имя"
+                               Style="{StaticResource ParamLabel}"
+                               Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding NewDisplayName, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,10"/>
+                    <TextBlock Text="Пароль"
+                               Style="{StaticResource ParamLabel}"
+                               Margin="0,0,0,4"/>
+                    <PasswordBox x:Name="AddPassword"
+                                 Margin="0,0,0,10"/>
+                    <TextBlock Text="Повторите пароль"
+                               Style="{StaticResource ParamLabel}"
+                               Margin="0,0,0,4"/>
+                    <PasswordBox x:Name="AddRepeat"
+                                 Margin="0,0,0,10"/>
+                    <TextBlock Text="{Binding AddError}"
+                               Foreground="{DynamicResource StatusErrorBrush}"
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,8"
+                               Visibility="{Binding AddError, Converter={StaticResource NullToVis}}"/>
+                    <Button Content="Добавить"
+                            Style="{StaticResource PrimaryButton}"
+                            Padding="14,6"
+                            HorizontalAlignment="Left"
+                            Click="Add_Click"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

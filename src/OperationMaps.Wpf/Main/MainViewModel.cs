@@ -11,18 +11,33 @@ namespace OperationMaps.Wpf.Main
   public sealed class MainViewModel : ObservableObject
   {
     private readonly ProjectStore _store;
+    private readonly SessionStore _session;
 
-    /// <summary>"OperationMaps — Проект*", the star marking unsaved changes (as in Word).</summary>
-    public string Title => _store.HasProject
-        ? $"OperationMaps — {_store.ProjectName}{(_store.IsDirty ? "*" : "")}"
-        : "OperationMaps";
+    /// <summary>
+    /// "OperationMaps — Проект* · администратор: Имя" — the star marks unsaved
+    /// changes (as in Word); the suffix makes admin mode impossible to miss.
+    /// </summary>
+    public string Title
+    {
+      get
+      {
+        var title = _store.HasProject
+            ? $"OperationMaps — {_store.ProjectName}{(_store.IsDirty ? "*" : "")}"
+            : "OperationMaps";
+        return _session.CurrentAdmin is { } admin
+            ? $"{title} · администратор: {admin.DisplayName}"
+            : title;
+      }
+    }
 
     public ShellViewModel Shell { get; }
 
-    public MainViewModel(ShellViewModel shell, ProjectStore store)
+    public MainViewModel(ShellViewModel shell, ProjectStore store, SessionStore session)
     {
       Shell = shell ?? throw new ArgumentNullException(nameof(shell));
       _store = store ?? throw new ArgumentNullException(nameof(store));
+      _session = session ?? throw new ArgumentNullException(nameof(session));
+      _session.PropertyChanged += (_, _) => OnPropertyChanged(nameof(Title));
 
       _store.PropertyChanged += (_, e) =>
       {

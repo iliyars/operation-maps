@@ -18,6 +18,7 @@ using System.IO;
 using Microsoft.Extensions.DependencyInjection;
 using OperationMaps.Application.Services;
 using OperationMaps.Wpf.Features.Project;
+using OperationMaps.Wpf.Features.Admin;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -31,6 +32,7 @@ namespace OperationMaps.Wpf.Shell
     private readonly IDialogService _dialogService;
     private readonly IFilePicker _filePicker;
     private readonly ProjectFileService _projectFile;
+    private readonly SessionStore _session;
     private readonly IServiceProvider _services;
 
     // One data builder per form of the current project, in report order.
@@ -55,6 +57,7 @@ namespace OperationMaps.Wpf.Shell
         IDialogService dialogService,
         IFilePicker filePicker,
         ProjectFileService projectFile,
+        SessionStore session,
         IServiceProvider services)
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
@@ -64,6 +67,14 @@ namespace OperationMaps.Wpf.Shell
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
       _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
       _projectFile = projectFile ?? throw new ArgumentNullException(nameof(projectFile));
+      _session = session ?? throw new ArgumentNullException(nameof(session));
+      _session.PropertyChanged += (_, e) =>
+      {
+        if (e.PropertyName != nameof(SessionStore.IsAdmin)) return;
+        OnPropertyChanged(nameof(IsAdmin));
+        foreach (var item in NavItems.Where(i => i.ScreenType == typeof(AdminsViewModel)))
+          item.IsVisible = _session.IsAdmin;
+      };
       _services = services ?? throw new ArgumentNullException(nameof(services));
 
       _store.PropertyChanged += (_, e) =>
@@ -109,6 +120,36 @@ namespace OperationMaps.Wpf.Shell
 
     public ICommand? ActiveUndoCommand => (CurrentScreen as OwnFormViewModel)?.UndoCommand;
     public ICommand? ActiveRedoCommand => (CurrentScreen as OwnFormViewModel)?.RedoCommand;
+
+    // ── Admin mode ────────────────────────────────────────────────────────────
+
+    public bool IsAdmin => _session.IsAdmin;
+
+    /// <summary>
+    /// Password prompt; on a catalog without any admin it creates the first
+    /// one instead (whoever sets the catalog up becomes its first admin).
+    /// </summary>
+    [RelayCommand]
+    private async Task SignInAsync()
+    {
+      var accounts = _services.GetRequiredService<IAdminAccountService>();
+      var vm = new LoginDialogViewModel(accounts, isFirstAdmin: !await accounts.AnyAdminExistsAsync());
+      var dialog = new LoginDialog(vm) { Owner = System.Windows.Application.Current.MainWindow };
+
+      if (dialog.ShowDialog() == true && vm.Result is not null)
+        _session.SignIn(vm.Result);
+    }
+
+    [RelayCommand]
+    private async Task SignOutAsync()
+    {
+      _session.SignOut();
+      if (_navigation.CurrentScreen is AdminsViewModel)
+        await _navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
+    }
+
+    [RelayCommand]
+    private Task OpenAdminsAsync() => _navigation.NavigateAsync<AdminsViewModel>();
 
     // ── Project file (.omaps) ─────────────────────────────────────────────────
 
@@ -358,10 +399,20 @@ namespace OperationMaps.Wpf.Shell
       {
         Label = "Справочник ЭРИ",
         Icon = "\uE8FD",
-        IsVisible = false,
+        IsVisible = true, // browsing is for everyone; editing will be admin-only
         ScreenType = typeof(CatalogViewModel),
         Command = new AsyncRelayCommand(
               () => _navigation.NavigateAsync<CatalogViewModel>()),
+      });
+
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Администраторы",
+        Icon = "\uE77B",
+        IsVisible = false, // admin mode only
+        ScreenType = typeof(AdminsViewModel),
+        Command = new AsyncRelayCommand(
+              () => _navigation.NavigateAsync<AdminsViewModel>()),
       });
     }
 
@@ -486,15 +537,6 @@ namespace OperationMaps.Wpf.Shell
       var isDark = Shared.Themes.ThemeManager.Instance.Current == Shared.Themes.AppTheme.Dark;
       ThemeIcon = isDark ? "\uE706" : "\uE708";
       ThemeLabel = isDark ? "Светлая тема" : "Тёмная тема";
-    }
-
-    // ── Admin visibility ──────────────────────────────────────────────────────
-
-    public void ApplyAdminMode(bool isAdmin)
-    {
-      foreach (var item in NavItems)
-        if (item.ScreenType == typeof(CatalogViewModel))
-          item.IsVisible = isAdmin;
     }
 
 

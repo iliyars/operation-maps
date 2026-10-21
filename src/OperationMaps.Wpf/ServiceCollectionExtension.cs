@@ -18,6 +18,7 @@ using OperationMaps.Wpf.Features.Form4;
 using OperationMaps.Wpf.Features.OwnForm;
 using OperationMaps.Wpf.Features.Components.WordImport;
 using OperationMaps.Wpf.Features.Project;
+using OperationMaps.Wpf.Features.Admin;
 
 namespace OperationMaps.Wpf
 {
@@ -34,6 +35,7 @@ namespace OperationMaps.Wpf
 
       // Stores
       services.AddSingleton<ProjectStore>();
+      services.AddSingleton<SessionStore>();
       services.AddTransient<OwnFormStateService>();
       services.AddSingleton<ProjectFileService>();
 
@@ -51,6 +53,7 @@ namespace OperationMaps.Wpf
       services.AddTransient<OwnFormViewModel>();
       services.AddTransient<UnresolvedViewModel>();
       services.AddTransient<WordImportViewModel>();
+      services.AddTransient<AdminsViewModel>();
 
       return services;
     }

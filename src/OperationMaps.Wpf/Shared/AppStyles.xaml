@@ -14,6 +14,7 @@
         <ResourceDictionary Source="Styles/InputStyles.xaml"/>
         <ResourceDictionary Source="Styles/ListStyles.xaml"/>
         <ResourceDictionary Source="Styles/MenuStyles.xaml"/>
+        <ResourceDictionary Source="Styles/LayoutStyles.xaml"/>
 
     </ResourceDictionary.MergedDictionaries>
 

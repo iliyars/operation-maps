@@ -1,0 +1,65 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:behaviors="clr-namespace:OperationMaps.Wpf.Shared.Behaviors">
+
+  <!-- ── Draggable divider between side-by-side panes ──────────────────────
+       Looks like the old 1 px divider line, but has a 6 px grab area and
+       highlights on hover so it's discoverable. Use in its own Auto column:
+         <ColumnDefinition Width="Auto"/>  +  <GridSplitter Style="{StaticResource PaneSplitter}" .../>
+  -->
+  <Style x:Key="PaneSplitter"
+         TargetType="GridSplitter">
+    <Setter Property="Width"
+            Value="6"/>
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch"/>
+    <Setter Property="VerticalAlignment"
+            Value="Stretch"/>
+    <Setter Property="ResizeBehavior"
+            Value="PreviousAndNext"/>
+    <Setter Property="ResizeDirection"
+            Value="Columns"/>
+    <Setter Property="Focusable"
+            Value="False"/>
+    <Setter Property="Cursor"
+            Value="SizeWE"/>
+    <Setter Property="ToolTip"
+            Value="Потяните, чтобы изменить ширину"/>
+    <!-- Keep the main ("*") column flexible after a drag — see GridSplitterKeepStar -->
+    <Setter Property="behaviors:GridSplitterKeepStar.IsEnabled"
+            Value="True"/>
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="GridSplitter">
+          <Border Background="Transparent">
+            <Border x:Name="Line"
+                    Width="1"
+                    HorizontalAlignment="Center"
+                    Background="{DynamicResource BorderDefaultBrush}"/>
+          </Border>
+          <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver"
+                     Value="True">
+              <Setter TargetName="Line"
+                      Property="Width"
+                      Value="2"/>
+              <Setter TargetName="Line"
+                      Property="Background"
+                      Value="{DynamicResource AccentBrush}"/>
+            </Trigger>
+            <Trigger Property="IsDragging"
+                     Value="True">
+              <Setter TargetName="Line"
+                      Property="Width"
+                      Value="2"/>
+              <Setter TargetName="Line"
+                      Property="Background"
+                      Value="{DynamicResource AccentBrush}"/>
+            </Trigger>
+          </ControlTemplate.Triggers>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+
+</ResourceDictionary>

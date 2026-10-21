@@ -120,4 +120,12 @@
       Color="{StaticResource StatusInfoColor}"/>
   <SolidColorBrush x:Key="StatusInfoBgBrush"
       Color="{StaticResource StatusInfoBgColor}"/>
+
+  <!-- Table rows: hover/selection get an accent tint (as in VS Code), so
+       they never blend with the grey zebra stripes (BgHover #2A2D2E was
+       even darker than the #2D2D30 stripe). -->
+  <SolidColorBrush x:Key="RowHoverBrush"
+      Color="#2A3D50"/>
+  <SolidColorBrush x:Key="RowSelectedBrush"
+      Color="#094771"/>
 </ResourceDictionary>

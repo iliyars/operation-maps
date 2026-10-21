@@ -83,7 +83,7 @@
               Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="380"/>
-                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -154,7 +154,7 @@
                                         TextWrapping="Wrap"
                                         Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock Text="{Binding OwnFormLabel}"
-                                        FontSize="11"
+                                        FontSize="12"
                                         Margin="0,2,0,0"
                                         TextTrimming="CharacterEllipsis"
                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -164,7 +164,7 @@
                                         Background="{DynamicResource BgHoverBrush}"
                                         HorizontalAlignment="Left">
                                     <TextBlock Text="{Binding StatusText}"
-                                            FontSize="10"
+                                            FontSize="11"
                                             Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
@@ -174,8 +174,8 @@
             </ListBox>
 
             <!-- Divider -->
-            <Border Grid.Column="1"
-                    Background="{DynamicResource BorderDefaultBrush}"/>
+            <GridSplitter Grid.Column="1"
+                          Style="{StaticResource PaneSplitter}"/>
 
             <!-- Detail panel -->
             <ScrollViewer Grid.Column="2"
@@ -222,7 +222,7 @@
 
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Тип компонента"
-                                    FontSize="11"
+                                    FontSize="12"
                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <TextBlock Text="{Binding TypeText}"
                                     Margin="0,4,0,0"
@@ -240,7 +240,7 @@
 
                         <StackPanel Grid.Column="2">
                             <TextBlock Text="Семейство"
-                                    FontSize="11"
+                                    FontSize="12"
                                     Foreground="{DynamicResource TextSecondaryBrush}"/>
                             <TextBlock Text="{Binding FamilyDisplay}"
                                     Margin="0,4,0,0"

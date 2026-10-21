@@ -12,6 +12,8 @@
         MinHeight="480"
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource BgAppBrush}"
+        FontFamily="Segoe UI Variable Text, Segoe UI"
+        FontSize="13"
         WindowStyle="None"
         wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
     <Grid>
@@ -81,7 +83,7 @@
                             </Style>
                         </Border.Style>
                         <TextBlock Text="1. Форма 4"
-                                FontSize="11"
+                                FontSize="12"
                                 FontWeight="Medium">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -114,7 +116,7 @@
                             </Style>
                         </Border.Style>
                         <TextBlock Text="2. Собственная форма"
-                                FontSize="11"
+                                FontSize="12"
                                 FontWeight="Medium">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
@@ -174,18 +176,18 @@
                              Margin="0,0,0,4"/>
                     <StackPanel Visibility="{Binding IsCatalogMode, Converter={StaticResource InverseBoolToVis}}">
                         <TextBlock Text="Семейство определено автоматически из наименования"
-                                   FontSize="11"
+                                   FontSize="12"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                    Margin="0,0,0,16"
                                    Visibility="{Binding FamilyAlreadyKnown, Converter={StaticResource BoolToVis}}"/>
                         <TextBlock Text="Семейство не распознано — название заполнено по имени компонента, при необходимости измените"
-                                   FontSize="11"
+                                   FontSize="12"
                                 Foreground="{DynamicResource StatusWarningBrush}"
                                    Margin="0,0,0,16"
                                    Visibility="{Binding FamilyAlreadyKnown, Converter={StaticResource InverseBoolToVis}}"/>
                     </StackPanel>
                     <TextBlock Text="Для пассивных компонентов — название серии (например, К10-79). Для микросхем и других — обычно совпадает с наименованием компонента."
-                               FontSize="11"
+                               FontSize="12"
                                TextWrapping="Wrap"
                                Foreground="{DynamicResource TextMutedBrush}"
                                Margin="0,0,0,16"
@@ -266,7 +268,7 @@
                         <TextBox Text="{Binding ComponentFullName, UpdateSourceTrigger=PropertyChanged}"
                                  Margin="0,0,0,4"/>
                         <TextBlock Text="Как в перечне элементов (ПЭ3) — по нему компонент будет находиться при импорте XML"
-                                   FontSize="11"
+                                   FontSize="12"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource TextMutedBrush}"
                                    Margin="0,0,0,16"/>
@@ -409,10 +411,10 @@
                                                     Visibility="{Binding IsOptionalRowVisible, Converter={StaticResource InverseBoolToVis}}">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="&#xE710;" Style="{StaticResource IconText}"
-                                                               FontSize="10" Foreground="{DynamicResource AccentBrush}"
+                                                               FontSize="11" Foreground="{DynamicResource AccentBrush}"
                                                                VerticalAlignment="Center" Margin="0,0,4,0"/>
                                                     <TextBlock Text="Добавить второе напряжение"
-                                                               FontSize="11" Foreground="{DynamicResource AccentBrush}"/>
+                                                               FontSize="12" Foreground="{DynamicResource AccentBrush}"/>
                                                 </StackPanel>
                                             </Button>
 
@@ -441,7 +443,7 @@
                                                     <TextBlock Grid.Column="0"
                                                                Text="второе напряжение"
                                                                VerticalAlignment="Center"
-                                                               FontSize="11"
+                                                               FontSize="12"
                                                                Foreground="{DynamicResource TextMutedBrush}"/>
                                                     <TextBox Grid.Column="1"
                                                              Text="{Binding OptionalValue, UpdateSourceTrigger=PropertyChanged}"
@@ -459,7 +461,7 @@
                                                             Margin="6,0,0,0"
                                                             ToolTip="Удалить">
                                                         <TextBlock Text="&#xE711;" Style="{StaticResource IconText}"
-                                                                   FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                                                                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </Button>
                                                 </Grid>
                                             </Border>

@@ -30,7 +30,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"
                                   MinWidth="260"/>
-                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="380"/>
             </Grid.ColumnDefinitions>
 
@@ -75,7 +75,7 @@
                                     </Run>
                                 </TextBlock>
                                 <TextBlock Text="{Binding Login}"
-                                           FontSize="11"
+                                           FontSize="12"
                                            Foreground="{DynamicResource TextMutedBrush}"/>
                             </StackPanel>
                         </DataTemplate>
@@ -83,8 +83,8 @@
                 </ListBox>
             </DockPanel>
 
-            <Border Grid.Column="1"
-                    Background="{DynamicResource BorderDefaultBrush}"/>
+            <GridSplitter Grid.Column="1"
+                          Style="{StaticResource PaneSplitter}"/>
 
             <!-- ── Forms ── -->
             <ScrollViewer Grid.Column="2"

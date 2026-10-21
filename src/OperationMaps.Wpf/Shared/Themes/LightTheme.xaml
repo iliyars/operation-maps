@@ -133,4 +133,11 @@
   <SolidColorBrush x:Key="StatusInfoBgBrush"
       Color="{StaticResource StatusInfoBgColor}"/>
 
+  <!-- Table rows: hover/selection get a light accent tint (as in Explorer),
+       so they never blend with the grey zebra stripes. -->
+  <SolidColorBrush x:Key="RowHoverBrush"
+      Color="#E5F1FB"/>
+  <SolidColorBrush x:Key="RowSelectedBrush"
+      Color="#CCE4F7"/>
+
 </ResourceDictionary>

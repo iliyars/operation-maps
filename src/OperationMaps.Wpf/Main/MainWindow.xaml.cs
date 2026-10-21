@@ -19,6 +19,21 @@ namespace OperationMaps.Wpf.Main
             WindowChromeFixes.Apply(this);
         }
 
+        // Below this width the sidebar folds to icons by itself (and unfolds
+        // again above it) — only when crossing the line, so a manual choice
+        // made at a given size is never fought.
+        private const double SidebarAutoCollapseWidth = 1200;
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (DataContext is not MainViewModel vm || !e.WidthChanged) return;
+
+            var wasWide = e.PreviousSize.Width >= SidebarAutoCollapseWidth;
+            var isWide = e.NewSize.Width >= SidebarAutoCollapseWidth;
+            if (e.PreviousSize.Width == 0 || wasWide != isWide)
+                vm.Shell.IsSidebarCollapsed = !isWide;
+        }
+
         private async void Window_Closing(object? sender, CancelEventArgs e)
         {
             if (_closeConfirmed || DataContext is not MainViewModel vm) return;

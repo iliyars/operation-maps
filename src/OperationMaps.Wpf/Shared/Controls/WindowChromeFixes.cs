@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
 
 namespace OperationMaps.Wpf.Shared.Controls;
 
@@ -19,7 +20,9 @@ public static class WindowChromeFixes
 
       RequestRoundedCorners(handle);
 
-      HwndSource.FromHwnd(handle)?.AddHook(WindowProc);
+      HwndSource.FromHwnd(handle)?.AddHook(
+          (IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+              => WindowProc(window, hwnd, msg, lParam, ref handled));
     };
   }
 
@@ -36,20 +39,34 @@ public static class WindowChromeFixes
   private const int WM_GETMINMAXINFO = 0x0024;
   private const int MONITOR_DEFAULTTONEAREST = 0x00000002;
 
-  private static IntPtr WindowProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+  //
+  // Marking the message handled also skips WPF's OWN WM_GETMINMAXINFO
+  // handling — which is what tells Windows about MinWidth/MinHeight. Without
+  // re-supplying the minimum here, Windows let the window be dragged
+  // narrower than MinWidth while WPF still laid the content out at MinWidth,
+  // so the right edge of every screen was silently cut off.
+
+  private static IntPtr WindowProc(Window window, IntPtr hwnd, int msg, IntPtr lParam, ref bool handled)
   {
     if (msg == WM_GETMINMAXINFO)
     {
-      SetMaxSizeToWorkArea(hwnd, lParam);
+      SetMaxSizeToWorkArea(window, hwnd, lParam);
       handled = true;
     }
 
     return IntPtr.Zero;
   }
 
-  private static void SetMaxSizeToWorkArea(IntPtr hwnd, IntPtr lParam)
+  private static void SetMaxSizeToWorkArea(Window window, IntPtr hwnd, IntPtr lParam)
   {
     var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+
+    // MinWidth/MinHeight are in device-independent units; Windows wants physical pixels.
+    var dpi = VisualTreeHelper.GetDpi(window);
+    if (window.MinWidth > 0)
+      mmi.ptMinTrackSize.X = (int)Math.Ceiling(window.MinWidth * dpi.DpiScaleX);
+    if (window.MinHeight > 0)
+      mmi.ptMinTrackSize.Y = (int)Math.Ceiling(window.MinHeight * dpi.DpiScaleY);
 
     var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
     if (monitor != IntPtr.Zero)

@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="OperationMaps.Wpf.Features.Components.ComponentsView"
+<UserControl x:Class="OperationMaps.Wpf.Features.Components.ComponentsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -104,17 +104,37 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- Search -->
+                <!-- Search + details-pane toggle -->
                 <Border Grid.Row="0"
                         Background="{DynamicResource BgPanelBrush}"
                         Padding="12,8">
+                    <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Style="{StaticResource GhostButton}"
+                            Padding="10,4"
+                            VerticalAlignment="Center"
+                            Click="ToggleDetails_Click"
+                            ToolTip="Показать / скрыть панель с данными компонента — освобождает место для таблицы">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="DetailToggleIcon"
+                                       Text="&#xE89F;"
+                                       Style="{StaticResource IconText}"
+                                       FontSize="14"
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="DetailToggleText"
+                                       Text="Скрыть панель"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       Margin="6,0,0,0"/>
+                        </StackPanel>
+                    </Button>
                     <Border Background="{DynamicResource BgInputBrush}"
                             BorderBrush="{DynamicResource BorderInputBrush}"
                             BorderThickness="1"
-                            CornerRadius="4"
+                            CornerRadius="6"
                             Padding="10,0"
                             Height="34"
-                            MaxWidth="420"
+                            Width="360"
                             HorizontalAlignment="Left">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -139,6 +159,7 @@
                                      FontSize="13"/>
                         </Grid>
                     </Border>
+                    </DockPanel>
                 </Border>
 
                 <!-- Filter tabs -->
@@ -176,138 +197,150 @@
         <!-- LIST + DETAIL -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="1"/>
-                <ColumnDefinition Width="300"
-                        MinWidth="200"
-                        MaxWidth="480"/>
+                <ColumnDefinition Width="*"
+                                  MinWidth="300"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition x:Name="DetailColumn"
+                                  Width="320"
+                                  MaxWidth="600"/>
             </Grid.ColumnDefinitions>
 
-            <!-- List -->
-            <ListView Grid.Column="0"
-                      ItemsSource="{Binding FilteredComponents}"
-                      SelectedItem="{Binding SelectedComponent}"
-                      SelectionMode="Single"
-                      AlternationCount="2"
-                      BorderThickness="0"
-                      Background="{DynamicResource BgAppBrush}"
-                      Foreground="{DynamicResource TextPrimaryBrush}"
-                      VirtualizingPanel.IsVirtualizing="True"
-                      VirtualizingPanel.VirtualizationMode="Recycling">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment"
-                                Value="Stretch"/>
-                        <Setter Property="FocusVisualStyle"
-                                Value="{x:Null}"/>
-                        <Setter Property="Background"
-                                Value="Transparent"/>
-                        <Setter Property="Padding"
-                                Value="0"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListViewItem">
-                                    <Border x:Name="Bd"
-                                            Background="{TemplateBinding Background}"
-                                            BorderBrush="{DynamicResource BorderDefaultBrush}"
-                                            BorderThickness="0,0,0,1">
-                                        <GridViewRowPresenter
-                                            Columns="{Binding Path=View.Columns,
-                                RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            Content="{TemplateBinding Content}"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver"
-                                                Value="True">
-                                            <Setter TargetName="Bd"
-                                                    Property="Background"
-                                                    Value="{DynamicResource BgHoverBrush}"/>
-                                        </Trigger>
-                                        <Trigger Property="IsSelected"
-                                                Value="True">
-                                            <Setter TargetName="Bd"
-                                                    Property="Background"
-                                                    Value="{DynamicResource BgActiveBrush}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                        <Style.Triggers>
-                            <!-- Subtle zebra striping so rows are easier to scan across
-                                 five columns of similar-looking text. -->
-                            <Trigger Property="ItemsControl.AlternationIndex"
-                                    Value="1">
-                                <Setter Property="Background"
-                                        Value="{DynamicResource BgPanelBrush}"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Позиции"
-                                Width="130">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
-                                    <TextBlock Text="{Binding Positions}"
-                                               FontFamily="Consolas"
-                                               FontSize="12"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               ToolTip="{Binding Positions}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Наименование"
-                                Width="220">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
+            <!-- List — two lines per component (name on top, type · family
+                 below) so it fits narrow windows instead of six fixed-width
+                 columns that needed ~1360 px in total. -->
+            <DockPanel Grid.Column="0">
+                <Border DockPanel.Dock="Top"
+                        Background="{DynamicResource BgPanelBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}"
+                        BorderThickness="0,0,0,1"
+                        Padding="12,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="110"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="ПОЗИЦИИ"
+                                   Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="НАИМЕНОВАНИЕ · ТИП · СЕМЕЙСТВО"
+                                   Style="{StaticResource SectionLabel}"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="СТАТУС"
+                                   Style="{StaticResource SectionLabel}"
+                                   Margin="0,0,34,0"/>
+                    </Grid>
+                </Border>
+
+                <ListBox ItemsSource="{Binding FilteredComponents}"
+                         SelectedItem="{Binding SelectedComponent}"
+                         SelectionMode="Single"
+                         AlternationCount="2"
+                         BorderThickness="0"
+                         Background="{DynamicResource BgAppBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         VirtualizingPanel.IsVirtualizing="True"
+                         VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment"
+                                    Value="Stretch"/>
+                            <Setter Property="FocusVisualStyle"
+                                    Value="{x:Null}"/>
+                            <Setter Property="Background"
+                                    Value="Transparent"/>
+                            <Setter Property="Padding"
+                                    Value="0"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                                BorderThickness="0,0,0,1">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver"
+                                                     Value="True">
+                                                <Setter TargetName="Bd"
+                                                        Property="Background"
+                                                        Value="{DynamicResource RowHoverBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected"
+                                                     Value="True">
+                                                <Setter TargetName="Bd"
+                                                        Property="Background"
+                                                        Value="{DynamicResource RowSelectedBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex"
+                                         Value="1">
+                                    <Setter Property="Background"
+                                            Value="{DynamicResource BgPanelBrush}"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
+                            <Grid Margin="12,7">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Positions}"
+                                           FontFamily="Consolas"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           ToolTip="{Binding Positions}"
+                                           Margin="0,2,12,0"/>
+
+                                <StackPanel Grid.Column="1">
                                     <TextBlock Text="{Binding Name}"
-                                               TextTrimming="CharacterEllipsis"
+                                               FontSize="13"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
+                                               TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Name}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Тип"
-                                Width="100">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
-                                    <TextBlock Text="{Binding TypeName}"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Семейство"
-                                Width="120">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
-                                    <TextBlock Text="{Binding FamilyName}"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="Статус"
-                                Width="110">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
+                                    <TextBlock FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,2,0,0">
+                                        <Run Text="{Binding TypeName, Mode=OneWay}"/><Run Text="  ·  "/><Run Text="{Binding FamilyName, Mode=OneWay, TargetNullValue='семейство не определено'}"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            Margin="12,0,0,0">
                                     <Border>
                                         <Border.Style>
                                             <Style TargetType="Border"
-                                                    BasedOn="{StaticResource StatusBadge}">
+                                                   BasedOn="{StaticResource StatusBadge}">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding MatchStatus}"
-                                                            Value="Matched">
+                                                                 Value="Matched">
                                                         <Setter Property="Background"
                                                                 Value="{DynamicResource StatusSuccessBgBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding MatchStatus}"
-                                                            Value="FamilyFound">
+                                                                 Value="FamilyFound">
                                                         <Setter Property="Background"
                                                                 Value="{DynamicResource StatusInfoBgBrush}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding MatchStatus}"
-                                                            Value="Unresolved">
+                                                                 Value="Unresolved">
                                                         <Setter Property="Background"
                                                                 Value="{DynamicResource StatusWarningBgBrush}"/>
                                                     </DataTrigger>
@@ -316,24 +349,24 @@
                                         </Border.Style>
                                         <StackPanel Orientation="Horizontal">
                                             <Ellipse Width="6"
-                                                    Height="6"
+                                                     Height="6"
                                                      VerticalAlignment="Center"
                                                      Margin="0,0,5,0">
                                                 <Ellipse.Style>
                                                     <Style TargetType="Ellipse">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="Matched">
+                                                                         Value="Matched">
                                                                 <Setter Property="Fill"
                                                                         Value="{DynamicResource StatusSuccessBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="FamilyFound">
+                                                                         Value="FamilyFound">
                                                                 <Setter Property="Fill"
                                                                         Value="{DynamicResource StatusInfoBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="Unresolved">
+                                                                         Value="Unresolved">
                                                                 <Setter Property="Fill"
                                                                         Value="{DynamicResource StatusWarningBrush}"/>
                                                             </DataTrigger>
@@ -342,26 +375,26 @@
                                                 </Ellipse.Style>
                                             </Ellipse>
                                             <TextBlock VerticalAlignment="Center"
-                                                    FontSize="12">
+                                                       FontSize="12">
                                                 <TextBlock.Style>
                                                     <Style TargetType="TextBlock">
                                                         <Style.Triggers>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="Matched">
+                                                                         Value="Matched">
                                                                 <Setter Property="Text"
                                                                         Value="Найден"/>
                                                                 <Setter Property="Foreground"
                                                                         Value="{DynamicResource StatusSuccessBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="FamilyFound">
+                                                                         Value="FamilyFound">
                                                                 <Setter Property="Text"
                                                                         Value="Семейство"/>
                                                                 <Setter Property="Foreground"
                                                                         Value="{DynamicResource StatusInfoBrush}"/>
                                                             </DataTrigger>
                                                             <DataTrigger Binding="{Binding MatchStatus}"
-                                                                    Value="Unresolved">
+                                                                         Value="Unresolved">
                                                                 <Setter Property="Text"
                                                                         Value="Не найден"/>
                                                                 <Setter Property="Foreground"
@@ -373,57 +406,55 @@
                                             </TextBlock>
                                         </StackPanel>
                                     </Border>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
 
-                        <!--
-                          Action column — only unresolved rows get a button.
-                          Any user can open the wizard and supply NTD data;
-                          the resulting Component is created immediately
-                          (NeedsAdminReview = true) so the row becomes
-                          "Найден" right away without restarting the app.
-                        -->
-                        <GridViewColumn Header=""
-                                Width="140">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type local:ProjectComponentVm}">
-                                    <Button Content="Ввести данные"
-                                            Padding="8,3"
-                                            FontSize="11"
-                                            Command="{Binding DataContext.AddComponentDataCommand,
-                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}">
-                                        <Button.Style>
-                                            <Style TargetType="Button"
-                                                    BasedOn="{StaticResource OutlineButton}">
-                                                <Setter Property="Visibility"
-                                                        Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding MatchStatus}"
-                                                            Value="Unresolved">
-                                                        <Setter Property="Visibility"
-                                                                Value="Visible"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding MatchStatus}"
-                                                            Value="FamilyFound">
-                                                        <Setter Property="Visibility"
-                                                                Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                    </Button>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+                                    <!-- "Ввести данные" — compact icon instead of a 140 px column;
+                                         the same action also sits in the details pane. A fixed-size
+                                         slot keeps the badges aligned whether it's shown or not. -->
+                                    <Grid Width="28"
+                                          Margin="6,0,0,0">
+                                        <Button Content="&#xE70F;"
+                                                FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
+                                                FontSize="13"
+                                                Padding="0"
+                                                Width="28"
+                                                Height="26"
+                                                ToolTip="Ввести данные компонента"
+                                                Command="{Binding DataContext.AddComponentDataCommand,
+                                                                  RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Style>
+                                                <Style TargetType="Button"
+                                                       BasedOn="{StaticResource GhostButton}">
+                                                    <Setter Property="Visibility"
+                                                            Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding MatchStatus}"
+                                                                     Value="Unresolved">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding MatchStatus}"
+                                                                     Value="FamilyFound">
+                                                            <Setter Property="Visibility"
+                                                                    Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
 
-            <!-- Divider -->
-            <Border Grid.Column="1"
-                    Background="{DynamicResource BorderDefaultBrush}"/>
+            <!-- Draggable divider -->
+            <GridSplitter x:Name="DetailSplitter"
+                          Grid.Column="1"
+                          Style="{StaticResource PaneSplitter}"
+                          DragCompleted="DetailSplitter_DragCompleted"/>
 
             <!-- Detail panel -->
             <Grid Grid.Column="2"

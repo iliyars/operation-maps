@@ -47,6 +47,9 @@ namespace OperationMaps.Wpf.Shell
     [ObservableProperty] private string _themeIcon = "\uE708";
     [ObservableProperty] private string _themeLabel = "Тёмная тема";
 
+    /// <summary>Sidebar shows icons only — frees ~170 px for wide tables.</summary>
+    [ObservableProperty] private bool _isSidebarCollapsed;
+
     public ObservableCollection<NavItemViewModel> NavItems { get; } = [];
 
     public ShellViewModel(
@@ -527,6 +530,11 @@ namespace OperationMaps.Wpf.Shell
 
     [RelayCommand]
     private void Exit() => System.Windows.Application.Current.MainWindow?.Close(); // Close, not Shutdown: lets MainWindow ask about unsaved changes
+
+    // ── Sidebar ───────────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private void ToggleSidebar() => IsSidebarCollapsed = !IsSidebarCollapsed;
 
     // ── Theme ─────────────────────────────────────────────────────────────────
 

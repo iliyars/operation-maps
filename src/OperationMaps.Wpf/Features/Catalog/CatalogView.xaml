@@ -175,10 +175,10 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="260"
                                   MinWidth="180"/>
-                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"
                                   MinWidth="220"/>
-                <ColumnDefinition Width="1"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="400"
                                   MinWidth="280"/>
             </Grid.ColumnDefinitions>
@@ -202,7 +202,7 @@
                                             CommandParameter="{Binding}">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets"
-                                                       FontSize="10"
+                                                       FontSize="11"
                                                        Width="16"
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource TextMutedBrush}">
@@ -224,7 +224,7 @@
                                                        FontWeight="SemiBold"
                                                        VerticalAlignment="Center"/>
                                             <TextBlock Foreground="{DynamicResource TextMutedBrush}"
-                                                       FontSize="11"
+                                                       FontSize="12"
                                                        VerticalAlignment="Center"
                                                        Margin="6,0,0,0">
                                                 <Run Text="("/><Run Text="{Binding Families.Count, Mode=OneWay}"/><Run Text=")"/>
@@ -248,7 +248,7 @@
                                                         <TextBlock DockPanel.Dock="Right"
                                                                    Text="&#xE7BA;"
                                                                    Style="{StaticResource IconText}"
-                                                                   FontSize="11"
+                                                                   FontSize="12"
                                                                    Foreground="{DynamicResource StatusWarningBrush}"
                                                                    VerticalAlignment="Center"
                                                                    ToolTip="Есть непроверенные компоненты"
@@ -268,8 +268,8 @@
                 </ScrollViewer>
             </DockPanel>
 
-            <Border Grid.Column="1"
-                    Background="{DynamicResource BorderDefaultBrush}"/>
+            <GridSplitter Grid.Column="1"
+                          Style="{StaticResource PaneSplitter}"/>
 
             <!-- ── Components of the selected family ── -->
             <DockPanel Grid.Column="2">
@@ -300,12 +300,12 @@
                                                     Margin="8,0,0,0"
                                                     Visibility="{Binding NeedsReview, Converter={StaticResource BoolToVis}}">
                                                 <TextBlock Text="не проверен"
-                                                           FontSize="11"
+                                                           FontSize="12"
                                                            FontWeight="Normal"
                                                            Foreground="{DynamicResource StatusWarningBrush}"/>
                                             </Border>
                                             <TextBlock DockPanel.Dock="Right"
-                                                       FontSize="11"
+                                                       FontSize="12"
                                                        FontWeight="Normal"
                                                        Foreground="{DynamicResource TextMutedBrush}"
                                                        VerticalAlignment="Center"
@@ -325,8 +325,8 @@
                 </Grid>
             </DockPanel>
 
-            <Border Grid.Column="3"
-                    Background="{DynamicResource BorderDefaultBrush}"/>
+            <GridSplitter Grid.Column="3"
+                          Style="{StaticResource PaneSplitter}"/>
 
             <!-- ── Card ── -->
             <Grid Grid.Column="4"
@@ -384,7 +384,7 @@
                             </StackPanel>
                             <StackPanel Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}">
                                 <TextBlock Text="Пустое значение удаляет его из справочника (будет «—»)."
-                                           FontSize="11"
+                                           FontSize="12"
                                            TextWrapping="Wrap"
                                            Foreground="{DynamicResource TextMutedBrush}"
                                            Margin="0,0,0,8"/>
@@ -453,14 +453,14 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding RowNumber}"
-                                                   FontSize="11"
+                                                   FontSize="12"
                                                    Foreground="{DynamicResource TextMutedBrush}"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="{Binding Name}"
                                                        FontSize="12"
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        TextWrapping="Wrap"/>
-                                            <TextBlock FontSize="11"
+                                            <TextBlock FontSize="12"
                                                        Foreground="{DynamicResource TextMutedBrush}"
                                                        Visibility="{Binding Pins, Converter={StaticResource NullToVis}}">
                                                 <Run Text="выводы: "/><Run Text="{Binding Pins, Mode=OneWay}"/>
@@ -470,13 +470,13 @@
                                                         Margin="0,3,0,0"
                                                         Visibility="{Binding DataContext.ShowsPins, RelativeSource={RelativeSource AncestorType=ItemsControl}, Converter={StaticResource BoolToVis}}">
                                                 <TextBlock Text="выводы:"
-                                                           FontSize="11"
+                                                           FontSize="12"
                                                            VerticalAlignment="Center"
                                                            Foreground="{DynamicResource TextMutedBrush}"
                                                            Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
                                                 <TextBox Text="{Binding EditPins, UpdateSourceTrigger=PropertyChanged}"
                                                          Width="100"
-                                                         FontSize="11"
+                                                         FontSize="12"
                                                          Margin="6,0,0,0"
                                                          Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"/>
                                             </StackPanel>
@@ -514,7 +514,7 @@
                                     <DataTemplate DataType="{x:Type local:CatalogNoteRow}">
                                         <StackPanel Margin="0,4">
                                             <TextBlock Text="{Binding Parameter}"
-                                                       FontSize="11"
+                                                       FontSize="12"
                                                        Foreground="{DynamicResource TextMutedBrush}"/>
                                             <TextBlock Text="{Binding Text}"
                                                        FontSize="12"

@@ -12,11 +12,11 @@
                     MaxWidth="560"
                     HorizontalAlignment="Left">
 
-            <TextBlock Text="Титульный лист"
+            <TextBlock Text="Титульный лист и содержание"
                        FontSize="18"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}"/>
-            <TextBlock Text="Данные, которые подставляются в титульный лист. Обозначение и наименование взяты из перечня элементов (XML) — их можно поправить. Руководителя программа запоминает для следующих проектов."
+            <TextBlock Text="Данные, которые подставляются в титульный лист и содержание. Обозначение и наименование взяты из перечня элементов (XML) — их можно поправить. Руководителя программа запоминает для следующих проектов."
                        FontSize="12"
                        TextWrapping="Wrap"
                        Foreground="{DynamicResource TextSecondaryBrush}"
@@ -73,6 +73,62 @@
                 <TextBlock Text="Сохранить титульный лист в Word"/>
             </Button>
             <TextBlock Text="Файл «Титульный лист.docx» сохраняется в папку Forms рядом с картами. При сборке итогового документа он создаётся автоматически."
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       Margin="0,8,0,28"/>
+
+            <!-- Contents preview: forms of the project with their sheets -->
+            <TextBlock Text="СОДЕРЖАНИЕ"
+                       Style="{StaticResource SectionLabel}"
+                       Margin="0,0,0,4"/>
+            <TextBlock Text="Лист 1 — титульный, лист 2 — содержание, дальше формы по порядку. Число листов формы зависит от числа компонентов в ней."
+                       FontSize="12"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,0,0,10"/>
+
+            <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Margin="0,0,0,12">
+                <ItemsControl ItemsSource="{Binding Contents}"
+                              Focusable="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="12,7">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Name}"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Grid.Column="1"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="16,0,0,0">
+                                        <Run Text="лист "/><Run Text="{Binding Sheets, Mode=OneWay}"/>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <Button Style="{StaticResource OutlineButton}"
+                    Padding="14,6"
+                    HorizontalAlignment="Left"
+                    Command="{Binding SaveContentsCommand}">
+                <TextBlock Text="Сохранить содержание в Word"/>
+            </Button>
+            <TextBlock Text="Файл «Содержание.docx». Тоже создаётся автоматически при сборке итогового документа."
                        FontSize="11"
                        TextWrapping="Wrap"
                        Foreground="{DynamicResource TextMutedBrush}"

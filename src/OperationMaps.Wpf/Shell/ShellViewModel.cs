@@ -21,6 +21,8 @@ using OperationMaps.Wpf.Features.Project;
 using OperationMaps.Wpf.Features.Admin;
 using OperationMaps.Wpf.Features.TitlePage;
 using OperationMaps.Wpf.Services;
+using Microsoft.EntityFrameworkCore;
+using OperationMaps.Infrastructure.Persistence;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -36,6 +38,7 @@ namespace OperationMaps.Wpf.Shell
     private readonly ProjectFileService _projectFile;
     private readonly SessionStore _session;
     private readonly ITitlePageService _titlePage;
+    private readonly IContentsPageService _contentsPage;
     private readonly UserPreferences _preferences;
     private readonly IServiceProvider _services;
 
@@ -66,6 +69,7 @@ namespace OperationMaps.Wpf.Shell
         ProjectFileService projectFile,
         SessionStore session,
         ITitlePageService titlePage,
+        IContentsPageService contentsPage,
         UserPreferences preferences,
         IServiceProvider services)
     {
@@ -78,6 +82,7 @@ namespace OperationMaps.Wpf.Shell
       _projectFile = projectFile ?? throw new ArgumentNullException(nameof(projectFile));
       _session = session ?? throw new ArgumentNullException(nameof(session));
       _titlePage = titlePage ?? throw new ArgumentNullException(nameof(titlePage));
+      _contentsPage = contentsPage ?? throw new ArgumentNullException(nameof(contentsPage));
       _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
       _session.PropertyChanged += (_, e) =>
       {
@@ -314,7 +319,19 @@ namespace OperationMaps.Wpf.Shell
         }
         else
         {
-          message += "\n\nТитульный лист не создан: заполните реквизиты на экране «Титульный лист».";
+          message += "\n\nТитульный лист не создан: заполните реквизиты на экране «Титульный лист и содержание».";
+        }
+
+        if (ContentsPageFile.CanWrite(_store))
+        {
+          try
+          {
+            message += $"\n\nСодержание:\n{await ContentsPageFile.WriteAsync(_store, _contentsPage, await PlanContentsAsync(ct), ct)}";
+          }
+          catch (IOException ex)
+          {
+            message += $"\n\nСодержание не сохранено (возможно, открыто в Word): {ex.Message}";
+          }
         }
         if (skipped.Count > 0)
           message += "\n\nПропущены формы без шаблона Word: " +
@@ -334,6 +351,41 @@ namespace OperationMaps.Wpf.Shell
       {
         IsExportingReport = false;
       }
+    }
+
+    /// <summary>
+    /// The contents table: every form that goes into the report, in report
+    /// order, with the sheets it will occupy (title page = 1, contents = 2).
+    /// Forms without a Word template are left out — the report skips them too.
+    /// </summary>
+    public async Task<IReadOnlyList<ContentsEntry>> PlanContentsAsync(CancellationToken ct = default)
+    {
+      var numbers = _formBuilders.Select(f => f.FormNumber).ToList();
+      var titles = await _services.GetRequiredService<CatalogDbContext>().Forms
+          .AsNoTracking()
+          .Where(f => numbers.Contains(f.Number))
+          .ToDictionaryAsync(f => f.Number, f => f.Title, ct);
+
+      var planned = new List<PlannedForm>();
+      foreach (var (formNumber, buildData) in _formBuilders)
+      {
+        int perPage;
+        try
+        {
+          _mapLoader.GetTemplatePath(formNumber);
+          perPage = _mapLoader.Load(formNumber).ComponentsPerPage;
+        }
+        catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
+        {
+          continue;
+        }
+
+        var data = await buildData(ct);
+        planned.Add(new PlannedForm(
+            titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage));
+      }
+
+      return ContentsPlanner.Plan(planned);
     }
 
     /// <summary>
@@ -392,7 +444,7 @@ namespace OperationMaps.Wpf.Shell
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Титульный лист",
+        Label = "Титульный лист и содержание",
         Icon = "\uE7C3",
         IsVisible = false,
         ScreenType = typeof(TitlePageViewModel),

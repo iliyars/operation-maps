@@ -5,6 +5,7 @@ using OperationMaps.Application.Services;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 using OperationMaps.Wpf.Services;
+using OperationMaps.Wpf.Shell;
 using OperationMaps.Wpf.Stores;
 
 namespace OperationMaps.Wpf.Features.TitlePage;
@@ -36,26 +37,86 @@ public static class TitlePageFile
   }
 }
 
+/// <summary>Writes the filled contents ("Содержание") next to the project's other Word files.</summary>
+public static class ContentsPageFile
+{
+  public const string FileName = "Содержание.docx";
+
+  /// <summary>The designation is the only field; the table comes from the project's forms.</summary>
+  public static bool CanWrite(ProjectStore store) => !string.IsNullOrWhiteSpace(store.DocumentNumber);
+
+  /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
+  public static async Task<string> WriteAsync(
+      ProjectStore store, IContentsPageService service, IReadOnlyList<ContentsEntry> entries, CancellationToken ct = default)
+  {
+    var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
+    Directory.CreateDirectory(folder);
+
+    var bytes = await service.BuildAsync(new ContentsPageData(store.DocumentNumber ?? "", entries), ct);
+
+    var path = Path.Combine(folder, FileName);
+    await File.WriteAllBytesAsync(path, bytes, ct);
+    return path;
+  }
+}
+
 /// <summary>
 /// "Титульный лист": the document number and product name come from the
 /// imported XML (and can be corrected here); the head of the organization
 /// and their position are typed in by the user — remembered for the next
 /// project, since they rarely change.
 /// </summary>
-public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigatedFrom
+public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
 {
   private readonly ProjectStore _store;
   private readonly ITitlePageService _titlePage;
+  private readonly IContentsPageService _contentsPage;
+  private readonly ShellViewModel _shell;
   private readonly IDialogService _dialogs;
   private readonly UserPreferences _preferences;
 
   public TitlePageViewModel(
-      ProjectStore store, ITitlePageService titlePage, IDialogService dialogs, UserPreferences preferences)
+      ProjectStore store,
+      ITitlePageService titlePage,
+      IContentsPageService contentsPage,
+      ShellViewModel shell,
+      IDialogService dialogs,
+      UserPreferences preferences)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
     _titlePage = titlePage ?? throw new ArgumentNullException(nameof(titlePage));
+    _contentsPage = contentsPage ?? throw new ArgumentNullException(nameof(contentsPage));
+    _shell = shell ?? throw new ArgumentNullException(nameof(shell));
     _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
     _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+  }
+
+  /// <summary>What the contents table will list — forms in report order with their sheets.</summary>
+  [ObservableProperty] private IReadOnlyList<ContentsEntry> _contents = [];
+
+  public async Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
+      => Contents = await _shell.PlanContentsAsync(cancellationToken);
+
+  public bool CanSaveContents => ContentsPageFile.CanWrite(_store);
+
+  [RelayCommand(CanExecute = nameof(CanSaveContents))]
+  private async Task SaveContentsAsync()
+  {
+    try
+    {
+      Contents = await _shell.PlanContentsAsync();
+      var path = await ContentsPageFile.WriteAsync(_store, _contentsPage, Contents);
+      _dialogs.ShowInfo($"Содержание сохранено:\n{path}", "Содержание");
+    }
+    catch (FileNotFoundException ex)
+    {
+      _dialogs.ShowError($"{ex.Message}\n{ex.FileName}", "Содержание");
+    }
+    catch (IOException ex)
+    {
+      _dialogs.ShowWarning(
+          $"Не удалось сохранить содержание — возможно, файл открыт в Word.\n\n{ex.Message}", "Содержание");
+    }
   }
 
   public string DocumentNumber
@@ -105,7 +166,9 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
     _store.MarkDirty();
     OnPropertyChanged(name);
     OnPropertyChanged(nameof(IsComplete));
+    OnPropertyChanged(nameof(CanSaveContents));
     SaveWordCommand.NotifyCanExecuteChanged();
+    SaveContentsCommand.NotifyCanExecuteChanged();
   }
 
   [RelayCommand(CanExecute = nameof(IsComplete))]

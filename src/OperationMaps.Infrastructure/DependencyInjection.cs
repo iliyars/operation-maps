@@ -45,6 +45,8 @@ public static class DependencyInjection
     services.AddSingleton<IWordService, WordService>();
     services.AddSingleton<ITitlePageService>(
         new TitlePageService(Path.Combine(templatesPath, "Title", "template.docx")));
+    services.AddSingleton<IContentsPageService>(
+        new ContentsPageService(Path.Combine(templatesPath, "Content", "template.docx")));
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
     services.AddScoped<IComponentEntryService, ComponentEntryService>();
     services.AddScoped<IAdminAccountService, AdminAccountService>();

@@ -85,6 +85,8 @@ public sealed class ProjectFileServiceTests : IDisposable
     store.Load("Плата", Path.GetTempPath(), await new CatalogNameMatcher(_db).MatchAllAsync(imported),
         new ImportResult { Components = imported, Warnings = [], DocumentNumber = "АБВГ.123456.001" });
     store.Conditions.Resource = "10000";
+    store.HeadName = "Иванов И.И.";
+    store.HeadOccupation = "Генеральный директор";
 
     var state = (await new OwnFormStateService(store, _db).GetAsync(_form.Id))!;
     state.History.Execute(new SplitColumnCommand(state.Columns, state.Columns[0], ["R1"], ["R2", "R3"]));
@@ -111,6 +113,8 @@ public sealed class ProjectFileServiceTests : IDisposable
     Assert.Equal(_path, reopened.ProjectFilePath);
     Assert.Equal("АБВГ.123456.001", reopened.DocumentNumber);
     Assert.Equal("10000", reopened.Conditions.Resource);
+    Assert.Equal("Иванов И.И.", reopened.HeadName);
+    Assert.Equal("Генеральный директор", reopened.HeadOccupation);
 
     var restored = reopened.OwnForms[_form.Id];
     Assert.Equal(["R1", "R2, R3"], restored.Columns.Select(c => c.Positions));

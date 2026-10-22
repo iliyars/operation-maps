@@ -19,6 +19,7 @@ using OperationMaps.Wpf.Features.OwnForm;
 using OperationMaps.Wpf.Features.Components.WordImport;
 using OperationMaps.Wpf.Features.Project;
 using OperationMaps.Wpf.Features.Admin;
+using OperationMaps.Wpf.Features.TitlePage;
 
 namespace OperationMaps.Wpf
 {
@@ -32,6 +33,7 @@ namespace OperationMaps.Wpf
       //services
       services.AddSingleton<IFilePicker, FilePicker>();
       services.AddSingleton<IDialogService, DialogService>();
+      services.AddSingleton(_ => UserPreferences.Load());
 
       // Stores
       services.AddSingleton<ProjectStore>();
@@ -54,6 +56,7 @@ namespace OperationMaps.Wpf
       services.AddTransient<UnresolvedViewModel>();
       services.AddTransient<WordImportViewModel>();
       services.AddTransient<AdminsViewModel>();
+      services.AddTransient<TitlePageViewModel>();
 
       return services;
     }

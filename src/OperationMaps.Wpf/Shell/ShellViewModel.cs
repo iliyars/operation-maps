@@ -19,6 +19,8 @@ using Microsoft.Extensions.DependencyInjection;
 using OperationMaps.Application.Services;
 using OperationMaps.Wpf.Features.Project;
 using OperationMaps.Wpf.Features.Admin;
+using OperationMaps.Wpf.Features.TitlePage;
+using OperationMaps.Wpf.Services;
 
 namespace OperationMaps.Wpf.Shell
 {
@@ -33,6 +35,8 @@ namespace OperationMaps.Wpf.Shell
     private readonly IFilePicker _filePicker;
     private readonly ProjectFileService _projectFile;
     private readonly SessionStore _session;
+    private readonly ITitlePageService _titlePage;
+    private readonly UserPreferences _preferences;
     private readonly IServiceProvider _services;
 
     // One data builder per form of the current project, in report order.
@@ -61,6 +65,8 @@ namespace OperationMaps.Wpf.Shell
         IFilePicker filePicker,
         ProjectFileService projectFile,
         SessionStore session,
+        ITitlePageService titlePage,
+        UserPreferences preferences,
         IServiceProvider services)
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
@@ -71,6 +77,8 @@ namespace OperationMaps.Wpf.Shell
       _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
       _projectFile = projectFile ?? throw new ArgumentNullException(nameof(projectFile));
       _session = session ?? throw new ArgumentNullException(nameof(session));
+      _titlePage = titlePage ?? throw new ArgumentNullException(nameof(titlePage));
+      _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
       _session.PropertyChanged += (_, e) =>
       {
         if (e.PropertyName != nameof(SessionStore.IsAdmin)) return;
@@ -290,6 +298,24 @@ namespace OperationMaps.Wpf.Shell
         await File.WriteAllBytesAsync(outputPath, bytes, ct);
 
         var message = $"Итоговый документ сохранён:\n{outputPath}";
+
+        // The title page has its own frame and page format, so it's a
+        // separate file next to the report rather than its first page.
+        if (TitlePageFile.IsComplete(_store))
+        {
+          try
+          {
+            message += $"\n\nТитульный лист:\n{await TitlePageFile.WriteAsync(_store, _titlePage, ct)}";
+          }
+          catch (IOException ex)
+          {
+            message += $"\n\nТитульный лист не сохранён (возможно, открыт в Word): {ex.Message}";
+          }
+        }
+        else
+        {
+          message += "\n\nТитульный лист не создан: заполните реквизиты на экране «Титульный лист».";
+        }
         if (skipped.Count > 0)
           message += "\n\nПропущены формы без шаблона Word: " +
                      string.Join(", ", skipped.Select(n => $"Форма {n}"));
@@ -364,6 +390,16 @@ namespace OperationMaps.Wpf.Shell
               () => _navigation.NavigateAsync<ComponentsViewModel>()),
       });
 
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Титульный лист",
+        Icon = "\uE7C3",
+        IsVisible = false,
+        ScreenType = typeof(TitlePageViewModel),
+        Command = new AsyncRelayCommand(
+              () => _navigation.NavigateAsync<TitlePageViewModel>()),
+      });
+
       NavItems.Add(NavItemViewModel.Separator("ФОРМЫ"));
 
       NavItems.Add(new NavItemViewModel
@@ -426,12 +462,20 @@ namespace OperationMaps.Wpf.Shell
       // Reset form builders from previous project
       _formBuilders.Clear();
 
+      // The head of the organization rarely changes — offer the last one used.
+      // Not an edit of the project, so it mustn't mark it as unsaved.
+      var wasDirty = _store.IsDirty;
+      if (string.IsNullOrWhiteSpace(_store.HeadName)) _store.HeadName = _preferences.LastHeadName;
+      if (string.IsNullOrWhiteSpace(_store.HeadOccupation)) _store.HeadOccupation = _preferences.LastHeadOccupation;
+      _store.IsDirty = wasDirty;
+
       // Make nav items visible
       foreach (var item in NavItems)
       {
         switch (item.ScreenType?.Name)
         {
           case nameof(ComponentsViewModel):
+          case nameof(TitlePageViewModel):
           case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;

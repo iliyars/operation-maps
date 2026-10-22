@@ -43,6 +43,8 @@ public static class DependencyInjection
 
     // Singleton: stateless, safe to share across all view models
     services.AddSingleton<IWordService, WordService>();
+    services.AddSingleton<ITitlePageService>(
+        new TitlePageService(Path.Combine(templatesPath, "Title", "template.docx")));
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
     services.AddScoped<IComponentEntryService, ComponentEntryService>();
     services.AddScoped<IAdminAccountService, AdminAccountService>();

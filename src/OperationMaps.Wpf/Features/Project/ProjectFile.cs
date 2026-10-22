@@ -26,6 +26,10 @@ public sealed class ProjectFile
   public string? CheckedBy { get; set; }
   public string? ApprovedBy { get; set; }
 
+  /// <summary>Title page: head of the organization and their position.</summary>
+  public string? HeadName { get; set; }
+  public string? HeadOccupation { get; set; }
+
   public OperatingConditions Conditions { get; set; } = new();
 
   public List<SavedComponent> Components { get; set; } = [];

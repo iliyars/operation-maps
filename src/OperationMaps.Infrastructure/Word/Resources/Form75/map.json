@@ -1,0 +1,429 @@
+{
+  "formNumber": "75",
+  "tableIndex": 0,
+  "componentsPerPage": 3,
+  "componentSlots": [
+    {
+      "comment": "Slot 0 — компонент 1 (сгенерировано по дампу template.docx)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 2
+        },
+        "componentName": {
+          "row": 3,
+          "col": 2
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "15": {
+          "row": 19,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "16": {
+          "row": 20,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "17": {
+          "row": 21,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "18": {
+          "row": 22,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "19": {
+          "row": 23,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "20": {
+          "row": 24,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "21": {
+          "row": 25,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "22": {
+          "row": 26,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "23": {
+          "row": 27,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "24": {
+          "row": 28,
+          "ntdCol": 4,
+          "schemeCol": 3
+        }
+      },
+      "noteCell": {
+        "row": 29,
+        "col": 3
+      }
+    },
+    {
+      "comment": "Slot 1 — компонент 2 (сгенерировано по дампу template.docx)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 3
+        },
+        "componentName": {
+          "row": 3,
+          "col": 3
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 10,
+          "schemeCol": 9
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 10,
+          "schemeCol": 9
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "15": {
+          "row": 19,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "16": {
+          "row": 20,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "17": {
+          "row": 21,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "18": {
+          "row": 22,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "19": {
+          "row": 23,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "20": {
+          "row": 24,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "21": {
+          "row": 25,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "22": {
+          "row": 26,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "23": {
+          "row": 27,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "24": {
+          "row": 28,
+          "ntdCol": 6,
+          "schemeCol": 5
+        }
+      },
+      "noteCell": {
+        "row": 29,
+        "col": 4
+      }
+    },
+    {
+      "comment": "Slot 2 — компонент 3 (сгенерировано по дампу template.docx)",
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 4
+        },
+        "componentName": {
+          "row": 3,
+          "col": 4
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "2": {
+          "row": 6,
+          "ntdCol": 10,
+          "schemeCol": 9
+        },
+        "3": {
+          "row": 7,
+          "ntdCol": 10,
+          "schemeCol": 9
+        },
+        "4": {
+          "row": 8,
+          "ntdCol": 11,
+          "schemeCol": 10
+        },
+        "5": {
+          "row": 9,
+          "ntdCol": 11,
+          "schemeCol": 10
+        },
+        "6": {
+          "row": 10,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "7": {
+          "row": 11,
+          "ntdCol": 11,
+          "schemeCol": 10
+        },
+        "8": {
+          "row": 12,
+          "ntdCol": 11,
+          "schemeCol": 10
+        },
+        "9": {
+          "row": 13,
+          "ntdCol": 12,
+          "schemeCol": 11
+        },
+        "10": {
+          "row": 14,
+          "ntdCol": 12,
+          "schemeCol": 11
+        },
+        "11": {
+          "row": 15,
+          "ntdCol": 11,
+          "schemeCol": 10
+        },
+        "12": {
+          "row": 16,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "13": {
+          "row": 17,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "14": {
+          "row": 18,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "15": {
+          "row": 19,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "16": {
+          "row": 20,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "17": {
+          "row": 21,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "18": {
+          "row": 22,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "19": {
+          "row": 23,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "20": {
+          "row": 24,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "21": {
+          "row": 25,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "22": {
+          "row": 26,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "23": {
+          "row": 27,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "24": {
+          "row": 28,
+          "ntdCol": 8,
+          "schemeCol": 7
+        }
+      },
+      "noteCell": {
+        "row": 29,
+        "col": 5
+      }
+    }
+  ],
+  "headerReplacements": {
+    "{{designation}}": "designation",
+    "{{sheet}}": "sheetNumber",
+    "{{totalSheets}}": "totalSheets"
+  }
+}

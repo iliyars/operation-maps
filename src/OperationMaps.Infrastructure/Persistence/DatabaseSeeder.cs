@@ -7,6 +7,15 @@ namespace OperationMaps.Infrastructure.Persistence;
 
 public static class DatabaseSeeder
 {
+  /// <summary>Corrects a parameter seeded under an old name — only if it still has exactly that name.</summary>
+  private static void RenameParameter(Form form, int rowNumber, string oldName, string newName, string newUnit)
+  {
+    var parameter = form.Parameters.FirstOrDefault(p => p.RowNumber == rowNumber && p.Name == oldName);
+    if (parameter is null) return;
+    parameter.Name = newName;
+    parameter.Unit = newUnit;
+  }
+
   public static async Task SeedAsync(CatalogDbContext db)
   {
     // Forms are seeded idempotently per-number (below) rather than behind a
@@ -64,6 +73,7 @@ public static class DatabaseSeeder
     EnsureForm("55", AddForm55);
     EnsureForm("56", AddForm56);
     EnsureForm("57", AddForm57);
+    EnsureForm("58", AddForm58);
     EnsureForm("59", AddForm59);
     EnsureForm("61", AddForm61);
     EnsureForm("63", AddForm63);
@@ -79,7 +89,8 @@ public static class DatabaseSeeder
     EnsureForm("72", AddForm72);
     EnsureForm("73", AddForm73);
     EnsureForm("74", AddForm74);
-    EnsureForm("77", AddForm77);
+    EnsureForm("75", AddForm75);
+    var form77 = EnsureForm("77", AddForm77);
     EnsureForm("78", AddForm78);
     EnsureForm("79", AddForm79);
     EnsureForm("80", AddForm80);
@@ -90,6 +101,14 @@ public static class DatabaseSeeder
     EnsureForm("85", AddForm85);
     EnsureForm("86", AddForm86);
     EnsureForm("87", AddForm87);
+
+    // Rows 15-16 of Form 77 were first seeded with names/units that don't
+    // match the printed blank — EnsureForm never touches an existing form,
+    // so correct them in databases seeded before the fix.
+    RenameParameter(form77, 15, "Время неполной коммутации",
+        "Время непрерывного нахождения обмотки под напряжением", "ч");
+    RenameParameter(form77, 16, "Время коммутации (срабатывания)",
+        "Время суммарного нахождения обмотки под напряжением", "ч");
 
     await db.SaveChangesAsync();
 
@@ -3387,6 +3406,84 @@ public static class DatabaseSeeder
   }
   // TODO:Form58
 
+  private static Form AddForm58(CatalogDbContext db)
+  {
+    // ---- Форма 58: Карта рабочих режимов транзисторов и транзисторных сборок
+    // Параметры и номера строк — по template.docx (Resources/Form58).
+    var form = new Form
+    {
+      Number = "58",
+      Title = "Карта рабочих режимов транзисторов и транзисторных сборок",
+      IsUniversal = false,
+      ColumnGrouping = ColumnGrouping.PerRegimeGroup
+    };
+
+    var secStatic = new FormSection { Form = form, Title = "Статический режим", Order = 1 };
+    var secDynamic = new FormSection { Form = form, Title = "Динамический режим", Order = 2 };
+    var secPulse = new FormSection { Form = form, Title = "Импульсный режим", Order = 3 };
+    var secSwitch = new FormSection { Form = form, Title = "Режим при включении и выключении", Order = 4 };
+    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 5 };
+    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 6 };
+
+    form.Sections.AddRange(new[] { secStatic, secDynamic, secPulse, secSwitch, secPower, secEnv });
+
+    var parameters = new List<FormParameter>
+    {
+        new() { Form = form, Section = secStatic, RowNumber = 1,
+                Order = 1, Name = "Статический режим: напряжение коллектор-эмиттер", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 2,
+                Order = 2, Name = "Статический режим: напряжение коллектор-база", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 3,
+                Order = 3, Name = "Статический режим: напряжение эмиттер-база", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 4,
+                Order = 4, Name = "Статический режим: ток коллектора", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 5,
+                Order = 5, Name = "Статический режим: ток базы", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 6,
+                Order = 1, Name = "Динамический режим: напряжение коллектор-эмиттер", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 7,
+                Order = 2, Name = "Динамический режим: напряжение коллектор-база", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 8,
+                Order = 3, Name = "Динамический режим: напряжение эмиттер-база", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 9,
+                Order = 4, Name = "Динамический режим: ток коллектора", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 10,
+                Order = 5, Name = "Динамический режим: ток базы", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secPulse, RowNumber = 11,
+                Order = 1, Name = "Длительность импульса", Unit = "мкс", IsRequired = false },
+        new() { Form = form, Section = secPulse, RowNumber = 12,
+                Order = 2, Name = "Частота следования", Unit = "Гц", IsRequired = false },
+        new() { Form = form, Section = secPulse, RowNumber = 13,
+                Order = 3, Name = "Сопротивление в цепи базы", Unit = "Ом", IsRequired = false },
+        new() { Form = form, Section = secSwitch, RowNumber = 14,
+                Order = 1, Name = "При включении и выключении: напряжение коллектор-эмиттер", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secSwitch, RowNumber = 15,
+                Order = 2, Name = "При включении и выключении: максимальный ток коллектора", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secSwitch, RowNumber = 16,
+                Order = 3, Name = "Длительность фронта (спада)", Unit = "мкс", IsRequired = false },
+        new() { Form = form, Section = secPower, RowNumber = 17,
+                Order = 1, Name = "Средняя мощность", Unit = "Вт", IsRequired = false },
+        new() { Form = form, Section = secPower, RowNumber = 18,
+                Order = 2, Name = "Импульсная мощность", Unit = "Вт", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 19,
+                Order = 1, Name = "Температура окружающей среды (корпуса)", Unit = "°С", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 20,
+                Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
+    };
+
+    form.Parameters.AddRange(parameters);
+
+    // Добавляем два столбца: "в схеме" и "по НТД"
+    form.ValueColumns.AddRange(new[]
+    {
+        new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
+        new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
+    });
+
+    db.Forms.Add(form);
+    return (form);
+  }
+
   private static Form AddForm59(CatalogDbContext db)
   {
     // ---- Форма 59: Карта рабочих режимов однопереходных транзисторов
@@ -4488,7 +4585,92 @@ public static class DatabaseSeeder
   }
 
 
-  // TODO: Form75
+  private static Form AddForm75(CatalogDbContext db)
+  {
+    // ---- Форма 75: Карта рабочих режимов электрических соединителей
+    // Параметры и номера строк — по template.docx (Resources/Form75).
+    var form = new Form
+    {
+      Number = "75",
+      Title = "Карта рабочих режимов электрических соединителей",
+      IsUniversal = false,
+      ColumnGrouping = ColumnGrouping.PerRegimeGroup
+    };
+
+    var secSignal = new FormSection { Form = form, Title = "Коммутируемый сигнал", Order = 1 };
+    var secOther = new FormSection { Form = form, Title = "Другие параметры", Order = 2 };
+    var secSeal = new FormSection { Form = form, Title = "Герметичность", Order = 3 };
+    var secCount = new FormSection { Form = form, Title = "Количество", Order = 4 };
+    var secMech = new FormSection { Form = form, Title = "Механические параметры", Order = 5 };
+    var secMount = new FormSection { Form = form, Title = "Монтаж хвостовиков контактов вилки (розетки)", Order = 6 };
+    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 7 };
+
+    form.Sections.AddRange(new[] { secSignal, secOther, secSeal, secCount, secMech, secMount, secEnv });
+
+    var parameters = new List<FormParameter>
+    {
+        new() { Form = form, Section = secSignal, RowNumber = 1,
+                Order = 1, Name = "Род тока", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secSignal, RowNumber = 2,
+                Order = 2, Name = "Величина тока", Unit = "мА", IsRequired = false },
+        new() { Form = form, Section = secSignal, RowNumber = 3,
+                Order = 3, Name = "Величина напряжения", Unit = "мВ", IsRequired = false },
+        new() { Form = form, Section = secSignal, RowNumber = 4,
+                Order = 4, Name = "Максимальная при работе (при сочленении): тока", Unit = "мА", IsRequired = false },
+        new() { Form = form, Section = secSignal, RowNumber = 5,
+                Order = 5, Name = "Максимальная при работе (при сочленении): напряжения", Unit = "мВ", IsRequired = false },
+        new() { Form = form, Section = secSignal, RowNumber = 6,
+                Order = 6, Name = "Частота тока", Unit = "МГц", IsRequired = false },
+        new() { Form = form, Section = secOther, RowNumber = 7,
+                Order = 1, Name = "В/ч цепи: мощность", Unit = "кВт", IsRequired = false },
+        new() { Form = form, Section = secOther, RowNumber = 8,
+                Order = 2, Name = "В/ч цепи: волновое сопротивление", Unit = "Ом", IsRequired = false },
+        new() { Form = form, Section = secOther, RowNumber = 9,
+                Order = 3, Name = "Импульсные цепи: длительность импульса", Unit = "мс", IsRequired = false },
+        new() { Form = form, Section = secOther, RowNumber = 10,
+                Order = 4, Name = "Импульсные цепи: длительность фронта", Unit = "мс", IsRequired = false },
+        new() { Form = form, Section = secOther, RowNumber = 11,
+                Order = 5, Name = "Импульсные цепи: частота повторения импульсов", Unit = "Гц", IsRequired = false },
+        new() { Form = form, Section = secSeal, RowNumber = 12,
+                Order = 1, Name = "Перепад давления", Unit = "Атм", IsRequired = false },
+        new() { Form = form, Section = secSeal, RowNumber = 13,
+                Order = 2, Name = "Утечка воздуха или другого газа", Unit = "л/час", IsRequired = false },
+        new() { Form = form, Section = secCount, RowNumber = 14,
+                Order = 1, Name = "Сочленений-расчленений: в обесточенном состоянии (под эл. нагрузкой)", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secCount, RowNumber = 15,
+                Order = 2, Name = "Вставлений-извлечений контакта", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secCount, RowNumber = 16,
+                Order = 3, Name = "Положений взаимосочленяемых частей", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secMech, RowNumber = 17,
+                Order = 1, Name = "Осевая нагрузка", Unit = "кгс", IsRequired = false },
+        new() { Form = form, Section = secMech, RowNumber = 18,
+                Order = 2, Name = "Смещение (перекос) при сочленении", Unit = "мм (град)", IsRequired = false },
+        new() { Form = form, Section = secMech, RowNumber = 19,
+                Order = 3, Name = "Недосочленение вилки с розеткой", Unit = "мм", IsRequired = false },
+        new() { Form = form, Section = secMount, RowNumber = 20,
+                Order = 1, Name = "Способ монтажа", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secMount, RowNumber = 21,
+                Order = 2, Name = "Количество соединений", Unit = "", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 22,
+                Order = 1, Name = "Температура окружающей среды", Unit = "°С", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 23,
+                Order = 2, Name = "Суммарное время эксплуатации под нагрузкой", Unit = "тыс. ч", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 24,
+                Order = 3, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
+    };
+
+    form.Parameters.AddRange(parameters);
+
+    // Добавляем два столбца: "в схеме" и "по НТД"
+    form.ValueColumns.AddRange(new[]
+    {
+        new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
+        new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
+    });
+
+    db.Forms.Add(form);
+    return (form);
+  }
 
   // TODO:Form76
 
@@ -4557,9 +4739,9 @@ public static class DatabaseSeeder
         new() { Form = form, Section = secTiming, RowNumber = 14,
                 Order = 2, Name = "Число коммутационных циклов", Unit = "", IsRequired = false },
         new() { Form = form, Section = secTiming, RowNumber = 15,
-                Order = 3, Name = "Время неполной коммутации", Unit = "с", IsRequired = false },
+                Order = 3, Name = "Время непрерывного нахождения обмотки под напряжением", Unit = "ч", IsRequired = false },
         new() { Form = form, Section = secTiming, RowNumber = 16,
-                Order = 4, Name = "Время коммутации (срабатывания)", Unit = "с", IsRequired = false },
+                Order = 4, Name = "Время суммарного нахождения обмотки под напряжением", Unit = "ч", IsRequired = false },
 
         // ---- Условия эксплуатации
         new() { Form = form, Section = secEnv, RowNumber = 17,

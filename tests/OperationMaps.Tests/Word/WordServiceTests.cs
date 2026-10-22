@@ -81,10 +81,13 @@ public class WordServiceTests
   /// </summary>
   [Theory]
   [InlineData("55")]
+  [InlineData("58")]
   [InlineData("64")]
   [InlineData("67")]
   [InlineData("68")]
   [InlineData("69")]
+  [InlineData("75")]
+  [InlineData("77")]
   [InlineData("83")]
   [InlineData("86")]
   public async Task Export_then_import_round_trips_simple_forms(string formNumber)
@@ -183,5 +186,36 @@ public class WordServiceTests
 
     await Assert.ThrowsAsync<FileNotFoundException>(
         () => service.ImportAsync("4", Path.Combine(Path.GetTempPath(), "no-such-" + Guid.NewGuid() + ".docx")));
+  }
+
+  /// <summary>
+  /// The round trip above reads with the same map it writes with, so a map
+  /// that is consistently shifted would still pass it. This anchors the map
+  /// to the template itself: the cell right before each parameter's
+  /// "в схеме" cell is the parameter number printed on the blank.
+  /// </summary>
+  [Theory]
+  [InlineData("58")]
+  [InlineData("75")]
+  [InlineData("77")]
+  public void Parameter_cells_sit_right_after_the_printed_parameter_number(string formNumber)
+  {
+    var mapLoader = new WordFormMapLoader(ResourcesDir);
+    var map = mapLoader.Load(formNumber);
+
+    using var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(mapLoader.GetTemplatePath(formNumber), false);
+    var rows = doc.MainDocumentPart!.Document.Body!
+        .Elements<DocumentFormat.OpenXml.Wordprocessing.Table>().ElementAt(map.TableIndex)
+        .Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>().ToList();
+
+    // The loaded map is 0-based (map.json itself is 1-based; the loader converts).
+    string CellText(int row, int col)
+        => rows[row].Elements<DocumentFormat.OpenXml.Wordprocessing.TableCell>().ElementAt(col).InnerText.Trim();
+
+    var firstSlot = map.ComponentSlots[0];
+    foreach (var (number, coord) in firstSlot.ParameterCells)
+      Assert.Equal(number, CellText(coord.Row, coord.SchemeCol!.Value - 1));
+
+    Assert.StartsWith("Примечание", CellText(firstSlot.NoteCell!.Value.Row, 0));
   }
 }

@@ -24,4 +24,11 @@ public interface ICatalogEditService
 
   /// <summary>Deletes an empty family (refuses one that still has components).</summary>
   Task DeleteFamilyAsync(int familyId, CancellationToken ct = default);
+
+  /// <summary>
+  /// Sets (or clears, with null) the parameter a form's load factor is
+  /// calculated from by default — kept in the shared catalog, so it reaches
+  /// everyone once the right parameter for that form is known.
+  /// </summary>
+  Task SetDefaultLoadFactorParameterAsync(int formId, int? parameterId, CancellationToken ct = default);
 }

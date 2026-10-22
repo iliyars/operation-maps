@@ -133,4 +133,16 @@ public sealed class CatalogEditService : ICatalogEditService
     _db.Families.Remove(family);
     await _db.SaveChangesAsync(ct);
   }
+
+  public async Task SetDefaultLoadFactorParameterAsync(int formId, int? parameterId, CancellationToken ct = default)
+  {
+    var form = await _db.Forms.FirstOrDefaultAsync(f => f.Id == formId, ct)
+        ?? throw new InvalidOperationException("Форма не найдена.");
+
+    if (parameterId is { } id && !await _db.FormParameters.AnyAsync(p => p.Id == id && p.FormId == formId, ct))
+      throw new InvalidOperationException("Параметр не принадлежит этой форме.");
+
+    form.DefaultLoadFactorParameterId = parameterId;
+    await _db.SaveChangesAsync(ct);
+  }
 }

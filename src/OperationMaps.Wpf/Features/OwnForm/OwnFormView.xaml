@@ -406,9 +406,10 @@
                          Style="{StaticResource PositionsText}"
                          Margin="0,4,0,16"/>
 
-              <!-- Load-factor base parameter picker — only shown when the form
-                   has more than one CanBeLoadFactorBase candidate; with exactly
-                   one there's nothing to choose, the form's default is used. -->
+              <!-- Load-factor base parameter picker — only shown when there's a
+                   choice (LoadFactorSetup: flagged candidates, or every parameter
+                   of a form whose base isn't known yet); with exactly one
+                   candidate it's simply used. -->
               <Border Background="{DynamicResource BgHoverBrush}"
                       CornerRadius="6"
                       Padding="10,8"
@@ -442,6 +443,25 @@
                             SelectedValue="{Binding LoadFactorBaseParameterId}"
                             SelectedValuePath="FormParameterId"
                             DisplayMemberPath="Label"/>
+                  <TextBlock Text="{Binding DataContext.DefaultLoadFactorLabel,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                             FontSize="12"
+                             TextWrapping="Wrap"
+                             Foreground="{DynamicResource TextSecondaryBrush}"
+                             Margin="0,6,0,0"/>
+                  <!-- Admin: once the right parameter for this form is known,
+                       store it in the shared catalog for every component -->
+                  <Button Content="Сделать по умолчанию для формы"
+                          Style="{StaticResource OutlineButton}"
+                          Padding="10,4"
+                          Margin="0,8,0,0"
+                          HorizontalAlignment="Left"
+                          ToolTip="Новые компоненты этой формы будут считать коэффициент нагрузки от выбранного параметра. Сохраняется в общем справочнике."
+                          Command="{Binding DataContext.MakeDefaultLoadFactorCommand,
+                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          Visibility="{Binding DataContext.IsAdmin,
+                                       RelativeSource={RelativeSource AncestorType=UserControl},
+                                       Converter={StaticResource BoolToVis}}"/>
                 </StackPanel>
               </Border>
 

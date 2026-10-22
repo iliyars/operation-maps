@@ -25,6 +25,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private readonly IWordService _wordService;
     private readonly WordFormMapLoader _mapLoader;
     private readonly IDialogService _dialogService;
+    private readonly SessionStore _session;
+    private readonly ICatalogEditService _catalogEdit;
 
     // ── Form metadata ─────────────────────────────────────────────────────────
 
@@ -104,13 +106,17 @@ namespace OperationMaps.Wpf.Features.OwnForm
         OwnFormStateService stateService,
         IWordService wordService,
         WordFormMapLoader mapLoader,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        SessionStore session,
+        ICatalogEditService catalogEdit)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
       _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+      _session = session ?? throw new ArgumentNullException(nameof(session));
+      _catalogEdit = catalogEdit ?? throw new ArgumentNullException(nameof(catalogEdit));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -136,10 +142,78 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
     {
-      // The state outlives this ViewModel — don't let it keep us alive.
+      // The state and the session outlive this ViewModel — don't let them keep us alive.
       if (_state is not null)
         _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+      _session.PropertyChanged -= OnSessionChanged;
+      WatchSelectedColumn(null);
       return Task.CompletedTask;
+    }
+
+    // ── Load factor: default base parameter of the form ───────────────────────
+
+    public bool IsAdmin => _session.IsAdmin;
+
+    /// <summary>
+    /// What the form calculates the load factor from when a component has no
+    /// choice of its own. Not known yet for most forms — then each component
+    /// needs a choice until an admin sets the default.
+    /// </summary>
+    public string DefaultLoadFactorLabel
+        => _state?.DefaultLoadFactorParameterId is { } id
+           && LoadFactorOptions.FirstOrDefault(o => o.FormParameterId == id) is { } option
+            ? $"По умолчанию для формы: {option.Label}"
+            : "По умолчанию для формы не задан — выберите параметр, иначе коэффициент нагрузки не рассчитывается.";
+
+    /// <summary>Admin: make the selected component's choice the form's default for everyone.</summary>
+    [RelayCommand(CanExecute = nameof(CanMakeDefaultLoadFactor))]
+    private async Task MakeDefaultLoadFactorAsync()
+    {
+      if (_state is null || SelectedColumn?.LoadFactorBaseParameterId is not { } parameterId) return;
+
+      try
+      {
+        await _catalogEdit.SetDefaultLoadFactorParameterAsync(FormId, parameterId);
+      }
+      catch (InvalidOperationException ex)
+      {
+        _dialogService.ShowWarning(ex.Message, "Коэффициент нагрузки");
+        return;
+      }
+
+      _state.SetDefaultLoadFactorParameter(parameterId);
+      OnPropertyChanged(nameof(DefaultLoadFactorLabel));
+      MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
+    }
+
+    private bool CanMakeDefaultLoadFactor
+        => IsAdmin
+           && SelectedColumn?.LoadFactorBaseParameterId is { } id
+           && id != _state?.DefaultLoadFactorParameterId;
+
+    private void OnSessionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName != nameof(SessionStore.IsAdmin)) return;
+      OnPropertyChanged(nameof(IsAdmin));
+      MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
+    }
+
+    private FormColumnVm? _watchedColumn;
+
+    /// <summary>The button depends on the selected column's current choice.</summary>
+    private void WatchSelectedColumn(FormColumnVm? column)
+    {
+      if (_watchedColumn is not null)
+        _watchedColumn.PropertyChanged -= OnWatchedColumnChanged;
+      _watchedColumn = column;
+      if (column is not null)
+        column.PropertyChanged += OnWatchedColumnChanged;
+    }
+
+    private void OnWatchedColumnChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName == nameof(FormColumnVm.LoadFactorBaseParameterId))
+        MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
     }
 
     // ── Commands: Undo / Redo ─────────────────────────────────────────────────
@@ -412,6 +486,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       SplitCommand.NotifyCanExecuteChanged();
       MergeCommand.NotifyCanExecuteChanged();
+      WatchSelectedColumn(value);
+      MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
     }
 
     // ── Private: table builder ────────────────────────────────────────────────
@@ -426,6 +502,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
       LoadFactorOptions.Clear();
 
       _state = await _stateService.GetAsync(FormId, ct);
+
+      _session.PropertyChanged -= OnSessionChanged;
+      _session.PropertyChanged += OnSessionChanged;
 
       OnPropertyChanged(nameof(Columns));
       OnPropertyChanged(nameof(FormNumber));
@@ -444,6 +523,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         Parameters.Add(param);
 
       ShowsPins = _state.ShowsPins;
+      OnPropertyChanged(nameof(DefaultLoadFactorLabel));
 
       RebuildColumnItems();
       ExportWordCommand.NotifyCanExecuteChanged();

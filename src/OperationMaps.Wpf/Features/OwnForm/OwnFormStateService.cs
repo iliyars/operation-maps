@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OperationMaps.Application.Services;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Features.Components;
@@ -53,30 +54,25 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (form is null) return null;
 
       var parameters = form.Parameters.OrderBy(p => p.RowNumber).ToList();
-
-      var loadFactorCandidates = parameters
-          .Where(p => p.CanBeLoadFactorBase)
-          .OrderBy(p => p.RowNumber)
-          .ToList();
+      var loadFactor = LoadFactorSetup.For(form, parameters);
 
       var state = new OwnFormState(
           formId: form.Id,
           formNumber: form.Number,
           formTitle: form.Title,
-          loadFactorOptions: loadFactorCandidates
+          loadFactorOptions: loadFactor.Candidates
               .Select(p => new LoadFactorOptionVm(p.Id, p.RowNumber, p.Name))
               .ToList(),
-          loadFactorResultParameterId: parameters.FirstOrDefault(p => p.IsLoadFactorResult)?.Id,
-          // Form.DefaultLoadFactorParameterId is the explicit, admin-set default.
-          // When it's not set but there's exactly ONE candidate parameter, that
-          // candidate is the obvious choice — it only matters to set it
-          // explicitly when several candidates exist.
-          defaultLoadFactorParameterId: form.DefaultLoadFactorParameterId
-              ?? (loadFactorCandidates.Count == 1 ? loadFactorCandidates[0].Id : null));
+          loadFactorResultParameterId: loadFactor.Result?.Id,
+          defaultLoadFactorParameterId: loadFactor.DefaultBaseId);
 
       // Rows reference state.Columns live, so they can be created before
       // the columns are added.
-      var rows = parameters.Select(p => new FormParameterRowVm(p, state.Columns)).ToList();
+      var rows = parameters.Select(p => new FormParameterRowVm(p, state.Columns)
+      {
+        // Also covers a result row recognized by its name, not just by the flag.
+        IsLoadFactorResult = p.Id == loadFactor.Result?.Id,
+      }).ToList();
 
       // Link each "primary" parameter to its optional counterpart, if any.
       // The counterpart is identified by IsOptional=true + OptionalForRowNumber

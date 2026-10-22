@@ -40,7 +40,18 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public int? LoadFactorResultParameterId { get; }
 
     /// <summary>Form.DefaultLoadFactorParameterId (or the single candidate), used when a Component has no explicit override.</summary>
-    public int? DefaultLoadFactorParameterId { get; }
+    public int? DefaultLoadFactorParameterId { get; private set; }
+
+    /// <summary>
+    /// The admin changed the form's default base parameter: columns that
+    /// have no base chosen yet pick it up; explicit choices stay as they are.
+    /// </summary>
+    public void SetDefaultLoadFactorParameter(int? parameterId)
+    {
+      DefaultLoadFactorParameterId = parameterId;
+      foreach (var column in Columns.Where(c => c.LoadFactorBaseParameterId is null))
+        column.LoadFactorBaseParameterId = parameterId;
+    }
 
     /// <summary>
     /// Raised after a column's load-factor result was recomputed, so the

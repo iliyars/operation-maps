@@ -43,7 +43,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// factor result — OwnFormViewModel writes into this row
     /// automatically and the UI marks it read-only.
     /// </summary>
-    public bool IsLoadFactorResult { get; }
+    public bool IsLoadFactorResult { get; init; }
 
     public FormParameterRowVm(
       FormParameter parameter,

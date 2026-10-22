@@ -39,6 +39,7 @@ namespace OperationMaps.Wpf.Shell
     private readonly SessionStore _session;
     private readonly ITitlePageService _titlePage;
     private readonly IContentsPageService _contentsPage;
+    private readonly IRegistrationSheetService _registrationSheet;
     private readonly UserPreferences _preferences;
     private readonly IServiceProvider _services;
 
@@ -70,6 +71,7 @@ namespace OperationMaps.Wpf.Shell
         SessionStore session,
         ITitlePageService titlePage,
         IContentsPageService contentsPage,
+        IRegistrationSheetService registrationSheet,
         UserPreferences preferences,
         IServiceProvider services)
     {
@@ -83,6 +85,7 @@ namespace OperationMaps.Wpf.Shell
       _session = session ?? throw new ArgumentNullException(nameof(session));
       _titlePage = titlePage ?? throw new ArgumentNullException(nameof(titlePage));
       _contentsPage = contentsPage ?? throw new ArgumentNullException(nameof(contentsPage));
+      _registrationSheet = registrationSheet ?? throw new ArgumentNullException(nameof(registrationSheet));
       _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
       _session.PropertyChanged += (_, e) =>
       {
@@ -322,16 +325,36 @@ namespace OperationMaps.Wpf.Shell
           message += "\n\nТитульный лист не создан: заполните реквизиты на экране «Титульный лист и содержание».";
         }
 
+        var plan = await PlanContentsAsync(ct);
+
         if (ContentsPageFile.CanWrite(_store))
         {
           try
           {
-            message += $"\n\nСодержание:\n{await ContentsPageFile.WriteAsync(_store, _contentsPage, await PlanContentsAsync(ct), ct)}";
+            message += $"\n\nСодержание:\n{await ContentsPageFile.WriteAsync(_store, _contentsPage, plan, ct)}";
           }
           catch (IOException ex)
           {
             message += $"\n\nСодержание не сохранено (возможно, открыто в Word): {ex.Message}";
           }
+        }
+
+        // The last sheet of the set; listed in the contents even before its
+        // template exists, written as soon as it does.
+        if (_registrationSheet.TemplateExists)
+        {
+          try
+          {
+            message += $"\n\nЛист регистрации изменений:\n{await RegistrationSheetFile.WriteAsync(_store, _registrationSheet, plan, ct)}";
+          }
+          catch (IOException ex)
+          {
+            message += $"\n\nЛист регистрации изменений не сохранён (возможно, открыт в Word): {ex.Message}";
+          }
+        }
+        else
+        {
+          message += $"\n\nЛист регистрации изменений не создан: нет шаблона\n{_registrationSheet.TemplatePath}";
         }
         if (skipped.Count > 0)
           message += "\n\nПропущены формы без шаблона Word: " +
@@ -385,7 +408,7 @@ namespace OperationMaps.Wpf.Shell
             titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage));
       }
 
-      return new ContentsPlan(ContentsPlanner.Plan(planned), ContentsPlanner.TotalSheets(planned));
+      return ContentsPlanner.Plan(planned);
     }
 
     /// <summary>

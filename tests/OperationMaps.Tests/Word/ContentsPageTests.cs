@@ -12,9 +12,9 @@ public class ContentsPageTests
       Path.Combine(AppContext.BaseDirectory, "Word", "Resources", "Content", "template.docx");
 
   [Fact]
-  public void Forms_follow_title_and_contents_with_sheet_ranges()
+  public void Forms_follow_title_and_contents_and_the_registration_sheet_closes_the_set()
   {
-    var entries = ContentsPlanner.Plan(
+    var plan = ContentsPlanner.Plan(
     [
       new PlannedForm("Форма 4", ComponentCount: 5, ComponentsPerPage: 4),   // 2 sheets
       new PlannedForm("Форма 67", ComponentCount: 3, ComponentsPerPage: 3),  // exactly 1
@@ -22,12 +22,10 @@ public class ContentsPageTests
       new PlannedForm("Форма 77", ComponentCount: 7, ComponentsPerPage: 3),  // 3 sheets
     ]);
 
-    Assert.Equal(["3–4", "5", "6", "7–9"], entries.Select(e => e.Sheets));
-    Assert.Equal(9, ContentsPlanner.TotalSheets(
-    [
-      new PlannedForm("Форма 4", 5, 4), new PlannedForm("Форма 67", 3, 3),
-      new PlannedForm("Форма 68", 0, 3), new PlannedForm("Форма 77", 7, 3),
-    ]));
+    Assert.Equal(["3–4", "5", "6", "7–9", "10"], plan.Entries.Select(e => e.Sheets));
+    Assert.Equal(ContentsPlanner.RegistrationSheetTitle, plan.Entries[^1].Name);
+    Assert.Equal(10, plan.RegistrationSheet);
+    Assert.Equal(10, plan.TotalSheets); // title + contents + 7 form sheets + registration
   }
 
   [Fact]
@@ -68,5 +66,36 @@ public class ContentsPageTests
     Assert.DoesNotContain("электрических соединителей", allText);
     Assert.DoesNotContain("ВЕИР.687282.846", allText);
     Assert.Contains(main.HeaderParts, h => h.Header.InnerText.Contains("АБВГ.123456.001"));
+  }
+
+  [Fact]
+  public async Task Registration_sheet_fills_its_tags_once_the_template_exists()
+  {
+    var folder = Path.Combine(Path.GetTempPath(), $"reg-{Guid.NewGuid():N}");
+    Directory.CreateDirectory(folder);
+    var templatePath = Path.Combine(folder, "template.docx");
+    try
+    {
+      var service = new RegistrationSheetService(templatePath);
+      Assert.False(service.TemplateExists);
+
+      using (var doc = WordprocessingDocument.Create(templatePath, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
+      {
+        doc.AddMainDocumentPart().Document = new Document(new Body(
+            new Paragraph(new Run(new Text("<DocumentNumber>Д4 — <Name>"))),
+            new Paragraph(new Run(new Text("Лист <SheetNumber> из <SCount>")))));
+      }
+
+      Assert.True(service.TemplateExists);
+      var bytes = await service.BuildAsync(new RegistrationSheetData("АБВГ.123456.001", "Блок питания", 10, 10));
+
+      using var result = WordprocessingDocument.Open(new MemoryStream(bytes), false);
+      var text = string.Join("|", result.MainDocumentPart!.Document.Body!.Elements<Paragraph>().Select(p => p.InnerText));
+      Assert.Equal("АБВГ.123456.001Д4 — Блок питания|Лист 10 из 10", text);
+    }
+    finally
+    {
+      Directory.Delete(folder, recursive: true);
+    }
   }
 }

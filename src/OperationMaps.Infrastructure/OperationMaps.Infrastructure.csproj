@@ -14,6 +14,8 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
+    <!-- Pinned above the 2.1.11 that EF Core pulls in: GHSA-2m69-gcr7-jv3q (bundled SQLite) -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.14" />
   </ItemGroup>
 
   <ItemGroup>

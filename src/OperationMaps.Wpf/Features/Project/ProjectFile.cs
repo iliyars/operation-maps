@@ -30,6 +30,9 @@ public sealed class ProjectFile
   public string? HeadName { get; set; }
   public string? HeadOccupation { get; set; }
 
+  /// <summary>Contents stamp: "Н. контр." (Разраб./Пров. are DevelopedBy/CheckedBy above).</summary>
+  public string? NormControl { get; set; }
+
   public OperatingConditions Conditions { get; set; } = new();
 
   public List<SavedComponent> Components { get; set; } = [];

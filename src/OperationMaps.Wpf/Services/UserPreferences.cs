@@ -20,6 +20,11 @@ public sealed class UserPreferences
   public string? LastHeadName { get; set; }
   public string? LastHeadOccupation { get; set; }
 
+  // Contents stamp: usually the same people from project to project.
+  public string? LastDevelopedBy { get; set; }
+  public string? LastCheckedBy { get; set; }
+  public string? LastNormControl { get; set; }
+
   public static UserPreferences Load()
   {
     try

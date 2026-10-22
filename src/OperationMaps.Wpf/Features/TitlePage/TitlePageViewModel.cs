@@ -37,6 +37,9 @@ public static class TitlePageFile
   }
 }
 
+/// <summary>The contents table and the set's total sheet count (for the stamp).</summary>
+public sealed record ContentsPlan(IReadOnlyList<ContentsEntry> Entries, int TotalSheets);
+
 /// <summary>Writes the filled contents ("Содержание") next to the project's other Word files.</summary>
 public static class ContentsPageFile
 {
@@ -47,12 +50,19 @@ public static class ContentsPageFile
 
   /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
   public static async Task<string> WriteAsync(
-      ProjectStore store, IContentsPageService service, IReadOnlyList<ContentsEntry> entries, CancellationToken ct = default)
+      ProjectStore store, IContentsPageService service, ContentsPlan plan, CancellationToken ct = default)
   {
     var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
     Directory.CreateDirectory(folder);
 
-    var bytes = await service.BuildAsync(new ContentsPageData(store.DocumentNumber ?? "", entries), ct);
+    var bytes = await service.BuildAsync(new ContentsPageData(
+        store.DocumentNumber ?? "",
+        plan.Entries,
+        Name: store.DocumentTitle ?? "",
+        Creator: store.DevelopedBy ?? "",
+        Checker: store.CheckedBy ?? "",
+        NormControl: store.NormControl ?? "",
+        TotalSheets: plan.TotalSheets), ct);
 
     var path = Path.Combine(folder, FileName);
     await File.WriteAllBytesAsync(path, bytes, ct);
@@ -92,10 +102,42 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
   }
 
   /// <summary>What the contents table will list — forms in report order with their sheets.</summary>
-  [ObservableProperty] private IReadOnlyList<ContentsEntry> _contents = [];
+  [ObservableProperty] private ContentsPlan _contents = new([], 0);
 
   public async Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
       => Contents = await _shell.PlanContentsAsync(cancellationToken);
+
+  // ── Contents stamp people (typed in; remembered for the next project) ─────
+
+  public string DevelopedBy
+  {
+    get => _store.DevelopedBy ?? "";
+    set
+    {
+      Set(value, v => _store.DevelopedBy = v);
+      _preferences.LastDevelopedBy = value.Trim();
+    }
+  }
+
+  public string CheckedBy
+  {
+    get => _store.CheckedBy ?? "";
+    set
+    {
+      Set(value, v => _store.CheckedBy = v);
+      _preferences.LastCheckedBy = value.Trim();
+    }
+  }
+
+  public string NormControl
+  {
+    get => _store.NormControl ?? "";
+    set
+    {
+      Set(value, v => _store.NormControl = v);
+      _preferences.LastNormControl = value.Trim();
+    }
+  }
 
   public bool CanSaveContents => ContentsPageFile.CanWrite(_store);
 

@@ -78,6 +78,34 @@
                        Foreground="{DynamicResource TextMutedBrush}"
                        Margin="0,8,0,28"/>
 
+            <!-- Contents stamp: the people are typed in (remembered for the next project) -->
+            <TextBlock Text="ШТАМП СОДЕРЖАНИЯ"
+                       Style="{StaticResource SectionLabel}"
+                       Margin="0,0,0,8"/>
+
+            <TextBlock Text="Разработал"
+                       Style="{StaticResource ParamLabel}"
+                       Margin="0,0,0,4"/>
+            <TextBox Text="{Binding DevelopedBy, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,12"/>
+
+            <TextBlock Text="Проверил"
+                       Style="{StaticResource ParamLabel}"
+                       Margin="0,0,0,4"/>
+            <TextBox Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,12"/>
+
+            <TextBlock Text="Н. контроль"
+                       Style="{StaticResource ParamLabel}"
+                       Margin="0,0,0,4"/>
+            <TextBox Text="{Binding NormControl, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,0,0,4"/>
+            <TextBlock Text="Фамилии печатаются в основном штампе содержания. Программа запоминает их для следующих проектов."
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       Margin="0,0,0,24"/>
+
             <!-- Contents preview: forms of the project with their sheets -->
             <TextBlock Text="СОДЕРЖАНИЕ"
                        Style="{StaticResource SectionLabel}"
@@ -92,7 +120,7 @@
                     BorderThickness="1"
                     CornerRadius="6"
                     Margin="0,0,0,12">
-                <ItemsControl ItemsSource="{Binding Contents}"
+                <ItemsControl ItemsSource="{Binding Contents.Entries}"
                               Focusable="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -121,6 +149,12 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </Border>
+
+            <TextBlock FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,0,0,12">
+                <Run Text="Всего листов в комплекте (графа «Листов» в штампе): "/><Run Text="{Binding Contents.TotalSheets, Mode=OneWay}" FontWeight="SemiBold"/>
+            </TextBlock>
 
             <Button Style="{StaticResource OutlineButton}"
                     Padding="14,6"

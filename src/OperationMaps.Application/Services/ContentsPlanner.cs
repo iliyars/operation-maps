@@ -18,6 +18,10 @@ public static class ContentsPlanner
           ? 1
           : (int)Math.Ceiling((double)form.ComponentCount / form.ComponentsPerPage);
 
+  /// <summary>Sheets in the whole set — title page and contents included ("Листов" in the stamp).</summary>
+  public static int TotalSheets(IEnumerable<PlannedForm> forms, int firstSheet = FirstFormSheet)
+      => firstSheet - 1 + forms.Sum(SheetsFor);
+
   public static IReadOnlyList<ContentsEntry> Plan(IEnumerable<PlannedForm> forms, int firstSheet = FirstFormSheet)
   {
     var entries = new List<ContentsEntry>();

@@ -78,6 +78,7 @@ public sealed class ProjectFileService
     ApprovedBy = _store.ApprovedBy,
     HeadName = _store.HeadName,
     HeadOccupation = _store.HeadOccupation,
+    NormControl = _store.NormControl,
     Conditions = _store.Conditions,
     Components = _store.Components
         .Select(c => c.Entry.Imported)
@@ -196,6 +197,7 @@ public sealed class ProjectFileService
     _store.Conditions = file.Conditions;
     _store.HeadName = file.HeadName;
     _store.HeadOccupation = file.HeadOccupation;
+    _store.NormControl = file.NormControl;
 
     await RestoreForm4NotesAsync(file.Form4Notes, ct);
     foreach (var saved in file.OwnForms)

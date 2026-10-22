@@ -23,6 +23,11 @@ public class ContentsPageTests
     ]);
 
     Assert.Equal(["3–4", "5", "6", "7–9"], entries.Select(e => e.Sheets));
+    Assert.Equal(9, ContentsPlanner.TotalSheets(
+    [
+      new PlannedForm("Форма 4", 5, 4), new PlannedForm("Форма 67", 3, 3),
+      new PlannedForm("Форма 68", 0, 3), new PlannedForm("Форма 77", 7, 3),
+    ]));
   }
 
   [Fact]
@@ -34,7 +39,12 @@ public class ContentsPageTests
           new ContentsEntry("Карта оценки номенклатуры ЭРИ", "3"),
           new ContentsEntry("Карта рабочих режимов конденсаторов", "4–5"),
           new ContentsEntry("Карта рабочих режимов резисторов", "6"),
-        ]));
+        ],
+        Name: "Блок питания БП-12",
+        Creator: "Иванов",
+        Checker: "Петров",
+        NormControl: "Сидоров",
+        TotalSheets: 6));
 
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
     var main = doc.MainDocumentPart!;
@@ -48,8 +58,13 @@ public class ContentsPageTests
     Assert.Equal(3, entryRows.Count); // the template's sample rows are gone
     Assert.Equal(["Карта рабочих режимов конденсаторов", "4–5"], entryRows[1]);
 
-    var allText = main.Document.InnerText + string.Concat(main.HeaderParts.Select(h => h.Header.InnerText));
-    Assert.DoesNotContain("<DocumentNumber>", allText);
+    var allText = main.Document.InnerText
+        + string.Concat(main.HeaderParts.Select(h => h.Header.InnerText))
+        + string.Concat(main.FooterParts.Select(f => f.Footer.InnerText));
+    foreach (var tag in new[] { "<DocumentNumber>", "<Name>", "<Creator>", "<Checker>", "<NControl>", "<SCount>" })
+      Assert.DoesNotContain(tag, allText);
+    foreach (var value in new[] { "Блок питания БП-12", "Иванов", "Петров", "Сидоров" })
+      Assert.Contains(value, allText);
     Assert.DoesNotContain("электрических соединителей", allText);
     Assert.DoesNotContain("ВЕИР.687282.846", allText);
     Assert.Contains(main.HeaderParts, h => h.Header.InnerText.Contains("АБВГ.123456.001"));

@@ -45,6 +45,9 @@ public sealed partial class ProjectStore : ObservableObject
   /// <summary>Должность руководителя для титульного листа (вводит пользователь).</summary>
   [ObservableProperty] private string? _headOccupation;
 
+  /// <summary>Нормоконтроль — штамп содержания (вводит пользователь).</summary>
+  [ObservableProperty] private string? _normControl;
+
   /// <summary>
   /// Absolute path to the project folder (the folder containing the .omaps file).
   /// All generated Word documents are saved relative to this path.
@@ -165,6 +168,7 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = importResult?.ApprovedBy;
     HeadName = null;
     HeadOccupation = null;
+    NormControl = null;
 
     Components.Clear();
     ClearOwnForms();
@@ -198,6 +202,7 @@ public sealed partial class ProjectStore : ObservableObject
     ApprovedBy = null;
     HeadName = null;
     HeadOccupation = null;
+    NormControl = null;
     Conditions = new();
     Components.Clear();
     ClearOwnForms();

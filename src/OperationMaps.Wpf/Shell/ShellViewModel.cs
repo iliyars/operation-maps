@@ -358,7 +358,7 @@ namespace OperationMaps.Wpf.Shell
     /// order, with the sheets it will occupy (title page = 1, contents = 2).
     /// Forms without a Word template are left out — the report skips them too.
     /// </summary>
-    public async Task<IReadOnlyList<ContentsEntry>> PlanContentsAsync(CancellationToken ct = default)
+    public async Task<ContentsPlan> PlanContentsAsync(CancellationToken ct = default)
     {
       var numbers = _formBuilders.Select(f => f.FormNumber).ToList();
       var titles = await _services.GetRequiredService<CatalogDbContext>().Forms
@@ -385,7 +385,7 @@ namespace OperationMaps.Wpf.Shell
             titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage));
       }
 
-      return ContentsPlanner.Plan(planned);
+      return new ContentsPlan(ContentsPlanner.Plan(planned), ContentsPlanner.TotalSheets(planned));
     }
 
     /// <summary>
@@ -519,6 +519,9 @@ namespace OperationMaps.Wpf.Shell
       var wasDirty = _store.IsDirty;
       if (string.IsNullOrWhiteSpace(_store.HeadName)) _store.HeadName = _preferences.LastHeadName;
       if (string.IsNullOrWhiteSpace(_store.HeadOccupation)) _store.HeadOccupation = _preferences.LastHeadOccupation;
+      if (string.IsNullOrWhiteSpace(_store.DevelopedBy)) _store.DevelopedBy = _preferences.LastDevelopedBy;
+      if (string.IsNullOrWhiteSpace(_store.CheckedBy)) _store.CheckedBy = _preferences.LastCheckedBy;
+      if (string.IsNullOrWhiteSpace(_store.NormControl)) _store.NormControl = _preferences.LastNormControl;
       _store.IsDirty = wasDirty;
 
       // Make nav items visible

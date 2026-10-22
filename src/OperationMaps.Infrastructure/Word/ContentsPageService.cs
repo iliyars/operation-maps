@@ -42,9 +42,15 @@ public sealed class ContentsPageService : IContentsPageService
     {
       var number = data.DocumentNumber.Trim();
 
+      // An empty field prints as blank, never as the raw tag.
       WordPlaceholderReplacer.ReplaceEverywhere(doc, new Dictionary<string, string>
       {
         ["<DocumentNumber>"] = number,
+        ["<Name>"] = data.Name.Trim(),
+        ["<Creator>"] = data.Creator.Trim(),
+        ["<Checker>"] = data.Checker.Trim(),
+        ["<NControl>"] = data.NormControl.Trim(),
+        ["<SCount>"] = data.TotalSheets > 0 ? data.TotalSheets.ToString() : "",
       });
 
       FillTable(doc.MainDocumentPart!.Document.Body!.Elements<Table>().First(), number, data.Entries);

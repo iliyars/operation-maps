@@ -16,6 +16,12 @@ public static class DatabaseSeeder
     parameter.Unit = newUnit;
   }
 
+  private static void SetDefaultLoadFactorBase(Form form, int row)
+  {
+    if (form.DefaultLoadFactorParameterId is not null) return;
+    form.DefaultLoadFactorParameterId = form.Parameters.First(p => p.RowNumber == row).Id;
+  }
+
   /// <summary>Sets load-factor flags on a form that has none (seeded before they existed).</summary>
   private static void EnsureLoadFactorFlags(Form form, int[] baseRows, int resultRow)
   {
@@ -129,13 +135,13 @@ public static class DatabaseSeeder
 
     await db.SaveChangesAsync();
 
-    // Form 67's load factor is taken from row 4 "Суммарное" (Ilya, 2026-10-22).
-    // Needs parameter ids, hence after saving; an admin can change it later.
-    if (form67.DefaultLoadFactorParameterId is null)
-    {
-      form67.DefaultLoadFactorParameterId = form67.Parameters.First(p => p.RowNumber == 4).Id;
-      await db.SaveChangesAsync();
-    }
+    // Default load-factor bases confirmed by Ilya (2026-10-22): Form 67 —
+    // row 4 "Суммарное", Form 68 — row 13 "Суммарная мощность". Needs
+    // parameter ids, hence after saving; only fills an unset default, so an
+    // admin's later choice is never overwritten.
+    SetDefaultLoadFactorBase(form67, row: 4);
+    SetDefaultLoadFactorBase(form68, row: 13);
+    await db.SaveChangesAsync();
 
     // Test catalog data (families, notes, sample components, FamilyForm
     // links) below is still seeded only once — guarded separately from the

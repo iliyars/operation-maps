@@ -36,8 +36,10 @@ public sealed record LoadFactorSetup(
     var flagged = parameters.Where(p => p.CanBeLoadFactorBase).OrderBy(p => p.RowNumber).ToList();
     var candidates = flagged.Count > 0
         ? flagged
+        // Derived rows stay in: a sum like Form 67's "Суммарное" (row1+row2+row3)
+        // is exactly the kind of value a load factor is taken from.
         : parameters
-            .Where(p => p.Id != result.Id && !p.IsOptional && p.Formula is null)
+            .Where(p => p.Id != result.Id && !p.IsOptional)
             .OrderBy(p => p.RowNumber)
             .ToList();
 

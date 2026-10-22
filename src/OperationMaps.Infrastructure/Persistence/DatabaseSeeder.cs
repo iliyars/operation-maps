@@ -16,6 +16,18 @@ public static class DatabaseSeeder
     parameter.Unit = newUnit;
   }
 
+  /// <summary>Sets load-factor flags on a form that has none (seeded before they existed).</summary>
+  private static void EnsureLoadFactorFlags(Form form, int[] baseRows, int resultRow)
+  {
+    if (form.Parameters.Any(p => p.CanBeLoadFactorBase || p.IsLoadFactorResult)) return;
+
+    foreach (var p in form.Parameters)
+    {
+      p.CanBeLoadFactorBase = baseRows.Contains(p.RowNumber);
+      p.IsLoadFactorResult = p.RowNumber == resultRow;
+    }
+  }
+
   public static async Task SeedAsync(CatalogDbContext db)
   {
     // Forms are seeded idempotently per-number (below) rather than behind a
@@ -111,7 +123,19 @@ public static class DatabaseSeeder
     RenameParameter(form77, 16, "Время коммутации (срабатывания)",
         "Время суммарного нахождения обмотки под напряжением", "ч");
 
+    // Form 67 got its load-factor flags after many databases were seeded —
+    // EnsureForm doesn't touch existing forms, so bring them in line here.
+    EnsureLoadFactorFlags(form67, baseRows: [3, 4], resultRow: 14);
+
     await db.SaveChangesAsync();
+
+    // Form 67's load factor is taken from row 4 "Суммарное" (Ilya, 2026-10-22).
+    // Needs parameter ids, hence after saving; an admin can change it later.
+    if (form67.DefaultLoadFactorParameterId is null)
+    {
+      form67.DefaultLoadFactorParameterId = form67.Parameters.First(p => p.RowNumber == 4).Id;
+      await db.SaveChangesAsync();
+    }
 
     // Test catalog data (families, notes, sample components, FamilyForm
     // links) below is still seeded only once — guarded separately from the

@@ -82,6 +82,7 @@ public class WordServiceTests
   [Theory]
   [InlineData("55")]
   [InlineData("58")]
+  [InlineData("60")]
   [InlineData("64")]
   [InlineData("67")]
   [InlineData("68")]
@@ -196,6 +197,7 @@ public class WordServiceTests
   /// </summary>
   [Theory]
   [InlineData("58")]
+  [InlineData("60")]
   [InlineData("75")]
   [InlineData("77")]
   public void Parameter_cells_sit_right_after_the_printed_parameter_number(string formNumber)

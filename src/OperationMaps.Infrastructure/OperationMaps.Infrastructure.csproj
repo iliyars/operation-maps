@@ -22,6 +22,10 @@
     <None Update="Word\Resources\**\*">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <!-- PDFs next to a template are reference scans of the blank, not something the program reads -->
+    <None Update="Word\Resources\**\*.pdf">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
     <None Update="Word\Resources\**\*.docx">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

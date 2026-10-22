@@ -75,6 +75,7 @@ public static class DatabaseSeeder
     EnsureForm("57", AddForm57);
     EnsureForm("58", AddForm58);
     EnsureForm("59", AddForm59);
+    EnsureForm("60", AddForm60);
     EnsureForm("61", AddForm61);
     EnsureForm("63", AddForm63);
     EnsureForm("64", AddForm64);
@@ -3548,7 +3549,82 @@ public static class DatabaseSeeder
     return (form);
   }
 
-  //TODO:Form60
+  private static Form AddForm60(CatalogDbContext db)
+  {
+    // ---- Форма 60: Карта рабочих режимов полевых транзисторов и транзисторных сборок
+    // Параметры и номера строк — по template.docx (Resources/Form60).
+    var form = new Form
+    {
+      Number = "60",
+      Title = "Карта рабочих режимов полевых транзисторов и транзисторных сборок",
+      IsUniversal = false,
+      ColumnGrouping = ColumnGrouping.PerRegimeGroup
+    };
+
+    var secStatic = new FormSection { Form = form, Title = "Статический режим", Order = 1 };
+    var secDynamic = new FormSection { Form = form, Title = "Динамический режим", Order = 2 };
+    var secPulse = new FormSection { Form = form, Title = "Импульсный режим", Order = 3 };
+    var secPower = new FormSection { Form = form, Title = "Мощность", Order = 4 };
+    var secEnv = new FormSection { Form = form, Title = "Условия эксплуатации", Order = 5 };
+
+    form.Sections.AddRange(new[] { secStatic, secDynamic, secPulse, secPower, secEnv });
+
+    var parameters = new List<FormParameter>
+    {
+        new() { Form = form, Section = secStatic, RowNumber = 1,
+                Order = 1, Name = "Статический режим: напряжение затвор (затвор-1) – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 2,
+                Order = 2, Name = "Статический режим: напряжение сток – затвор", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 3,
+                Order = 3, Name = "Статический режим: напряжение затвор – исток (прямое смещение)", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 4,
+                Order = 4, Name = "Статический режим: напряжение сток – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 5,
+                Order = 5, Name = "Статический режим: напряжение подложка (затвор-2) – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 6,
+                Order = 6, Name = "Статический режим: ток стока", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secStatic, RowNumber = 7,
+                Order = 7, Name = "Статический режим: ток затвора", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 8,
+                Order = 1, Name = "Динамический режим: напряжение затвор (затвор-1) – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 9,
+                Order = 2, Name = "Динамический режим: напряжение сток – затвор", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 10,
+                Order = 3, Name = "Динамический режим: напряжение затвор – исток (прямое смещение)", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 11,
+                Order = 4, Name = "Динамический режим: напряжение сток – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 12,
+                Order = 5, Name = "Динамический режим: напряжение подложка (затвор-2) – исток", Unit = "В", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 13,
+                Order = 6, Name = "Динамический режим: ток стока", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secDynamic, RowNumber = 14,
+                Order = 7, Name = "Динамический режим: ток затвора", Unit = "А", IsRequired = false },
+        new() { Form = form, Section = secPulse, RowNumber = 15,
+                Order = 1, Name = "Длительность импульса", Unit = "мкс", IsRequired = false },
+        new() { Form = form, Section = secPulse, RowNumber = 16,
+                Order = 2, Name = "Частота следования", Unit = "Гц", IsRequired = false },
+        new() { Form = form, Section = secPower, RowNumber = 17,
+                Order = 1, Name = "Средняя мощность", Unit = "Вт", IsRequired = false },
+        new() { Form = form, Section = secPower, RowNumber = 18,
+                Order = 2, Name = "Импульсная мощность", Unit = "Вт", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 19,
+                Order = 1, Name = "Температура окружающей среды (корпуса)", Unit = "°С", IsRequired = false },
+        new() { Form = form, Section = secEnv, RowNumber = 20,
+                Order = 2, Name = "Коэффициент нагрузки", Unit = "", IsRequired = false },
+    };
+
+    form.Parameters.AddRange(parameters);
+
+    // Добавляем два столбца: "в схеме" и "по НТД"
+    form.ValueColumns.AddRange(new[]
+    {
+        new FormValueColumn { Form = form, Key = "scheme", Title = "в схеме", Source = ColumnSource.ManualScheme, Order = 1 },
+        new FormValueColumn { Form = form, Key = "ntd",    Title = "по НТД",  Source = ColumnSource.DatasheetNdt, Order = 2 },
+    });
+
+    db.Forms.Add(form);
+    return (form);
+  }
 
   private static Form AddForm61(CatalogDbContext db)
   {

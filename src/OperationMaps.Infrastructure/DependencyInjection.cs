@@ -12,11 +12,18 @@ namespace OperationMaps.Infrastructure;
 public static class DependencyInjection
 {
   public static IServiceCollection AddInfrastructure(
-      this IServiceCollection services, string catalogConnectionString)
+      this IServiceCollection services,
+      string catalogConnectionString,
+      CatalogDatabaseOptions catalogOptions)
   {
-    // ── Catalog DB (shared, permanent) ────────────────────────────────────
+    // ── Catalog DB (possibly a file in a shared network folder) ───────────
+    var connectionString = CatalogConnection.Build(
+        catalogConnectionString, allowCreate: catalogOptions.UpdateSchemaOnStartup);
+
     services.AddDbContext<CatalogDbContext>(options =>
-        options.UseSqlite(catalogConnectionString));
+        options.UseSqlite(connectionString));
+    services.AddSingleton(catalogOptions);
+    services.AddScoped<CatalogDatabaseInitializer>();
 
     // ── Project DB (per-file, opened on demand) ───────────────────────────
     // ProjectDbContext is NOT registered in DI — it's created by factory

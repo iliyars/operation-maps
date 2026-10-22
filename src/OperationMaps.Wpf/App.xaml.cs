@@ -54,7 +54,10 @@ public partial class App : System.Windows.Application
                   ?? throw new InvalidOperationException(
                       "Connection string 'Catalog' not found.");
 
-              services.AddInfrastructure(connectionString);
+              var catalogOptions = ctx.Configuration.GetSection("Catalog").Get<CatalogDatabaseOptions>()
+                  ?? new CatalogDatabaseOptions();
+
+              services.AddInfrastructure(connectionString, catalogOptions);
               services.AddPresentation();
             })
             .Build();
@@ -69,8 +72,12 @@ public partial class App : System.Windows.Application
       // Register View DataTemplates by convention (ViewModel → View)
       ViewTemplateRegistrar.Register(Assembly.GetExecutingAssembly());
 
-      // Seed the database
-      await InitializeDatabaseAsync();
+      // Check / upgrade / back up the catalog database
+      if (!await InitializeDatabaseAsync())
+      {
+        Shutdown(1);
+        return;
+      }
 
       //Show the window
       var vm = _host.Services.GetRequiredService<MainViewModel>();
@@ -107,13 +114,34 @@ public partial class App : System.Windows.Application
     Log.CloseAndFlush();
   }
 
-  private async Task InitializeDatabaseAsync()
+  /// <summary>False when the program can't work with this database — the user has been told why.</summary>
+  private async Task<bool> InitializeDatabaseAsync()
   {
     using var scope = _host!.Services.CreateAsyncScope();
-    var db = scope.ServiceProvider
-        .GetRequiredService<CatalogDbContext>();
-    await db.Database.MigrateAsync();
-    await DatabaseSeeder.SeedAsync(db);
+    var initializer = scope.ServiceProvider.GetRequiredService<CatalogDatabaseInitializer>();
+
+    var status = await initializer.InitializeAsync();
+    var message = status switch
+    {
+      CatalogStartupStatus.DatabaseNotFound =>
+          "Не найден файл справочника:\n" + initializer.DatabasePath + "\n\n" +
+          "Проверьте, что общая папка доступна (подключение к сети), " +
+          "или исправьте путь в appsettings.json рядом с программой.",
+      CatalogStartupStatus.SchemaUpdateRequired =>
+          "Эта версия программы новее базы справочника:\n" + initializer.DatabasePath + "\n\n" +
+          "Базу должен обновить администратор — запустив у себя новую версию программы. " +
+          "После этого программа здесь заработает.",
+      CatalogStartupStatus.ProgramTooOld =>
+          "База справочника уже обновлена более новой версией программы:\n" + initializer.DatabasePath + "\n\n" +
+          "Обновите OperationMaps до последней версии.",
+      _ => null,
+    };
+
+    if (message is null) return true;
+
+    Log.Warning("Catalog startup check failed: {Status} ({Path})", status, initializer.DatabasePath);
+    MessageBox.Show(message, "OperationMaps", MessageBoxButton.OK, MessageBoxImage.Warning);
+    return false;
   }
 
   // ── Unhandled exceptions ──────────────────────────────────────────────────

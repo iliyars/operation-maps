@@ -190,9 +190,14 @@
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
+                        <!-- CanContentScroll MUST be passed through: without it the
+                             presenter never hands scrolling to a VirtualizingStackPanel,
+                             so every list silently realized ALL its rows (157 rows on
+                             "Компоненты" → freezes while resizing the window). -->
                         <ScrollContentPresenter Grid.Column="0"
                                                 Grid.Row="0"
-                                                Margin="{TemplateBinding Padding}"/>
+                                                Margin="{TemplateBinding Padding}"
+                                                CanContentScroll="{TemplateBinding CanContentScroll}"/>
 
                         <ScrollBar x:Name="PART_VerticalScrollBar"
                                    Grid.Column="1"

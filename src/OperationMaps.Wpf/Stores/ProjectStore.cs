@@ -90,11 +90,11 @@ public sealed partial class ProjectStore : ObservableObject
 
   /// <summary>
   /// Returns the output path for the final report document,
-  /// e.g. <c>{ProjectFolderPath}/Forms/Report.docx</c>.
+  /// e.g. <c>{ProjectFolderPath}/Forms/Итоговый документ.docx</c>.
   /// </summary>
   public string? ReportDocumentPath => FormsFolder is null
       ? null
-      : Path.Combine(FormsFolder, "Report.docx");
+      : Path.Combine(FormsFolder, "Итоговый документ.docx");
 
   /// <summary>
   /// Path to the operating conditions JSON file: <c>{ProjectFolderPath}/conditions.json</c>.

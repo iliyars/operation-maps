@@ -63,7 +63,7 @@
                               InputGestureText="Ctrl+Shift+S"
                               Command="{Binding SaveProjectAsCommand}"/>
                     <Separator/>
-                    <MenuItem Header="Сохранить итоговый документ"
+                    <MenuItem Header="Собрать итоговый документ"
                               Command="{Binding ExportReportCommand}"/>
                     <Separator/>
                     <MenuItem Header="Выход"

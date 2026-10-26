@@ -72,7 +72,7 @@
                     Command="{Binding SaveWordCommand}">
                 <TextBlock Text="Сохранить титульный лист в Word"/>
             </Button>
-            <TextBlock Text="Файл «Титульный лист.docx» сохраняется в папку Forms рядом с картами. При сборке итогового документа он создаётся автоматически."
+            <TextBlock Text="Отдельный файл «Титульный лист.docx» — если нужен только он. В итоговый документ титульный лист входит сам."
                        FontSize="11"
                        TextWrapping="Wrap"
                        Foreground="{DynamicResource TextMutedBrush}"
@@ -162,11 +162,41 @@
                     Command="{Binding SaveContentsCommand}">
                 <TextBlock Text="Сохранить содержание в Word"/>
             </Button>
-            <TextBlock Text="Файл «Содержание.docx». Тоже создаётся автоматически при сборке итогового документа."
+            <TextBlock Text="Отдельный файл «Содержание.docx» — если нужно только оно."
                        FontSize="11"
                        TextWrapping="Wrap"
                        Foreground="{DynamicResource TextMutedBrush}"
-                       Margin="0,8,0,0"/>
+                       Margin="0,8,0,28"/>
+
+            <!-- The whole set as one document -->
+            <Border Background="{DynamicResource StatusInfoBgBrush}"
+                    BorderBrush="{DynamicResource StatusInfoBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Padding="16,14">
+                <StackPanel>
+                    <TextBlock Text="Итоговый документ"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Один файл Word со всем комплектом по порядку: титульный лист, содержание, все формы, лист регистрации изменений. У каждой части своя рамка и формат листа, номера листов — сквозные, как в содержании."
+                               FontSize="12"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,4,0,12"/>
+                    <Button Style="{StaticResource PrimaryButton}"
+                            Padding="16,8"
+                            HorizontalAlignment="Left"
+                            Command="{Binding ExportReportCommand}">
+                        <TextBlock Text="Собрать итоговый документ"/>
+                    </Button>
+                    <TextBlock Text="Сохраняется в папку Forms как «Итоговый документ.docx». То же самое — в меню «Файл» и в боковой панели."
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

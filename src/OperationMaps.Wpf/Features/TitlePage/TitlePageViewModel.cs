@@ -22,14 +22,16 @@ public static class TitlePageFile
       && !string.IsNullOrWhiteSpace(store.HeadName)
       && !string.IsNullOrWhiteSpace(store.HeadOccupation);
 
+  public static TitlePageData DataOf(ProjectStore store) => new(
+      store.DocumentNumber ?? "", store.DocumentTitle ?? "", store.HeadName ?? "", store.HeadOccupation ?? "");
+
   /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
   public static async Task<string> WriteAsync(ProjectStore store, ITitlePageService service, CancellationToken ct = default)
   {
     var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
     Directory.CreateDirectory(folder);
 
-    var bytes = await service.BuildAsync(new TitlePageData(
-        store.DocumentNumber ?? "", store.DocumentTitle ?? "", store.HeadName ?? "", store.HeadOccupation ?? ""), ct);
+    var bytes = await service.BuildAsync(DataOf(store), ct);
 
     var path = Path.Combine(folder, FileName);
     await File.WriteAllBytesAsync(path, bytes, ct);
@@ -42,6 +44,9 @@ public static class RegistrationSheetFile
 {
   public const string FileName = "Лист регистрации изменений.docx";
 
+  public static RegistrationSheetData DataOf(ProjectStore store, ContentsPlan plan) => new(
+      store.DocumentNumber ?? "", store.DocumentTitle ?? "", plan.RegistrationSheet, plan.TotalSheets);
+
   /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
   public static async Task<string> WriteAsync(
       ProjectStore store, IRegistrationSheetService service, ContentsPlan plan, CancellationToken ct = default)
@@ -49,8 +54,7 @@ public static class RegistrationSheetFile
     var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
     Directory.CreateDirectory(folder);
 
-    var bytes = await service.BuildAsync(new RegistrationSheetData(
-        store.DocumentNumber ?? "", store.DocumentTitle ?? "", plan.RegistrationSheet, plan.TotalSheets), ct);
+    var bytes = await service.BuildAsync(DataOf(store, plan), ct);
 
     var path = Path.Combine(folder, FileName);
     await File.WriteAllBytesAsync(path, bytes, ct);
@@ -66,6 +70,15 @@ public static class ContentsPageFile
   /// <summary>The designation is the only field; the table comes from the project's forms.</summary>
   public static bool CanWrite(ProjectStore store) => !string.IsNullOrWhiteSpace(store.DocumentNumber);
 
+  public static ContentsPageData DataOf(ProjectStore store, ContentsPlan plan) => new(
+      store.DocumentNumber ?? "",
+      plan.Entries,
+      Name: store.DocumentTitle ?? "",
+      Creator: store.DevelopedBy ?? "",
+      Checker: store.CheckedBy ?? "",
+      NormControl: store.NormControl ?? "",
+      TotalSheets: plan.TotalSheets);
+
   /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
   public static async Task<string> WriteAsync(
       ProjectStore store, IContentsPageService service, ContentsPlan plan, CancellationToken ct = default)
@@ -73,14 +86,7 @@ public static class ContentsPageFile
     var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
     Directory.CreateDirectory(folder);
 
-    var bytes = await service.BuildAsync(new ContentsPageData(
-        store.DocumentNumber ?? "",
-        plan.Entries,
-        Name: store.DocumentTitle ?? "",
-        Creator: store.DevelopedBy ?? "",
-        Checker: store.CheckedBy ?? "",
-        NormControl: store.NormControl ?? "",
-        TotalSheets: plan.TotalSheets), ct);
+    var bytes = await service.BuildAsync(DataOf(store, plan), ct);
 
     var path = Path.Combine(folder, FileName);
     await File.WriteAllBytesAsync(path, bytes, ct);
@@ -158,6 +164,9 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
   }
 
   public bool CanSaveContents => ContentsPageFile.CanWrite(_store);
+
+  /// <summary>The whole set as one Word document — same command as in the menu.</summary>
+  public IAsyncRelayCommand ExportReportCommand => _shell.ExportReportCommand;
 
   [RelayCommand(CanExecute = nameof(CanSaveContents))]
   private async Task SaveContentsAsync()

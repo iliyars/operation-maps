@@ -36,6 +36,8 @@ public sealed class TitlePageService : ITitlePageService
         ["<HeadName>"] = data.HeadName.Trim(),
         ["<Occupation>"] = data.HeadOccupation.Trim(),
       });
+
+      WordPageNumbering.StartAt(doc, 1); // sheet 1 of the set
     }
 
     return ms.ToArray();

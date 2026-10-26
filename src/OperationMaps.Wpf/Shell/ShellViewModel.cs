@@ -31,7 +31,7 @@ namespace OperationMaps.Wpf.Shell
 
     private readonly INavigationService _navigation;
     private readonly ProjectStore _store;
-    private readonly WordReportBuilder _reportBuilder;
+    private readonly IWordService _wordService;
     private readonly WordFormMapLoader _mapLoader;
     private readonly IDialogService _dialogService;
     private readonly IFilePicker _filePicker;
@@ -63,7 +63,7 @@ namespace OperationMaps.Wpf.Shell
     public ShellViewModel(
         INavigationService navigation,
         ProjectStore store,
-        WordReportBuilder reportBuilder,
+        IWordService wordService,
         WordFormMapLoader mapLoader,
         IDialogService dialogService,
         IFilePicker filePicker,
@@ -77,7 +77,7 @@ namespace OperationMaps.Wpf.Shell
     {
       _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
       _store = store ?? throw new ArgumentNullException(nameof(store));
-      _reportBuilder = reportBuilder ?? throw new ArgumentNullException(nameof(reportBuilder));
+      _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
       _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
       _filePicker = filePicker ?? throw new ArgumentNullException(nameof(filePicker));
@@ -252,6 +252,13 @@ namespace OperationMaps.Wpf.Shell
 
     // ── Export Report command ─────────────────────────────────────────────────
 
+    /// <summary>
+    /// "Собрать итоговый документ": the whole printed set as ONE Word file —
+    /// title page, contents, every form, change registration sheet — each
+    /// part a section of its own (page format, frame, sheet numbering), see
+    /// <see cref="WordDocumentMerger"/>. Parts that can't be built yet
+    /// (fields not filled in, no template) are left out and listed.
+    /// </summary>
     [RelayCommand(CanExecute = nameof(CanExportReport))]
     private async Task ExportReportAsync(CancellationToken ct = default)
     {
@@ -262,7 +269,7 @@ namespace OperationMaps.Wpf.Shell
       if (IsFileLocked(outputPath))
       {
         _dialogService.ShowWarning(
-            $"Файл уже открыт в другой программе:\n{outputPath}\n\nЗакройте файл и повторите экспорт.",
+            $"Файл уже открыт в другой программе:\n{outputPath}\n\nЗакройте файл и повторите.",
             "Файл занят");
         return;
       }
@@ -270,11 +277,24 @@ namespace OperationMaps.Wpf.Shell
       IsExportingReport = true;
       try
       {
-        // Forms without a Word template/map yet are skipped (and listed to
-        // the user) instead of failing the whole report.
-        var forms = new List<(WordFormData, string)>();
-        var skipped = new List<string>();
+        var plan = await PlanContentsAsync(ct);
+        var parts = new List<byte[]>();
+        var missing = new List<string>();
 
+        // 1. Title page
+        if (TitlePageFile.IsComplete(_store))
+          parts.Add(await _titlePage.BuildAsync(TitlePageFile.DataOf(_store), ct));
+        else
+          missing.Add("титульный лист — не заполнены реквизиты (экран «Титульный лист и содержание»)");
+
+        // 2. Contents
+        if (ContentsPageFile.CanWrite(_store))
+          parts.Add(await _contentsPage.BuildAsync(ContentsPageFile.DataOf(_store, plan), ct));
+        else
+          missing.Add("содержание — не указано обозначение документа");
+
+        // 3. Forms, each starting at its sheet from the contents
+        var formCount = 0;
         foreach (var (formNumber, buildData) in _formBuilders)
         {
           string templatePath;
@@ -285,20 +305,17 @@ namespace OperationMaps.Wpf.Shell
           }
           catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
           {
-            skipped.Add(formNumber);
+            missing.Add($"Форма {formNumber} — нет шаблона Word");
             continue;
           }
 
-          forms.Add((await buildData(ct), templatePath));
+          var data = await buildData(ct);
+          data.FirstSheetNumber = plan.FirstSheetOf(formNumber);
+          parts.Add(await _wordService.ExportAsync(data, templatePath, ct));
+          formCount++;
         }
 
-        // Sheet numbers run through the whole set: the report's first form
-        // starts at sheet 3 (after title and contents) and the rest follow on
-        // in the same document.
-        if (forms.Count > 0)
-          forms[0].Item1.FirstSheetNumber = ContentsPlanner.FirstFormSheet;
-
-        if (forms.Count == 0)
+        if (formCount == 0)
         {
           _dialogService.ShowWarning(
               "Ни для одной формы проекта нет шаблона Word — собирать нечего.",
@@ -306,65 +323,20 @@ namespace OperationMaps.Wpf.Shell
           return;
         }
 
-        var bytes = await _reportBuilder.BuildAsync(TryGetCoverTemplatePath(), forms, ct);
+        // 4. Change registration sheet — the set's last sheet
+        if (_registrationSheet.TemplateExists)
+          parts.Add(await _registrationSheet.BuildAsync(RegistrationSheetFile.DataOf(_store, plan), ct));
+        else
+          missing.Add($"лист регистрации изменений — нет шаблона {_registrationSheet.TemplatePath}");
+
+        var bytes = WordDocumentMerger.Merge(parts);
 
         Directory.CreateDirectory(formsFolder);
         await File.WriteAllBytesAsync(outputPath, bytes, ct);
 
-        var message = $"Итоговый документ сохранён:\n{outputPath}";
-
-        // The title page has its own frame and page format, so it's a
-        // separate file next to the report rather than its first page.
-        if (TitlePageFile.IsComplete(_store))
-        {
-          try
-          {
-            message += $"\n\nТитульный лист:\n{await TitlePageFile.WriteAsync(_store, _titlePage, ct)}";
-          }
-          catch (IOException ex)
-          {
-            message += $"\n\nТитульный лист не сохранён (возможно, открыт в Word): {ex.Message}";
-          }
-        }
-        else
-        {
-          message += "\n\nТитульный лист не создан: заполните реквизиты на экране «Титульный лист и содержание».";
-        }
-
-        var plan = await PlanContentsAsync(ct);
-
-        if (ContentsPageFile.CanWrite(_store))
-        {
-          try
-          {
-            message += $"\n\nСодержание:\n{await ContentsPageFile.WriteAsync(_store, _contentsPage, plan, ct)}";
-          }
-          catch (IOException ex)
-          {
-            message += $"\n\nСодержание не сохранено (возможно, открыто в Word): {ex.Message}";
-          }
-        }
-
-        // The last sheet of the set; listed in the contents even before its
-        // template exists, written as soon as it does.
-        if (_registrationSheet.TemplateExists)
-        {
-          try
-          {
-            message += $"\n\nЛист регистрации изменений:\n{await RegistrationSheetFile.WriteAsync(_store, _registrationSheet, plan, ct)}";
-          }
-          catch (IOException ex)
-          {
-            message += $"\n\nЛист регистрации изменений не сохранён (возможно, открыт в Word): {ex.Message}";
-          }
-        }
-        else
-        {
-          message += $"\n\nЛист регистрации изменений не создан: нет шаблона\n{_registrationSheet.TemplatePath}";
-        }
-        if (skipped.Count > 0)
-          message += "\n\nПропущены формы без шаблона Word: " +
-                     string.Join(", ", skipped.Select(n => $"Форма {n}"));
+        var message = $"Итоговый документ сохранён ({plan.TotalSheets} лист.):\n{outputPath}";
+        if (missing.Count > 0)
+          message += "\n\nНе вошло в документ:\n• " + string.Join("\n• ", missing);
         _dialogService.ShowInfo(message, "Итоговый документ");
       }
       catch (OperationCanceledException)
@@ -423,16 +395,6 @@ namespace OperationMaps.Wpf.Shell
     /// </summary>
     public async Task<int?> FirstSheetOfAsync(string formNumber, CancellationToken ct = default)
         => (await PlanContentsAsync(ct)).FirstSheetOf(formNumber);
-
-    /// <summary>
-    /// Cover page template, if one is shipped (Word/Resources/FormCover).
-    /// Without it the report starts directly with the first form.
-    /// </summary>
-    private string? TryGetCoverTemplatePath()
-    {
-      try { return _mapLoader.GetTemplatePath("Cover"); }
-      catch (FileNotFoundException) { return null; }
-    }
 
     private static bool IsFileLocked(string path)
     {
@@ -513,7 +475,7 @@ namespace OperationMaps.Wpf.Shell
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Итоговый документ",
+        Label = "Собрать итоговый документ",
         Icon = "\uE8A5",
         IsVisible = false,
         ScreenType = null,
@@ -570,7 +532,7 @@ namespace OperationMaps.Wpf.Shell
           case nameof(Form4ViewModel):
             item.IsVisible = true;
             break;
-          case null when item.Label is "Сохранить проект" or "Итоговый документ":
+          case null when item.Label is "Сохранить проект" or "Собрать итоговый документ":
             item.IsVisible = true;
             break;
         }

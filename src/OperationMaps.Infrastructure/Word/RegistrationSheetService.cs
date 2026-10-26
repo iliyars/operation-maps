@@ -30,10 +30,14 @@ public sealed class RegistrationSheetService : IRegistrationSheetService
       WordPlaceholderReplacer.ReplaceEverywhere(doc, new Dictionary<string, string>
       {
         ["<DocumentNumber>"] = data.DocumentNumber.Trim(),
+        ["<DecimalNumber>"] = data.DocumentNumber.Trim(), // the name used in the actual template
         ["<Name>"] = data.Name.Trim(),
         ["<SheetNumber>"] = data.SheetNumber.ToString(),
         ["<SCount>"] = data.TotalSheets.ToString(),
       });
+
+      // The frame's "Лист" is a PAGE field — make it print the set-wide number.
+      WordPageNumbering.StartAt(doc, data.SheetNumber);
     }
 
     return ms.ToArray();

@@ -27,6 +27,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private readonly IDialogService _dialogService;
     private readonly SessionStore _session;
     private readonly ICatalogEditService _catalogEdit;
+    private readonly OperationMaps.Wpf.Shell.ShellViewModel _shell;
 
     // ── Form metadata ─────────────────────────────────────────────────────────
 
@@ -108,7 +109,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
         WordFormMapLoader mapLoader,
         IDialogService dialogService,
         SessionStore session,
-        ICatalogEditService catalogEdit)
+        ICatalogEditService catalogEdit,
+        OperationMaps.Wpf.Shell.ShellViewModel shell)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
@@ -117,6 +119,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
       _session = session ?? throw new ArgumentNullException(nameof(session));
       _catalogEdit = catalogEdit ?? throw new ArgumentNullException(nameof(catalogEdit));
+      _shell = shell ?? throw new ArgumentNullException(nameof(shell));
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -425,6 +428,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       {
         var templatePath = _mapLoader.GetTemplatePath(FormNumber);
         var data = BuildWordFormData();
+        // "Лист" in the frame continues the set's numbering, as in the contents.
+        data.FirstSheetNumber = await _shell.FirstSheetOfAsync(FormNumber, ct);
         var bytes = await _wordService.ExportAsync(data, templatePath, ct);
 
         var tmpPath = outputPath + ".tmp";

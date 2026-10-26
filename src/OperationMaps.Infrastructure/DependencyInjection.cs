@@ -48,7 +48,7 @@ public static class DependencyInjection
     services.AddSingleton<IContentsPageService>(
         new ContentsPageService(Path.Combine(templatesPath, "Content", "template.docx")));
     services.AddSingleton<IRegistrationSheetService>(
-        new RegistrationSheetService(Path.Combine(templatesPath, "Registration", "template.docx")));
+        new RegistrationSheetService(Path.Combine(templatesPath, "RegistrationChanges", "template.docx")));
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
     services.AddScoped<IComponentEntryService, ComponentEntryService>();
     services.AddScoped<IAdminAccountService, AdminAccountService>();

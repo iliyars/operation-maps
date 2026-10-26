@@ -26,6 +26,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
   private readonly CatalogDbContext _db;
   private readonly IWordService _wordService;
   private readonly WordFormMapLoader _mapLoader;
+  private readonly OperationMaps.Wpf.Shell.ShellViewModel _shell;
 
   [ObservableProperty] private IReadOnlyList<Form4Group> _groups = [];
   [ObservableProperty] private bool _isLoading;
@@ -40,12 +41,14 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       CatalogDbContext db,
       IWordService wordService,
       WordFormMapLoader mapLoader,
-      IOperatingConditionsService conditionsService)
+      IOperatingConditionsService conditionsService,
+      OperationMaps.Wpf.Shell.ShellViewModel shell)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
     _db = db ?? throw new ArgumentNullException(nameof(db));
     _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
     _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
+    _shell = shell ?? throw new ArgumentNullException(nameof(shell));
     Conditions = new OperatingConditionsViewModel(store, conditionsService);
   }
 
@@ -95,6 +98,8 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     try
     {
       var data = BuildWordFormData();
+      // "Лист" in the frame continues the set's numbering, as in the contents.
+      data.FirstSheetNumber = await _shell.FirstSheetOfAsync("4", ct);
       var bytes = await _wordService.ExportAsync(data, templatePath, ct);
 
       // Write to a temp file first, then replace — avoids IOException

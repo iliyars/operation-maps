@@ -54,6 +54,7 @@ public sealed class ContentsPageService : IContentsPageService
       });
 
       FillTable(doc.MainDocumentPart!.Document.Body!.Elements<Table>().First(), number, data.Entries);
+      WordPageNumbering.StartAt(doc, ContentsPlanner.FirstFormSheet - 1); // the contents is sheet 2
       doc.MainDocumentPart.Document.Save();
     }
 

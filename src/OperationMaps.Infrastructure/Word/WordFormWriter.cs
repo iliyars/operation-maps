@@ -162,6 +162,9 @@ namespace OperationMaps.Infrastructure.Word
           WordTableHelper.ReplaceInBody(doc, resolved);
         }
 
+        if (data.FirstSheetNumber is { } firstSheet)
+          WordPageNumbering.StartAt(doc, firstSheet);
+
         doc.MainDocumentPart!.Document.Save();
         doc.Save(); // flush entire package to MemoryStream
       } // doc.Dispose()

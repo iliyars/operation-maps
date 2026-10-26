@@ -1,8 +1,8 @@
 namespace OperationMaps.Application.Services;
 
-/// <summary>What goes onto the change registration sheet (Word/Resources/Registration/template.docx).</summary>
+/// <summary>What goes onto the change registration sheet (Word/Resources/RegistrationChanges/template.docx).</summary>
 public sealed record RegistrationSheetData(
-    string DocumentNumber,  // <DocumentNumber>
+    string DocumentNumber,  // <DocumentNumber> or <DecimalNumber>
     string Name,            // <Name>
     int SheetNumber,        // <SheetNumber> — this sheet, the last of the set
     int TotalSheets);       // <SCount>

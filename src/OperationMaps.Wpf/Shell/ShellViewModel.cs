@@ -292,6 +292,12 @@ namespace OperationMaps.Wpf.Shell
           forms.Add((await buildData(ct), templatePath));
         }
 
+        // Sheet numbers run through the whole set: the report's first form
+        // starts at sheet 3 (after title and contents) and the rest follow on
+        // in the same document.
+        if (forms.Count > 0)
+          forms[0].Item1.FirstSheetNumber = ContentsPlanner.FirstFormSheet;
+
         if (forms.Count == 0)
         {
           _dialogService.ShowWarning(
@@ -405,11 +411,18 @@ namespace OperationMaps.Wpf.Shell
 
         var data = await buildData(ct);
         planned.Add(new PlannedForm(
-            titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage));
+            titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage, formNumber));
       }
 
       return ContentsPlanner.Plan(planned);
     }
+
+    /// <summary>
+    /// Sheet number a single exported form should start at, so its frame
+    /// matches the contents (null when the form isn't part of the set).
+    /// </summary>
+    public async Task<int?> FirstSheetOfAsync(string formNumber, CancellationToken ct = default)
+        => (await PlanContentsAsync(ct)).FirstSheetOf(formNumber);
 
     /// <summary>
     /// Cover page template, if one is shipped (Word/Resources/FormCover).

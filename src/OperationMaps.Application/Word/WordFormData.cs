@@ -12,6 +12,13 @@ namespace OperationMaps.Application.Word
     public required string FormNumber { get; init; }
 
     /// <summary>
+    /// Sheet number of the form's first sheet in the whole printed set
+    /// (title = 1, contents = 2, forms from 3). The frame's "Лист" then
+    /// counts on from it. Null = numbering starts at 1 (stand-alone file).
+    /// </summary>
+    public int? FirstSheetNumber { get; set; }
+
+    /// <summary>
     /// Document designation (обозначение документа).
     /// Written into the header via the <c>{{designation}}</c> placeholder.
     /// </summary>

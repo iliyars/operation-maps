@@ -7,22 +7,28 @@ namespace OperationMaps.Infrastructure.Services;
 
 public sealed class ComponentEntryService : IComponentEntryService
 {
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
 
-  public ComponentEntryService(CatalogDbContext db)
+  public ComponentEntryService(IDbContextFactory<CatalogDbContext> dbFactory)
   {
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
   }
 
   public async Task<Component> CreateComponentAsync(NewComponentInput input, CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(input);
 
     // A second component with the same full name would make matching
     // ambiguous (which one does a re-import pick?) — refuse it up front,
     // before a family gets created for nothing.
     var fullName = input.FullName.Trim();
-    if (await _db.Components.AnyAsync(c => c.FullName == fullName, ct))
+    if (fullName.Length == 0)
+      throw new InvalidOperationException("Введите полное наименование компонента.");
+
+    // All writes belong to one operation, including intermediate saves for IDs.
+    await using var transaction = await db.Database.BeginTransactionAsync(ct);
+    if (await db.Components.AnyAsync(c => c.FullName == fullName, ct))
       throw new InvalidOperationException($"Компонент «{fullName}» уже есть в справочнике.");
 
     // ── 1. Resolve or create the Family ─────────────────────────────────────
@@ -30,7 +36,7 @@ public sealed class ComponentEntryService : IComponentEntryService
 
     if (input.ExistingFamilyId is { } familyId)
     {
-      family = await _db.Families
+      family = await db.Families
           .Include(f => f.NtdValues)
           .FirstOrDefaultAsync(f => f.Id == familyId, ct)
           ?? throw new InvalidOperationException($"Family {familyId} not found.");
@@ -45,16 +51,16 @@ public sealed class ComponentEntryService : IComponentEntryService
         Name = input.NewFamilyName.Trim(),
         ComponentTypeId = input.ComponentTypeId,
       };
-      _db.Families.Add(family);
-      await _db.SaveChangesAsync(ct); // need family.Id before adding NtdValues
+      db.Families.Add(family);
+      await db.SaveChangesAsync(ct); // need family.Id before adding NtdValues
     }
 
     // Link the family to the chosen own-form, if not already linked.
-    var hasOwnFormLink = await _db.FamilyForms
+    var hasOwnFormLink = await db.FamilyForms
         .AnyAsync(ff => ff.FamilyId == family.Id && ff.FormId == input.OwnFormId, ct);
 
     if (!hasOwnFormLink)
-      _db.FamilyForms.Add(new FamilyForm { FamilyId = family.Id, FormId = input.OwnFormId });
+      db.FamilyForms.Add(new FamilyForm { FamilyId = family.Id, FormId = input.OwnFormId });
 
     // ── 2. Form 4 values — only fill gaps, never overwrite existing ─────────
     var existingParamIds = family.NtdValues.Select(v => v.FormParameterId).ToHashSet();
@@ -64,7 +70,7 @@ public sealed class ComponentEntryService : IComponentEntryService
       if (string.IsNullOrWhiteSpace(value)) continue;
       if (existingParamIds.Contains(formParameterId)) continue; // don't overwrite
 
-      _db.FamilyNtdValues.Add(new FamilyNtdValue
+      db.FamilyNtdValues.Add(new FamilyNtdValue
       {
         FamilyId = family.Id,
         FormParameterId = formParameterId,
@@ -80,15 +86,15 @@ public sealed class ComponentEntryService : IComponentEntryService
       OwnFormId = input.OwnFormId,
       NeedsAdminReview = input.NeedsAdminReview,
     };
-    _db.Components.Add(component);
-    await _db.SaveChangesAsync(ct); // need component.Id before adding NtdValues/PinValues
+    db.Components.Add(component);
+    await db.SaveChangesAsync(ct); // need component.Id before adding NtdValues/PinValues
 
     // ── 4. Own-form NTD values (includes any optional-row values) ────────────
     foreach (var (formParameterId, value) in input.OwnFormValues)
     {
       if (string.IsNullOrWhiteSpace(value)) continue;
 
-      _db.ComponentNtdValues.Add(new ComponentNtdValue
+      db.ComponentNtdValues.Add(new ComponentNtdValue
       {
         ComponentId = component.Id,
         FormParameterId = formParameterId,
@@ -101,7 +107,7 @@ public sealed class ComponentEntryService : IComponentEntryService
     {
       if (string.IsNullOrWhiteSpace(pins)) continue;
 
-      _db.ComponentPinValues.Add(new ComponentPinValue
+      db.ComponentPinValues.Add(new ComponentPinValue
       {
         ComponentId = component.Id,
         FormParameterId = formParameterId,
@@ -109,21 +115,25 @@ public sealed class ComponentEntryService : IComponentEntryService
       });
     }
 
-    await _db.SaveChangesAsync(ct);
+    await db.SaveChangesAsync(ct);
 
     // Reload with navigation properties populated for the caller (matcher/UI).
-    return await _db.Components
+    var created = await db.Components
         .Include(c => c.Family)
         .Include(c => c.OwnForm)
         .FirstAsync(c => c.Id == component.Id, ct);
+
+    await transaction.CommitAsync(ct);
+    return created;
   }
 
   public async Task MarkVerifiedAsync(int componentId, CancellationToken ct = default)
   {
-    var component = await _db.Components.FirstOrDefaultAsync(c => c.Id == componentId, ct)
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var component = await db.Components.FirstOrDefaultAsync(c => c.Id == componentId, ct)
         ?? throw new InvalidOperationException("Компонент не найден — возможно, он удалён.");
 
     component.NeedsAdminReview = false;
-    await _db.SaveChangesAsync(ct);
+    await db.SaveChangesAsync(ct);
   }
 }

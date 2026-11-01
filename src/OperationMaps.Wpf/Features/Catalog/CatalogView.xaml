@@ -91,7 +91,7 @@
                     Orientation="Horizontal"
                     Margin="16,14,16,4">
             <TextBlock Text="Справочник ЭРИ"
-                       FontSize="18"
+                       Style="{StaticResource PageTitleText}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimaryBrush}"/>
             <TextBlock Foreground="{DynamicResource TextMutedBrush}"

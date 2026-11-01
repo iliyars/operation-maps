@@ -29,7 +29,7 @@
   <!-- ── Text ──────────────────────────────────────────────────────── -->
   <Color x:Key="TextPrimaryColor">#1F1F1F</Color>
   <Color x:Key="TextSecondaryColor">#616161</Color>
-  <Color x:Key="TextMutedColor">#A0A0A0</Color>
+  <Color x:Key="TextMutedColor">#707070</Color>
   <Color x:Key="TextLinkColor">#0078D4</Color>
 
   <!-- ── Accent ─────────────────────────────────────────────────────── -->

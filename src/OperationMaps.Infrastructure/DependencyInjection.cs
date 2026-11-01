@@ -20,7 +20,7 @@ public static class DependencyInjection
     var connectionString = CatalogConnection.Build(
         catalogConnectionString, allowCreate: catalogOptions.UpdateSchemaOnStartup);
 
-    services.AddDbContext<CatalogDbContext>(options =>
+    services.AddDbContextFactory<CatalogDbContext>(options =>
         options.UseSqlite(connectionString));
     services.AddSingleton(catalogOptions);
     services.AddScoped<CatalogDatabaseInitializer>();
@@ -31,8 +31,8 @@ public static class DependencyInjection
 
     // ── Application services ──────────────────────────────────────────────
     services.AddSingleton<IComponentListImporter, Pe3XmlImporter>();
-    services.AddScoped<IComponentNameParser, ComponentNameParser>();
-    services.AddScoped<IComponentMatcher, ComponentMatcher>();
+    services.AddTransient<IComponentNameParser, ComponentNameParser>();
+    services.AddTransient<IComponentMatcher, ComponentMatcher>();
 
     // ── Word ──────────────────────────────────────────────────────────────
     var templatesPath = Path.Combine(
@@ -50,10 +50,10 @@ public static class DependencyInjection
     services.AddSingleton<IRegistrationSheetService>(
         new RegistrationSheetService(Path.Combine(templatesPath, "RegistrationChanges", "template.docx")));
     services.AddSingleton<IOperatingConditionsService, OperatingConditionsService>();
-    services.AddScoped<IComponentEntryService, ComponentEntryService>();
-    services.AddScoped<IAdminAccountService, AdminAccountService>();
-    services.AddScoped<ICatalogEditService, CatalogEditService>();
-    services.AddScoped<IWordCatalogImportService, WordCatalogImportService>();
+    services.AddTransient<IComponentEntryService, ComponentEntryService>();
+    services.AddTransient<IAdminAccountService, AdminAccountService>();
+    services.AddTransient<ICatalogEditService, CatalogEditService>();
+    services.AddTransient<IWordCatalogImportService, WordCatalogImportService>();
 
     // Singleton: orchestrates export + merge, no mutable state
     services.AddSingleton<WordReportBuilder>();

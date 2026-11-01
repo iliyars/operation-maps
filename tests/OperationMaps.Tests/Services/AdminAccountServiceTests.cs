@@ -18,7 +18,7 @@ public sealed class AdminAccountServiceTests : IDisposable
     _connection.Open();
     _db = new CatalogDbContext(new DbContextOptionsBuilder<CatalogDbContext>().UseSqlite(_connection).Options);
     _db.Database.EnsureCreated();
-    _service = new AdminAccountService(_db);
+    _service = new AdminAccountService(TestCatalogDbContextFactory.From(_db));
   }
 
   [Fact]

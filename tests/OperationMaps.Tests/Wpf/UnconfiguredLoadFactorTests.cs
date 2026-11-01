@@ -62,7 +62,7 @@ public sealed class UnconfiguredLoadFactorTests : IDisposable
   }
 
   private Task<OwnFormState?> OpenAsync(ProjectStore? store = null)
-      => new OwnFormStateService(store ?? _store, _db).GetAsync(_form.Id);
+      => new OwnFormStateService(store ?? _store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id);
 
   [Fact]
   public async Task User_picks_the_base_parameter_per_component()
@@ -87,7 +87,7 @@ public sealed class UnconfiguredLoadFactorTests : IDisposable
     var state = (await OpenAsync())!;
     state.Columns[1].LoadFactorBaseParameterId = _currentId; // explicit user choice
 
-    await new CatalogEditService(_db).SetDefaultLoadFactorParameterAsync(_form.Id, _powerId);
+    await new CatalogEditService(TestCatalogDbContextFactory.From(_db)).SetDefaultLoadFactorParameterAsync(_form.Id, _powerId);
     state.SetDefaultLoadFactorParameter(_powerId);
 
     Assert.Equal(_powerId, state.Columns[0].LoadFactorBaseParameterId);

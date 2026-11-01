@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using OperationMaps.Wpf.Shared.Controls;
+using OperationMaps.Wpf.Features.Project;
 
 namespace OperationMaps.Wpf.Main
 {
@@ -12,9 +13,12 @@ namespace OperationMaps.Wpf.Main
         // Set once the user has answered the "save changes?" question, so the
         // Close() re-issued after the async answer goes through.
         private bool _closeConfirmed;
+        private readonly ProjectRecoveryService? _recovery;
+        private bool _isClosing;
 
-        public MainWindow()
+        public MainWindow(ProjectRecoveryService? recovery = null)
         {
+            _recovery = recovery;
             InitializeComponent();
             WindowChromeFixes.Apply(this);
         }
@@ -40,9 +44,15 @@ namespace OperationMaps.Wpf.Main
 
             // Closing can't await — cancel now, ask, then close again if allowed.
             e.Cancel = true;
-            if (!await vm.Shell.ConfirmCloseProjectAsync()) return;
-
-            _closeConfirmed = true;
+            if (_isClosing) return;
+            _isClosing = true;
+            try
+            {
+                if (!await vm.Shell.ConfirmCloseProjectAsync()) return;
+                if (_recovery is not null) await _recovery.CompleteAsync();
+                _closeConfirmed = true;
+            }
+            finally { _isClosing = false; }
 
             // With nothing to save the await above completes synchronously —
             // we're still inside this Closing event, where WPF forbids Close().

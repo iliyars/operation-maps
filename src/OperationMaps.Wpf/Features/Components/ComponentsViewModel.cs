@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,26 +10,32 @@ using OperationMaps.Wpf.Features.Components.Commands;
 using OperationMaps.Wpf.Infrastructure.Commands;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 using OperationMaps.Wpf.Stores;
+using OperationMaps.Wpf.Services;
 
 namespace OperationMaps.Wpf.Features.Components
 {
   public sealed partial class ComponentsViewModel : ScreenViewModelBase
   {
     private readonly ProjectStore _store;
-    private readonly CatalogDbContext _db;
+    private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
     private readonly IComponentEntryService _entryService;
     private readonly OperationMaps.Application.Importing.IComponentNameParser _nameParser;
+    private readonly UserPreferences _preferences;
+    internal UserPreferences WorkspacePreferences => _preferences;
 
     public ComponentsViewModel(
         ProjectStore store,
-        CatalogDbContext db,
+        IDbContextFactory<CatalogDbContext> dbFactory,
         IComponentEntryService entryService,
-        OperationMaps.Application.Importing.IComponentNameParser nameParser)
+        OperationMaps.Application.Importing.IComponentNameParser nameParser,
+        UserPreferences preferences)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
-      _db = db ?? throw new ArgumentNullException(nameof(db));
+      _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
       _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
       _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
+      _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+      _activeFilter = Enum.IsDefined(preferences.ComponentsFilter) ? preferences.ComponentsFilter : ComponentFilter.All;
 
       _store.Components.CollectionChanged += (_, _) => RefreshCounts();
     }
@@ -38,6 +45,12 @@ namespace OperationMaps.Wpf.Features.Components
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredComponents))]
     private ComponentFilter _activeFilter = ComponentFilter.All;
+
+    partial void OnActiveFilterChanged(ComponentFilter value)
+    {
+      _preferences.ComponentsFilter = value;
+      _preferences.Save();
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FilteredComponents))]
@@ -74,7 +87,13 @@ namespace OperationMaps.Wpf.Features.Components
     partial void OnSelectedComponentChanged(ProjectComponentVm? value)
     {
       if (value is not null)
-        _ = value.LoadNtdValuesAsync(_db);
+        _ = LoadSelectedComponentAsync(value);
+    }
+
+    private async Task LoadSelectedComponentAsync(ProjectComponentVm component)
+    {
+      await using var db = await _dbFactory.CreateDbContextAsync(default);
+      await component.LoadNtdValuesAsync(db);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────
@@ -96,7 +115,7 @@ namespace OperationMaps.Wpf.Features.Components
       if (component is null) return;
 
       var dialogVm = new AddComponentDialogViewModel(
-          _db, _entryService, _nameParser, AddComponentTarget.FromProject(component));
+          _dbFactory, _entryService, _nameParser, AddComponentTarget.FromProject(component));
       var dialog = new AddComponentDialog(dialogVm)
       {
         Owner = System.Windows.Application.Current.MainWindow,

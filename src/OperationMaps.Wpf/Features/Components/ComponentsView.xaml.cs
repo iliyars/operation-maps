@@ -19,16 +19,20 @@ namespace OperationMaps.Wpf.Features.Components
     /// </summary>
     public partial class ComponentsView : UserControl
     {
-        // Pane layout is pure view state, but the view is re-created on every
-        // navigation — static so the user's choice survives switching screens
-        // (for the app session; not saved between runs).
-        private static bool _detailsHidden;
-        private static double _detailsWidth = 320;
+        private bool _detailsHidden;
+        private double _detailsWidth = 320;
 
         public ComponentsView()
         {
             InitializeComponent();
             ApplyDetailsState();
+            Loaded += (_, _) =>
+            {
+                if (DataContext is not ComponentsViewModel vm) return;
+                _detailsHidden = vm.WorkspacePreferences.ComponentDetailsHidden;
+                _detailsWidth = vm.WorkspacePreferences.ComponentDetailWidth;
+                ApplyDetailsState();
+            };
         }
 
         private void ToggleDetails_Click(object sender, RoutedEventArgs e)
@@ -38,12 +42,22 @@ namespace OperationMaps.Wpf.Features.Components
 
             _detailsHidden = !_detailsHidden;
             ApplyDetailsState();
+            SaveDetailsState();
         }
 
         private void DetailSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             if (DetailColumn.ActualWidth > 0)
                 _detailsWidth = DetailColumn.ActualWidth;
+            SaveDetailsState();
+        }
+
+        private void SaveDetailsState()
+        {
+            if (DataContext is not ComponentsViewModel vm) return;
+            vm.WorkspacePreferences.ComponentDetailsHidden = _detailsHidden;
+            vm.WorkspacePreferences.ComponentDetailWidth = Math.Clamp(_detailsWidth, 240, 600);
+            vm.WorkspacePreferences.Save();
         }
 
         private void ApplyDetailsState()

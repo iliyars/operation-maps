@@ -25,20 +25,21 @@ public sealed class ProjectFileService
   };
 
   private readonly ProjectStore _store;
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IComponentMatcher _matcher;
-  private readonly OwnFormStateService _ownForms;
+  private readonly IProjectFileWriter _writer;
+  private readonly SemaphoreSlim _operations = new(1, 1);
 
   public ProjectFileService(
       ProjectStore store,
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       IComponentMatcher matcher,
-      OwnFormStateService ownForms)
+      IProjectFileWriter writer)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _matcher = matcher ?? throw new ArgumentNullException(nameof(matcher));
-    _ownForms = ownForms ?? throw new ArgumentNullException(nameof(ownForms));
+    _writer = writer ?? throw new ArgumentNullException(nameof(writer));
   }
 
   /// <summary>
@@ -53,19 +54,26 @@ public sealed class ProjectFileService
 
   public async Task SaveAsync(string path, CancellationToken ct = default)
   {
-    var file = Snapshot();
+    await _operations.WaitAsync(ct);
+    try
+    {
+      path = Path.GetFullPath(path);
+      var generation = _store.Generation;
+      var revision = _store.Revision;
+      // Serialize before yielding: even mutable conditions belong to this exact revision.
+      var contents = JsonSerializer.SerializeToUtf8Bytes(Snapshot(), Json);
+      await _writer.WriteAsync(path, contents, ct);
 
-    // Write next to the target first, then swap — a crash mid-write must
-    // not leave the user with a truncated project file.
-    var tmpPath = path + ".tmp";
-    await using (var stream = File.Create(tmpPath))
-      await JsonSerializer.SerializeAsync(stream, file, Json, ct);
-    File.Move(tmpPath, path, overwrite: true);
-
-    _store.ProjectFilePath = path;
-    _store.ProjectName = Path.GetFileNameWithoutExtension(path);
-    _store.ProjectFolderPath = Path.GetDirectoryName(path);
-    _store.IsDirty = false;
+      if (_store.Generation != generation) return;
+      _store.ProjectFilePath = path;
+      _store.ProjectName = Path.GetFileNameWithoutExtension(path);
+      _store.ProjectFolderPath = Path.GetDirectoryName(path);
+      if (_store.Revision == revision) _store.IsDirty = false;
+    }
+    finally
+    {
+      _operations.Release();
+    }
   }
 
   internal ProjectFile Snapshot() => new()
@@ -150,6 +158,15 @@ public sealed class ProjectFileService
   /// </summary>
   public async Task<ProjectMatchResult> OpenAsync(string path, CancellationToken ct = default)
   {
+    await _operations.WaitAsync(ct);
+    try { return await OpenCoreAsync(Path.GetFullPath(path), ct); }
+    finally { _operations.Release(); }
+  }
+
+  private async Task<ProjectMatchResult> OpenCoreAsync(string path, CancellationToken ct)
+  {
+    var generation = _store.Generation;
+    var revision = _store.Revision;
     ProjectFile? file;
     try
     {
@@ -161,12 +178,52 @@ public sealed class ProjectFileService
       throw new InvalidDataException("Файл повреждён или не является проектом OperationMaps.", ex);
     }
 
-    if (file is null)
-      throw new InvalidDataException("Файл пуст или не является проектом OperationMaps.");
-    if (file.Version > ProjectFile.CurrentVersion)
-      throw new InvalidDataException(
-          "Проект сохранён более новой версией программы — обновите OperationMaps.");
+    ProjectFileValidator.Validate(file);
 
+    return await RestoreCoreAsync(file, Path.GetFileNameWithoutExtension(path),
+        Path.GetDirectoryName(path) ?? AppContext.BaseDirectory, path, generation, revision, ct);
+  }
+
+  public async Task SaveRecoveryAsync(string path, CancellationToken ct = default)
+  {
+    await _operations.WaitAsync(ct);
+    try
+    {
+      var recovery = new ProjectRecoveryFile(Snapshot(), _store.ProjectFolderPath!, _store.ProjectFilePath, DateTimeOffset.UtcNow);
+      var bytes = JsonSerializer.SerializeToUtf8Bytes(recovery, Json);
+      await _writer.WriteAsync(path, bytes, ct);
+    }
+    finally { _operations.Release(); }
+  }
+
+  public async Task<ProjectMatchResult> OpenRecoveryAsync(string path, CancellationToken ct = default)
+  {
+    await _operations.WaitAsync(ct);
+    try
+    {
+      var generation = _store.Generation;
+      var revision = _store.Revision;
+      ProjectRecoveryFile? recovery;
+      try
+      {
+        await using var stream = File.OpenRead(path);
+        recovery = await JsonSerializer.DeserializeAsync<ProjectRecoveryFile>(stream, Json, ct);
+      }
+      catch (JsonException ex) { throw new InvalidDataException("Аварийная копия повреждена.", ex); }
+      if (recovery is null || string.IsNullOrWhiteSpace(recovery.ProjectFolderPath))
+        throw new InvalidDataException("Аварийная копия не содержит папку проекта.");
+      ProjectFileValidator.Validate(recovery.Project);
+      var result = await RestoreCoreAsync(recovery.Project, recovery.Project.ProjectName,
+          recovery.ProjectFolderPath, recovery.ProjectFilePath, generation, revision, ct);
+      _store.MarkDirty();
+      return result;
+    }
+    finally { _operations.Release(); }
+  }
+
+  private async Task<ProjectMatchResult> RestoreCoreAsync(ProjectFile file, string name,
+      string folder, string? sourcePath, long generation, long revision, CancellationToken ct)
+  {
     var importResult = new ImportResult
     {
       Components = file.Components
@@ -189,35 +246,43 @@ public sealed class ProjectFileService
 
     var matchResult = await _matcher.MatchAllAsync(importResult.Components, ct);
 
-    _store.Load(
-        Path.GetFileNameWithoutExtension(path),
-        Path.GetDirectoryName(path) ?? AppContext.BaseDirectory,
+    var prepared = new ProjectStore();
+    var ownForms = new OwnFormStateService(prepared, _dbFactory);
+    prepared.Load(
+        name,
+        folder,
         matchResult,
         importResult);
-    _store.Conditions = file.Conditions;
-    _store.HeadName = file.HeadName;
-    _store.HeadOccupation = file.HeadOccupation;
-    _store.NormControl = file.NormControl;
+    prepared.Conditions = file.Conditions;
+    prepared.HeadName = file.HeadName;
+    prepared.HeadOccupation = file.HeadOccupation;
+    prepared.NormControl = file.NormControl;
 
-    await RestoreForm4NotesAsync(file.Form4Notes, ct);
+    await RestoreForm4NotesAsync(prepared, file.Form4Notes, ct);
     foreach (var saved in file.OwnForms)
-      await RestoreOwnFormAsync(saved, ct);
+      await RestoreOwnFormAsync(ownForms, saved, ct);
 
-    _store.ProjectFilePath = path;
-    _store.IsDirty = false;
+    prepared.ProjectFilePath = sourcePath;
+    prepared.IsDirty = false;
+
+    ct.ThrowIfCancellationRequested();
+    if (_store.Generation != generation || _store.Revision != revision)
+      throw new IOException("Текущий проект изменился во время открытия файла. Повторите открытие после сохранения изменений.");
+    _store.ReplaceWith(prepared);
 
     return matchResult;
   }
 
-  private async Task RestoreForm4NotesAsync(IEnumerable<SavedForm4Notes> saved, CancellationToken ct)
+  private async Task RestoreForm4NotesAsync(ProjectStore store, IEnumerable<SavedForm4Notes> saved, CancellationToken ct)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     foreach (var entry in saved)
     {
-      var component = _store.Components.FirstOrDefault(
+      var component = store.Components.FirstOrDefault(
           c => c.Entry.Imported.Positions.Contains(entry.Position));
       if (component is null) continue;
 
-      await component.LoadNtdValuesAsync(_db, ct);
+      await component.LoadNtdValuesAsync(db, ct);
 
       var row = component.NtdValues.FirstOrDefault(r => r.RowNumber == entry.Row);
       if (row is null) continue;
@@ -235,15 +300,16 @@ public sealed class ProjectFileService
   /// positions not covered by any saved column (components added to the
   /// project since) keep their default column.
   /// </summary>
-  private async Task RestoreOwnFormAsync(SavedOwnForm saved, CancellationToken ct)
+  private async Task RestoreOwnFormAsync(OwnFormStateService ownForms, SavedOwnForm saved, CancellationToken ct)
   {
-    var formId = await _db.Forms
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var formId = await db.Forms
         .Where(f => f.Number == saved.FormNumber)
         .Select(f => (int?)f.Id)
         .FirstOrDefaultAsync(ct);
     if (formId is null) return;
 
-    var state = await _ownForms.GetAsync(formId.Value, ct);
+    var state = await ownForms.GetAsync(formId.Value, ct);
     if (state is null) return;
 
     var primaryByRow = state.Parameters

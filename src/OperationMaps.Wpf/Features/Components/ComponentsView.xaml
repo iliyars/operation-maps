@@ -89,7 +89,7 @@
              which screen is active; every content area should restate it. -->
         <TextBlock Grid.Row="0"
                    Text="Компоненты"
-                   FontSize="18"
+                   Style="{StaticResource PageTitleText}"
                    FontWeight="SemiBold"
                    Foreground="{DynamicResource TextPrimaryBrush}"
                    Margin="16,14,16,4"/>

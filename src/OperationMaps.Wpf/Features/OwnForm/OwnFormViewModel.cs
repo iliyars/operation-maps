@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using OperationMaps.Wpf.Services;
 
 namespace OperationMaps.Wpf.Features.OwnForm
 {
@@ -28,6 +29,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private readonly SessionStore _session;
     private readonly ICatalogEditService _catalogEdit;
     private readonly OperationMaps.Wpf.Shell.ShellViewModel _shell;
+    private readonly UserPreferences _preferences;
+    internal UserPreferences WorkspacePreferences => _preferences;
 
     // ── Form metadata ─────────────────────────────────────────────────────────
 
@@ -62,6 +65,52 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public ObservableCollection<FormColumnVm> Columns => _state?.Columns ?? _noColumns;
     private readonly ObservableCollection<FormColumnVm> _noColumns = [];
     public ObservableCollection<ColumnListItemVm> ColumnItems { get; } = [];
+    public ObservableCollection<ColumnListItemVm> VisibleColumnItems { get; } = [];
+    [ObservableProperty] private bool _showOnlyIncomplete;
+    [ObservableProperty] private string _missingFieldHint = "F8 — перейти к следующему пропуску";
+    public string ProgressSummary => $"Групп заполнено: {ColumnItems.Count(i => i.FillStatus == FillStatus.Complete)} из {ColumnItems.Count} · Значений: {ColumnItems.Sum(i => i.FilledCount)} из {ColumnItems.Sum(i => i.TotalCount)}";
+    public bool IsFilteredListEmpty => ShowOnlyIncomplete && ColumnItems.Count > 0 && VisibleColumnItems.Count == 0;
+    private bool CanNextMissing => ColumnItems.Any(i => i.FilledCount < i.TotalCount);
+    private (Guid ColumnId, int ParameterId)? _lastMissing;
+    public event Action<FormParameterRowVm>? MissingParameterRequested;
+
+    partial void OnShowOnlyIncompleteChanged(bool value)
+    {
+      ClearMultiSelection();
+      RefreshProgress();
+      _preferences.OwnFormOnlyIncomplete = value;
+      _preferences.Save();
+    }
+
+    private void RefreshProgress()
+    {
+      var visible = ColumnItems.Where(i => !ShowOnlyIncomplete || i.FillStatus != FillStatus.Complete).ToList();
+      foreach (var item in VisibleColumnItems.Where(i => !visible.Contains(i)).ToList()) VisibleColumnItems.Remove(item);
+      for (var index = 0; index < visible.Count; index++)
+        if (!VisibleColumnItems.Contains(visible[index])) VisibleColumnItems.Insert(index, visible[index]);
+      OnPropertyChanged(nameof(ProgressSummary));
+      OnPropertyChanged(nameof(IsFilteredListEmpty));
+      NextMissingCommand.NotifyCanExecuteChanged();
+    }
+
+    [RelayCommand(CanExecute = nameof(CanNextMissing))]
+    private void NextMissing()
+    {
+      var missing = Columns.SelectMany(c => FormCompletion.Missing(c, Parameters)
+          .OrderBy(p => p.IsLoadFactorResult || p.Formula is not null ? 1 : 0)
+          .ThenBy(p => p.RowNumber).Select(p => (Column: c, Parameter: p))).ToList();
+      if (missing.Count == 0) return;
+      var previous = missing.FindIndex(m => m.Column.Id == _lastMissing?.ColumnId && m.Parameter.FormParameterId == _lastMissing?.ParameterId);
+      var next = previous >= 0 ? missing[(previous + 1) % missing.Count]
+          : missing.FirstOrDefault(m => m.Column == SelectedColumn);
+      if (next.Column is null) next = missing[0];
+      SelectColumn(next.Column);
+      _lastMissing = (next.Column.Id, next.Parameter.FormParameterId);
+      MissingFieldHint = $"{next.Column.Positions} · Строка {next.Parameter.RowNumber}: {next.Parameter.Name}";
+      if (next.Parameter.IsLoadFactorResult || next.Parameter.Formula is not null)
+        MissingFieldHint += " — рассчитывается автоматически; проверьте исходные значения";
+      MissingParameterRequested?.Invoke(next.Parameter);
+    }
     public ObservableCollection<FormParameterRowVm> Parameters { get; } = [];
 
     // ── Undo / Redo ───────────────────────────────────────────────────────────
@@ -110,7 +159,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
         IDialogService dialogService,
         SessionStore session,
         ICatalogEditService catalogEdit,
-        OperationMaps.Wpf.Shell.ShellViewModel shell)
+        OperationMaps.Wpf.Shell.ShellViewModel shell,
+        UserPreferences preferences)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));
@@ -120,6 +170,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       _session = session ?? throw new ArgumentNullException(nameof(session));
       _catalogEdit = catalogEdit ?? throw new ArgumentNullException(nameof(catalogEdit));
       _shell = shell ?? throw new ArgumentNullException(nameof(shell));
+      _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
+      _showOnlyIncomplete = preferences.OwnFormOnlyIncomplete;
     }
 
     // ── INavigatedTo ──────────────────────────────────────────────────────────
@@ -147,7 +199,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       // The state and the session outlive this ViewModel — don't let them keep us alive.
       if (_state is not null)
+      {
         _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+        _state.Edited -= RefreshAllItems;
+      }
       _session.PropertyChanged -= OnSessionChanged;
       WatchSelectedColumn(null);
       return Task.CompletedTask;
@@ -280,6 +335,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand]
     private void SelectColumn(FormColumnVm column)
     {
+      _lastMissing = null;
+      MissingFieldHint = "F8 — перейти к следующему пропуску";
       // Plain click resets any active multi-selection for Merge
       ClearMultiSelection();
 
@@ -392,9 +449,6 @@ namespace OperationMaps.Wpf.Features.OwnForm
       MergeCommand.NotifyCanExecuteChanged();
     }
 
-    [RelayCommand]
-    private void SaveColumn() => SelectedItem?.Refresh();
-
     // ── Commands: Word export ─────────────────────────────────────────────────
 
     [RelayCommand(CanExecute = nameof(CanExport))]
@@ -500,10 +554,18 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private async Task LoadStateAsync(CancellationToken ct)
     {
       if (_state is not null)
+      {
         _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+        _state.Edited -= RefreshAllItems;
+      }
 
       Parameters.Clear();
       ColumnItems.Clear();
+      VisibleColumnItems.Clear();
+      SelectedColumn = null;
+      SelectedItem = null;
+      ParameterDetails = [];
+      _lastMissing = null;
       LoadFactorOptions.Clear();
 
       _state = await _stateService.GetAsync(FormId, ct);
@@ -517,9 +579,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
       RefreshHistory();
       ExportWordCommand.NotifyCanExecuteChanged();
 
-      if (_state is null) return;
+      if (_state is null)
+      {
+        RefreshProgress();
+        return;
+      }
 
       _state.LoadFactorRecalculated += OnLoadFactorRecalculated;
+      _state.Edited += RefreshAllItems;
 
       foreach (var option in _state.LoadFactorOptions)
         LoadFactorOptions.Add(option);
@@ -565,12 +632,17 @@ namespace OperationMaps.Wpf.Features.OwnForm
       ColumnItems.Clear();
       foreach (var col in Columns)
         ColumnItems.Add(new ColumnListItemVm(col, Parameters));
+      SelectedItem = ColumnItems.FirstOrDefault(i => i.Column == SelectedColumn);
+      if (SelectedItem is not null) SelectedItem.IsSelected = true;
+      if (SelectedColumn is not null && !Columns.Contains(SelectedColumn)) ClearStaleSelection();
+      RefreshProgress();
     }
 
     private void RefreshAllItems()
     {
       foreach (var item in ColumnItems)
         item.Refresh();
+      RefreshProgress();
     }
 
     private void ExecuteCommand(IUndoableCommand command)

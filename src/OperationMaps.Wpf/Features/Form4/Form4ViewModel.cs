@@ -23,7 +23,7 @@ namespace OperationMaps.Wpf.Features.Form4;
 public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 {
   private readonly ProjectStore _store;
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IWordService _wordService;
   private readonly WordFormMapLoader _mapLoader;
   private readonly OperationMaps.Wpf.Shell.ShellViewModel _shell;
@@ -38,14 +38,14 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
   public Form4ViewModel(
       ProjectStore store,
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       IWordService wordService,
       WordFormMapLoader mapLoader,
       IOperatingConditionsService conditionsService,
       OperationMaps.Wpf.Shell.ShellViewModel shell)
   {
     _store = store ?? throw new ArgumentNullException(nameof(store));
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _wordService = wordService ?? throw new ArgumentNullException(nameof(wordService));
     _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
     _shell = shell ?? throw new ArgumentNullException(nameof(shell));
@@ -176,7 +176,8 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task BuildGroupsAsync(CancellationToken ct)
   {
-    var form4 = await _db.Forms
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var form4 = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Number == "4", ct);
 
@@ -198,7 +199,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     {
       var components = group.ToList();
       var first = components.First();
-      await first.LoadNtdValuesAsync(_db, ct);
+      await first.LoadNtdValuesAsync(db, ct);
 
       var positions = components
           .SelectMany(c => c.Entry.Imported.Positions)

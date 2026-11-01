@@ -16,12 +16,12 @@ namespace OperationMaps.Wpf.Features.OwnForm
   public sealed class OwnFormStateService
   {
     private readonly ProjectStore _store;
-    private readonly CatalogDbContext _db;
+    private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
 
-    public OwnFormStateService(ProjectStore store, CatalogDbContext db)
+    public OwnFormStateService(ProjectStore store, IDbContextFactory<CatalogDbContext> dbFactory)
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
-      _db = db ?? throw new ArgumentNullException(nameof(db));
+      _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     }
 
     /// <summary>
@@ -47,7 +47,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     private async Task<OwnFormState?> LoadAsync(int formId, CancellationToken ct)
     {
-      var form = await _db.Forms
+      await using var db = await _dbFactory.CreateDbContextAsync(ct);
+      var form = await db.Forms
           .Include(f => f.Parameters)
           .FirstOrDefaultAsync(f => f.Id == formId, ct);
 
@@ -110,6 +111,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// </summary>
     private async Task SyncColumnsAsync(OwnFormState state, CancellationToken ct)
     {
+      await using var db = await _dbFactory.CreateDbContextAsync(ct);
       var relevant = RelevantComponents(state.FormId);
 
       // Split/merge replace columns with clones holding the same positions,
@@ -140,7 +142,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       if (missing.Count > 0)
       {
-        var parameters = await _db.FormParameters
+        var parameters = await db.FormParameters
             .Where(p => p.FormId == state.FormId)
             .ToListAsync(ct);
 
@@ -170,6 +172,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         IReadOnlyList<ProjectComponentVm> components,
         CancellationToken ct)
     {
+      await using var db = await _dbFactory.CreateDbContextAsync(ct);
       var formId = state.FormId;
 
       var componentIds = components
@@ -181,13 +184,13 @@ namespace OperationMaps.Wpf.Features.OwnForm
       // Component.LoadFactorParameterId — per-component override of which
       // base parameter feeds the load-factor calculation.
       var loadFactorOverrideByComponent = componentIds.Count > 0
-          ? await _db.Components
+          ? await db.Components
               .Where(c => componentIds.Contains(c.Id))
               .ToDictionaryAsync(c => c.Id, c => c.LoadFactorParameterId, ct)
           : [];
 
       var ntdByComponent = componentIds.Count > 0
-          ? (await _db.ComponentNtdValues
+          ? (await db.ComponentNtdValues
               .Where(v => componentIds.Contains(v.ComponentId)
                        && v.FormParameter.FormId == formId)
               .ToListAsync(ct))
@@ -198,7 +201,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       // Pin numbers (Form 64's "номера выводов" column) — catalog data,
       // entered once per Component via the "add component" wizard.
       var pinsByComponent = componentIds.Count > 0
-          ? (await _db.ComponentPinValues
+          ? (await db.ComponentPinValues
               .Where(v => componentIds.Contains(v.ComponentId)
                        && v.FormParameter.FormId == formId)
               .ToListAsync(ct))

@@ -64,6 +64,8 @@ namespace OperationMaps.Infrastructure.Word
       var tableIndex = root["tableIndex"]?.GetValue<int>() ?? 0;
       var componentsPerPage = root["componentsPerPage"]?.GetValue<int>()
           ?? throw new InvalidDataException($"componentsPerPage missing in {mapPath}");
+      if (componentsPerPage < 1)
+        throw new InvalidDataException($"componentsPerPage must be positive in {mapPath}");
 
       int? optionalRowInsertIndex = root["optionalRowInsertIndex"]?.GetValue<int>();
       int? optionalRowTemplateIndex = root["optionalRowTemplateIndex"]?.GetValue<int>();

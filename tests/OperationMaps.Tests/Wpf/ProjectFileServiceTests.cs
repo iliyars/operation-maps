@@ -9,6 +9,8 @@ using OperationMaps.Wpf.Features.OwnForm.Commands;
 using OperationMaps.Wpf.Features.Project;
 using OperationMaps.Wpf.Stores;
 using Xunit;
+using Moq;
+using OperationMaps.Application.Services;
 
 namespace OperationMaps.Tests.Wpf;
 
@@ -24,6 +26,131 @@ public sealed class ProjectFileServiceTests : IDisposable
   private readonly SqliteConnection _connection;
   private readonly CatalogDbContext _db;
   private readonly string _path = Path.Combine(Path.GetTempPath(), $"project-{Guid.NewGuid()}.omaps");
+  private string RecoveryFolder => _path + ".recovery-data";
+
+  private ProjectRecoveryService Recovery(ProjectStore store, IDialogService dialogs)
+      => new(store, CreateService(store), new ProjectRecoveryOptions { Folder = RecoveryFolder }, dialogs);
+
+  [Fact]
+  public async Task Recovery_tick_without_project_or_existing_folder_does_not_warn()
+  {
+    var dialogs = new Mock<IDialogService>();
+    using var recovery = Recovery(new ProjectStore(), dialogs.Object);
+    await recovery.TickAsync();
+    Assert.False(Directory.Exists(RecoveryFolder));
+    dialogs.Verify(d => d.ShowWarning(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+  }
+
+  [Fact]
+  public async Task Recovery_write_failure_warns_once_and_does_not_clear_unsaved_state()
+  {
+    var store = await LoadedStoreAsync();
+    store.MarkDirty();
+    var writer = new DelegateWriter((_, _, _) => throw new IOException("Нет места для аварийной копии"));
+    var projects = new ProjectFileService(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), writer);
+    var dialogs = new Mock<IDialogService>();
+    using var recovery = new ProjectRecoveryService(store, projects,
+        new ProjectRecoveryOptions { Folder = RecoveryFolder }, dialogs.Object);
+    await recovery.TickAsync();
+    await recovery.TickAsync();
+    Assert.True(store.IsDirty);
+    Assert.Null(store.ProjectFilePath);
+    dialogs.Verify(d => d.ShowWarning(It.IsAny<string>(), "Автовосстановление"), Times.Once);
+  }
+
+  [Fact]
+  public async Task Recovery_round_trip_preserves_original_paths_and_unsaved_edits()
+  {
+    var store = await LoadedStoreAsync();
+    await CreateService(store).SaveAsync(_path);
+    var savedBytes = await File.ReadAllBytesAsync(_path);
+    store.Conditions.Resource = "Несохранённые условия";
+    store.MarkDirty();
+    using (var firstSession = Recovery(store, Mock.Of<IDialogService>()))
+    {
+      await firstSession.CheckpointAsync();
+      Assert.True(store.IsDirty);
+      Assert.Equal(_path, store.ProjectFilePath);
+      Assert.Equal(savedBytes, await File.ReadAllBytesAsync(_path));
+      var copy = Assert.Single(Directory.GetFiles(RecoveryFolder, "*.recovery"));
+      var copyBytes = await File.ReadAllBytesAsync(copy);
+      await firstSession.CheckpointAsync();
+      Assert.Equal(copyBytes, await File.ReadAllBytesAsync(copy));
+      // Dispose releases the instance lock without marking this as a normal exit.
+    }
+
+    var restored = new ProjectStore();
+    var dialogs = new Mock<IDialogService>();
+    dialogs.Setup(d => d.AskYesNoCancel(It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+    using var nextSession = Recovery(restored, dialogs.Object);
+    Assert.True(await nextSession.OfferRestoreAsync());
+    Assert.True(restored.IsDirty);
+    Assert.Equal(_path, restored.ProjectFilePath);
+    Assert.Equal(Path.GetTempPath().TrimEnd(Path.DirectorySeparatorChar), restored.ProjectFolderPath!.TrimEnd(Path.DirectorySeparatorChar));
+    Assert.Equal("Несохранённые условия", restored.Conditions.Resource);
+    Assert.Single(Directory.GetFiles(RecoveryFolder, "*.recovery"));
+    await nextSession.CompleteAsync();
+    Assert.Empty(Directory.GetFiles(RecoveryFolder, "*.recovery"));
+  }
+
+  [Fact]
+  public async Task Running_instance_is_not_offered_for_recovery()
+  {
+    var store = await LoadedStoreAsync();
+    store.MarkDirty();
+    using var first = Recovery(store, Mock.Of<IDialogService>());
+    await first.CheckpointAsync();
+    var dialogs = new Mock<IDialogService>();
+    using var second = Recovery(new ProjectStore(), dialogs.Object);
+    Assert.False(await second.OfferRestoreAsync());
+    dialogs.Verify(d => d.AskYesNoCancel(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+  }
+
+  [Theory]
+  [InlineData(true)]
+  [InlineData(false)]
+  public async Task Recovery_cancel_keeps_copy_and_discard_removes_it(bool cancel)
+  {
+    var store = await LoadedStoreAsync();
+    store.MarkDirty();
+    using (var first = Recovery(store, Mock.Of<IDialogService>())) await first.CheckpointAsync();
+    var dialogs = new Mock<IDialogService>();
+    dialogs.Setup(d => d.AskYesNoCancel(It.IsAny<string>(), It.IsAny<string>())).Returns(cancel ? null : false);
+    var current = new ProjectStore();
+    using var second = Recovery(current, dialogs.Object);
+    Assert.False(await second.OfferRestoreAsync());
+    Assert.False(current.HasProject);
+    Assert.Equal(cancel ? 1 : 0, Directory.GetFiles(RecoveryFolder, "*.recovery").Length);
+  }
+
+  [Fact]
+  public async Task Corrupted_recovery_is_kept_and_current_project_is_untouched()
+  {
+    Directory.CreateDirectory(RecoveryFolder);
+    var path = Path.Combine(RecoveryFolder, "broken.recovery");
+    await File.WriteAllTextAsync(path, "{}");
+    var store = new ProjectStore();
+    var dialogs = new Mock<IDialogService>();
+    dialogs.Setup(d => d.AskYesNoCancel(It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+    using var recovery = Recovery(store, dialogs.Object);
+    Assert.False(await recovery.OfferRestoreAsync());
+    Assert.False(store.HasProject);
+    Assert.True(File.Exists(path));
+    dialogs.Verify(d => d.ShowError(It.IsAny<string>(), "Восстановление проекта"), Times.Once);
+  }
+
+  [Fact]
+  public async Task Manual_save_removes_obsolete_copy_on_next_checkpoint()
+  {
+    var store = await LoadedStoreAsync();
+    store.MarkDirty();
+    using var recovery = Recovery(store, Mock.Of<IDialogService>());
+    await recovery.CheckpointAsync();
+    Assert.Single(Directory.GetFiles(RecoveryFolder, "*.recovery"));
+    await CreateService(store).SaveAsync(_path);
+    await recovery.CheckpointAsync();
+    Assert.Empty(Directory.GetFiles(RecoveryFolder, "*.recovery"));
+  }
 
   private Form _form = null!;
   private int _baseParamId;
@@ -71,7 +198,219 @@ public sealed class ProjectFileServiceTests : IDisposable
   }
 
   private ProjectFileService CreateService(ProjectStore store)
-      => new(store, _db, new CatalogNameMatcher(_db), new OwnFormStateService(store, _db));
+      => new(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), new ProjectFileWriter());
+
+  private async Task<ProjectStore> LoadedStoreAsync(string name = "Плата")
+  {
+    var store = new ProjectStore();
+    var imported = new List<ImportedComponent>
+    {
+      new() { ImportIndex = 0, RawName = ComponentName, DetectedCategory = "Резистор", Positions = ["R1"] },
+    };
+    store.Load(name, Path.GetTempPath(), await new CatalogNameMatcher(_db).MatchAllAsync(imported));
+    return store;
+  }
+
+  [Fact]
+  public async Task Edits_during_save_remain_dirty_and_file_contains_only_original_snapshot()
+  {
+    var store = await LoadedStoreAsync();
+    store.Conditions.Resource = "100";
+    store.MarkDirty();
+    var entered = new TaskCompletionSource();
+    var resume = new TaskCompletionSource();
+    var writer = new DelegateWriter(async (path, bytes, ct) =>
+    {
+      entered.SetResult();
+      await resume.Task;
+      await new ProjectFileWriter().WriteAsync(path, bytes, ct);
+    });
+    var service = new ProjectFileService(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), writer);
+    var saving = service.SaveAsync(_path);
+    await entered.Task;
+    store.Conditions.Resource = "200";
+    store.MarkDirty();
+    resume.SetResult();
+    await saving;
+
+    Assert.True(store.IsDirty);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    Assert.Equal("100", restored.Conditions.Resource);
+    await CreateService(store).SaveAsync(_path);
+    Assert.False(store.IsDirty);
+    await CreateService(restored).OpenAsync(_path);
+    Assert.Equal("200", restored.Conditions.Resource);
+  }
+
+  [Fact]
+  public async Task Completed_save_of_previous_project_does_not_change_current_project()
+  {
+    var store = await LoadedStoreAsync();
+    var resume = new TaskCompletionSource();
+    var writer = new DelegateWriter(async (path, bytes, ct) =>
+    {
+      await resume.Task;
+      await new ProjectFileWriter().WriteAsync(path, bytes, ct);
+    });
+    var service = new ProjectFileService(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), writer);
+    var saving = service.SaveAsync(_path);
+    store.Load("Другой проект", Path.GetTempPath(), store.MatchResult!);
+    store.MarkDirty();
+    resume.SetResult();
+    await saving;
+
+    Assert.Equal("Другой проект", store.ProjectName);
+    Assert.Null(store.ProjectFilePath);
+    Assert.True(store.IsDirty);
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Failure_or_cancellation_during_restoration_preserves_current_project(bool cancel)
+  {
+    var source = await LoadedStoreAsync();
+    await new OwnFormStateService(source, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id);
+    await CreateService(source).SaveAsync(_path);
+
+    var current = await LoadedStoreAsync("Несохранённый проект");
+    current.Conditions.Resource = "123";
+    current.MarkDirty();
+    var component = current.Components.Single();
+    var revision = current.Revision;
+    var calls = 0;
+    var factory = new DelegateFactory(() =>
+    {
+      if (++calls == 2)
+      {
+        if (cancel) throw new OperationCanceledException();
+        throw new IOException("Ошибка чтения каталога при восстановлении формы");
+      }
+      return TestCatalogDbContextFactory.From(_db).CreateDbContext();
+    });
+    var service = new ProjectFileService(current, factory, new CatalogNameMatcher(_db), new ProjectFileWriter());
+
+    if (cancel) await Assert.ThrowsAsync<OperationCanceledException>(() => service.OpenAsync(_path));
+    else await Assert.ThrowsAsync<IOException>(() => service.OpenAsync(_path));
+
+    Assert.Equal(2, calls);
+    Assert.Equal("Несохранённый проект", current.ProjectName);
+    Assert.Same(component, current.Components.Single());
+    Assert.Equal("123", current.Conditions.Resource);
+    Assert.True(current.IsDirty);
+    Assert.Equal(revision, current.Revision);
+    Assert.Empty(current.OwnForms);
+  }
+
+  [Theory]
+  [InlineData("{}")]
+  [InlineData("{\"version\":0,\"components\":[]}")]
+  [InlineData("{\"version\":999,\"components\":[]}")]
+  [InlineData("{\"version\":1,\"components\":null}")]
+  [InlineData("{\"version\":1,\"components\":[null]}")]
+  [InlineData("{\"version\":1,\"components\":[],\"conditions\":null}")]
+  [InlineData("{\"version\":1,\"components\":[],\"ownForms\":[{\"formNumber\":\"99\",\"columns\":[null]}]}")]
+  [InlineData("{\"version\":1,\"components\":[{\"rawName\":\"R\",\"positions\":[\"R1\",\"R1\"]}]}")]
+  public async Task Invalid_project_structure_is_rejected_without_replacing_current_project(string json)
+  {
+    await File.WriteAllTextAsync(_path, json);
+    var current = await LoadedStoreAsync();
+    var component = current.Components.Single();
+    await Assert.ThrowsAsync<InvalidDataException>(() => CreateService(current).OpenAsync(_path));
+    Assert.Same(component, current.Components.Single());
+  }
+
+  [Fact]
+  public async Task New_xml_project_resets_conditions_and_old_components_no_longer_mark_it_dirty()
+  {
+    var store = await LoadedStoreAsync();
+    var oldComponent = store.Components.Single();
+    await oldComponent.LoadNtdValuesAsync(_db);
+    store.Conditions.Resource = "10000";
+    store.Load("Новый", Path.GetTempPath(), store.MatchResult!);
+
+    Assert.Null(store.Conditions.Resource);
+    oldComponent.NtdValues[0].AddNote("Правка старого проекта");
+    Assert.False(store.IsDirty);
+  }
+
+  [Fact]
+  public async Task Failed_save_preserves_existing_file_and_dirty_state()
+  {
+    await File.WriteAllTextAsync(_path, "original");
+    var store = await LoadedStoreAsync();
+    store.MarkDirty();
+    var writer = new DelegateWriter((_, _, _) => throw new IOException("Нет места"));
+    var service = new ProjectFileService(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), writer);
+    await Assert.ThrowsAsync<IOException>(() => service.SaveAsync(_path));
+    Assert.Equal("original", await File.ReadAllTextAsync(_path));
+    Assert.True(store.IsDirty);
+    Assert.Null(store.ProjectFilePath);
+  }
+
+  private sealed class DelegateWriter(Func<string, byte[], CancellationToken, Task> write) : IProjectFileWriter
+  {
+    public Task WriteAsync(string path, byte[] contents, CancellationToken ct) => write(path, contents, ct);
+  }
+
+  private sealed class DelegateFactory(Func<CatalogDbContext> create) : IDbContextFactory<CatalogDbContext>
+  {
+    public CatalogDbContext CreateDbContext() => create();
+  }
+
+  [Fact]
+  public async Task Edit_while_opening_prevents_replacement()
+  {
+    var current = await LoadedStoreAsync();
+    await CreateService(current).SaveAsync(_path);
+    var component = current.Components.Single();
+    var matcher = new Moq.Mock<IComponentMatcher>();
+    matcher.Setup(m => m.MatchAllAsync(Moq.It.IsAny<IReadOnlyList<ImportedComponent>>(), Moq.It.IsAny<CancellationToken>()))
+        .Returns(async (IReadOnlyList<ImportedComponent> components, CancellationToken ct) =>
+        {
+          current.Conditions.Resource = "Новая правка";
+          current.MarkDirty();
+          return await new CatalogNameMatcher(_db).MatchAllAsync(components, ct);
+        });
+    var service = new ProjectFileService(current, TestCatalogDbContextFactory.From(_db), matcher.Object, new ProjectFileWriter());
+
+    await Assert.ThrowsAsync<IOException>(() => service.OpenAsync(_path));
+    Assert.Same(component, current.Components.Single());
+    Assert.Equal("Новая правка", current.Conditions.Resource);
+    Assert.True(current.IsDirty);
+  }
+
+  [Fact]
+  public async Task Failed_file_replacement_preserves_target_and_cleans_temporary_file()
+  {
+    await File.WriteAllTextAsync(_path, "original");
+    using (var locked = File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.None))
+    {
+      var error = await Record.ExceptionAsync(
+          () => new ProjectFileWriter().WriteAsync(_path, [1, 2, 3], CancellationToken.None));
+      Assert.True(error is IOException or UnauthorizedAccessException, error?.ToString());
+    }
+
+    Assert.Equal("original", await File.ReadAllTextAsync(_path));
+    Assert.Empty(Directory.GetFiles(Path.GetDirectoryName(_path)!, Path.GetFileName(_path) + ".*.tmp"));
+  }
+
+  [Fact]
+  public async Task Empty_project_can_still_be_saved_and_opened()
+  {
+    var store = new ProjectStore();
+    store.Load("Пустой проект", Path.GetTempPath(), new ProjectMatchResult
+    {
+      Matched = [], Unresolved = [], Warnings = [],
+    });
+    await CreateService(store).SaveAsync(_path);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    Assert.True(restored.HasProject);
+    Assert.Empty(restored.Components);
+    Assert.False(restored.IsDirty);
+  }
 
   [Fact]
   public async Task SavedProjectReopensWithAllUserEdits()
@@ -88,7 +427,7 @@ public sealed class ProjectFileServiceTests : IDisposable
     store.HeadName = "Иванов И.И.";
     store.HeadOccupation = "Генеральный директор";
 
-    var state = (await new OwnFormStateService(store, _db).GetAsync(_form.Id))!;
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
     state.History.Execute(new SplitColumnCommand(state.Columns, state.Columns[0], ["R1"], ["R2", "R3"]));
     state.Columns[0].SetCellValue(_plainParamId, "0,1");
     state.Columns[0].AddNote(_plainParamId, "Длительно");
@@ -138,7 +477,7 @@ public sealed class ProjectFileServiceTests : IDisposable
       new() { ImportIndex = 0, RawName = ComponentName, DetectedCategory = "Резистор", Positions = ["R1"] },
     };
     store.Load("Плата", Path.GetTempPath(), await new CatalogNameMatcher(_db).MatchAllAsync(imported));
-    await new OwnFormStateService(store, _db).GetAsync(_form.Id);
+    await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id);
     await CreateService(store).SaveAsync(_path);
 
     var reopened = new ProjectStore();
@@ -161,6 +500,11 @@ public sealed class ProjectFileServiceTests : IDisposable
   public void Dispose()
   {
     if (File.Exists(_path)) File.Delete(_path);
+    if (Directory.Exists(RecoveryFolder))
+    {
+      foreach (var file in Directory.GetFiles(RecoveryFolder)) File.Delete(file);
+      Directory.Delete(RecoveryFolder);
+    }
     _db.Dispose();
     _connection.Dispose();
   }

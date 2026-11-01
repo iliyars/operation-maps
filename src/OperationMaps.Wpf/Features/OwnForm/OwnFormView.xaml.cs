@@ -21,6 +21,59 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public OwnFormView()
     {
       InitializeComponent();
+      Loaded += (_, _) =>
+      {
+        AttachNavigation(DataContext as OwnFormViewModel);
+        if (_navigationVm is not null)
+          ComponentListColumn.Width = new GridLength(_navigationVm.WorkspacePreferences.OwnFormListWidth);
+      };
+      Unloaded += (_, _) => AttachNavigation(null);
+      DataContextChanged += (_, _) => { if (IsLoaded) AttachNavigation(DataContext as OwnFormViewModel); };
+    }
+
+    private OwnFormViewModel? _navigationVm;
+
+    private void ComponentListSplitter_DragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+      if (_navigationVm is null || ComponentListColumn.ActualWidth <= 0) return;
+      _navigationVm.WorkspacePreferences.OwnFormListWidth = Math.Clamp(ComponentListColumn.ActualWidth, 180, 520);
+      _navigationVm.WorkspacePreferences.Save();
+    }
+
+    private void AttachNavigation(OwnFormViewModel? vm)
+    {
+      if (_navigationVm is not null) _navigationVm.MissingParameterRequested -= FocusMissingParameter;
+      _navigationVm = vm;
+      if (vm is not null) vm.MissingParameterRequested += FocusMissingParameter;
+    }
+
+    private void FocusMissingParameter(FormParameterRowVm parameter)
+    {
+      var vm = _navigationVm;
+      Dispatcher.BeginInvoke(() =>
+      {
+        if (vm is null || vm != _navigationVm || !IsLoaded) return;
+        UpdateLayout();
+        var detail = vm.ParameterDetails.FirstOrDefault(p => p.FormParameterId == parameter.FormParameterId
+            || p.HasOptionalRow && p.OptionalFormParameterId == parameter.FormParameterId);
+        if (detail is null) return;
+        if (ParameterRows.ItemContainerGenerator.ContainerFromItem(detail) is not ContentPresenter container) return;
+        container.BringIntoView();
+        var inputName = parameter.IsOptional ? "OptionalSchemeInput" : "SchemeInput";
+        if (ParameterRows.ItemTemplate.FindName(inputName, container) is TextBox input && input.IsVisible)
+        {
+          input.Focus();
+          input.SelectAll();
+        }
+        else if (parameter.IsLoadFactorResult && LoadFactorPicker.IsVisible)
+          LoadFactorPicker.Focus();
+        else
+        {
+          // A computed row cannot accept input; don't leave focus in an off-screen TextBox.
+          container.Focusable = true;
+          container.Focus();
+        }
+      }, System.Windows.Threading.DispatcherPriority.Input);
     }
 
     private void NoteInputBox_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)

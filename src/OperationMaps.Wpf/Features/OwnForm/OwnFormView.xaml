@@ -8,6 +8,9 @@
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.OwnForm"
              mc:Ignorable="d"
              Background="{DynamicResource BgAppBrush}">
+  <UserControl.InputBindings>
+    <KeyBinding Key="F8" Command="{Binding NextMissingCommand}"/>
+  </UserControl.InputBindings>
   <UserControl.Resources>
     <Style TargetType="ItemsControl">
       <Setter Property="FocusVisualStyle"
@@ -25,17 +28,13 @@
     </Grid.RowDefinitions>
 
     <!-- Header -->
-    <Border Grid.Row="0"
-            Background="{DynamicResource BgPanelBrush}"
-            BorderBrush="{DynamicResource BorderDefaultBrush}"
-            BorderThickness="0,0,0,1"
-            Padding="16,10">
+    <Border Grid.Row="0" Style="{StaticResource PageHeader}">
       <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0">
+        <StackPanel Grid.Column="0" Margin="0,0,16,0">
           <TextBlock Text="{Binding FormTitle}"
                      Style="{StaticResource TitleText}"/>
           <TextBlock Text="{Binding FormNumber, StringFormat='Форма {0}'}"
@@ -56,7 +55,7 @@
               <TextBlock.Style>
                 <Style TargetType="TextBlock">
                   <Setter Property="Text"
-                          Value="Создать Word"/>
+                          Value="Экспорт формы"/>
                   <Style.Triggers>
                     <DataTrigger Binding="{Binding IsExporting}"
                                  Value="True">
@@ -78,7 +77,7 @@
             BorderBrush="{DynamicResource BorderDefaultBrush}"
             BorderThickness="0,0,0,1"
             Padding="8,4">
-      <StackPanel Orientation="Horizontal">
+      <WrapPanel Orientation="Horizontal">
         <Button Style="{StaticResource GhostButton}"
                 Command="{Binding UndoCommand}"
                 Margin="0,0,2,0"
@@ -152,7 +151,13 @@
             </Style>
           </TextBlock.Style>
         </TextBlock>
-      </StackPanel>
+        <Button Content="Следующий пропуск" Command="{Binding NextMissingCommand}" ToolTip="Перейти к следующему пропуску (F8)"
+                Style="{StaticResource OutlineButton}" Margin="8,2,0,2"/>
+        <CheckBox Content="Только незаполненные" IsChecked="{Binding ShowOnlyIncomplete}"
+                  Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="12,4,16,4"/>
+        <TextBlock Text="{Binding ProgressSummary}" VerticalAlignment="Center" Margin="0,4,0,4"
+                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12"/>
+      </WrapPanel>
     </Border>
 
     <!-- Loading -->
@@ -169,7 +174,7 @@
     <Grid Grid.Row="2"
           Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVis}}">
       <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="260"
+        <ColumnDefinition x:Name="ComponentListColumn" Width="260"
                           MinWidth="180"
                           MaxWidth="520"/>
         <ColumnDefinition Width="Auto"/>
@@ -181,7 +186,7 @@
                     Background="{DynamicResource BgSidebarBrush}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Disabled">
-        <ItemsControl ItemsSource="{Binding ColumnItems}">
+        <ItemsControl ItemsSource="{Binding VisibleColumnItems}">
           <ItemsControl.ItemTemplate>
             <DataTemplate DataType="{x:Type local:ColumnListItemVm}">
               <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
@@ -365,8 +370,13 @@
         </ItemsControl>
       </ScrollViewer>
 
+      <TextBlock Grid.Column="0" Text="Все группы заполнены.&#10;Снимите фильтр, чтобы увидеть список."
+                 TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center" Margin="16"
+                 Foreground="{DynamicResource TextSecondaryBrush}"
+                 Visibility="{Binding IsFilteredListEmpty, Converter={StaticResource BoolToVis}}"/>
       <!-- Divider -->
       <GridSplitter Grid.Column="1"
+                    DragCompleted="ComponentListSplitter_DragCompleted"
                     Style="{StaticResource PaneSplitter}"/>
 
       <!-- Right: detail panel -->
@@ -438,7 +448,7 @@
                   <TextBlock Text="Параметр для расчёта коэффициента нагрузки"
                              Style="{StaticResource SectionLabel}"
                              Margin="0,0,0,6"/>
-                  <ComboBox ItemsSource="{Binding DataContext.LoadFactorOptions,
+                  <ComboBox x:Name="LoadFactorPicker" Style="{StaticResource ThemedComboBox}" ItemsSource="{Binding DataContext.LoadFactorOptions,
                                           RelativeSource={RelativeSource AncestorType=UserControl}}"
                             SelectedValue="{Binding LoadFactorBaseParameterId}"
                             SelectedValuePath="FormParameterId"
@@ -465,7 +475,7 @@
                 </StackPanel>
               </Border>
 
-              <ItemsControl ItemsSource="{Binding DataContext.ParameterDetails,
+              <ItemsControl x:Name="ParameterRows" ItemsSource="{Binding DataContext.ParameterDetails,
                                 RelativeSource={RelativeSource AncestorType=UserControl}}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate DataType="{x:Type local:ParameterDetailVm}">
@@ -513,7 +523,7 @@
                             <TextBlock Text="в схеме"
                                        Style="{StaticResource SectionLabel}"
                                        Foreground="{DynamicResource AccentBrush}"/>
-                            <TextBox Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
+                            <TextBox x:Name="SchemeInput" Text="{Binding SchemeValue, UpdateSourceTrigger=PropertyChanged}"
                                      Visibility="{Binding IsReadOnlyValue, Converter={StaticResource InverseBoolToVis}}"/>
                             <Border Background="{DynamicResource BgDerivedBrush}"
                                     BorderBrush="{DynamicResource BorderInputBrush}"
@@ -589,7 +599,7 @@
                               <TextBlock Text="второе напряжение: в схеме"
                                          Style="{StaticResource SectionLabel}"
                                          Foreground="{DynamicResource AccentBrush}"/>
-                              <TextBox Text="{Binding OptionalSchemeValue, UpdateSourceTrigger=PropertyChanged}"/>
+                              <TextBox x:Name="OptionalSchemeInput" Text="{Binding OptionalSchemeValue, UpdateSourceTrigger=PropertyChanged}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1"
@@ -715,22 +725,17 @@
                   BorderBrush="{DynamicResource BorderDefaultBrush}"
                   BorderThickness="0,1,0,0"
                   Padding="16,10">
-            <Button Command="{Binding SaveColumnCommand}"
-                    Style="{StaticResource PrimaryButton}"
-                    HorizontalAlignment="Right"
-                    Height="36"
-                    Padding="20,0">
-              <StackPanel Orientation="Horizontal">
-                <TextBlock Text="&#xE74E;"
-                           Style="{StaticResource IconTextOnAccent}"
-                           FontSize="13"
-                           VerticalAlignment="Center"
-                           Margin="0,0,6,0"/>
-                <TextBlock Text="Сохранить"
-                           Foreground="{DynamicResource AccentTextBrush}"
-                           VerticalAlignment="Center"/>
+            <Grid>
+              <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+              <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                <TextBlock Text="{Binding MissingFieldHint}" TextWrapping="Wrap" FontSize="12"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="Значения учтены в проекте. Ctrl+S — сохранить файл." TextWrapping="Wrap" FontSize="12" Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
               </StackPanel>
-            </Button>
+              <Button Grid.Column="1" Command="{Binding NextMissingCommand}" Content="Следующий пропуск · F8"
+                      Style="{StaticResource OutlineButton}" Padding="12,6" VerticalAlignment="Center"/>
+            </Grid>
           </Border>
 
         </Grid>

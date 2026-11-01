@@ -2,6 +2,13 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:behaviors="clr-namespace:OperationMaps.Wpf.Shared.Behaviors">
 
+  <Style x:Key="PageHeader" TargetType="Border">
+    <Setter Property="Background" Value="{DynamicResource BgPanelBrush}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}"/>
+    <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    <Setter Property="Padding" Value="20,16"/>
+  </Style>
+
   <!-- ── Draggable divider between side-by-side panes ──────────────────────
        Looks like the old 1 px divider line, but has a 6 px grab area and
        highlights on hover so it's discoverable. Use in its own Auto column:

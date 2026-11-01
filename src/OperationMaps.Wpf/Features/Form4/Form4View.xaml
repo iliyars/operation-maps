@@ -23,11 +23,7 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <Border Grid.Row="0"
-                Background="{DynamicResource BgPanelBrush}"
-                BorderBrush="{DynamicResource BorderDefaultBrush}"
-                BorderThickness="0,0,0,1"
-                Padding="16,10">
+        <Border Grid.Row="0" Style="{StaticResource PageHeader}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
@@ -54,7 +50,7 @@
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Text"
-                                            Value="Создать Word"/>
+                                            Value="Экспорт формы"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsExporting}"
                                                 Value="True">

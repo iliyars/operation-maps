@@ -66,7 +66,7 @@ public sealed class WordCatalogImportServiceTests : IDisposable
     _mapLoader = new WordFormMapLoader(
         Path.Combine(AppContext.BaseDirectory, "Word", "Resources"));
 
-    _service = new WordCatalogImportService(_db, new ComponentEntryService(_db), new ComponentNameParser(), _mapLoader);
+    _service = new WordCatalogImportService(TestCatalogDbContextFactory.From(_db), new ComponentEntryService(TestCatalogDbContextFactory.From(_db)), new ComponentNameParser(), _mapLoader);
 
     Seed();
   }

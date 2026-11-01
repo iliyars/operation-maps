@@ -25,18 +25,18 @@ namespace OperationMaps.Infrastructure.Services;
 /// </summary>
 public sealed class WordCatalogImportService : IWordCatalogImportService
 {
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IComponentEntryService _entryService;
   private readonly IComponentNameParser _nameParser;
   private readonly WordFormMapLoader _mapLoader;
 
   public WordCatalogImportService(
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       IComponentEntryService entryService,
       IComponentNameParser nameParser,
       WordFormMapLoader mapLoader)
   {
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
     _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
@@ -44,12 +44,13 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
   public async Task<WordImportScanResult> ScanAsync(string documentPath, CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     if (!File.Exists(documentPath))
       throw new FileNotFoundException("Document not found.", documentPath);
 
     var formNumbersInDoc = WordFormReader.DetectFormNumbers(documentPath);
 
-    var allForms = await _db.Forms.Include(f => f.Parameters).ToListAsync(ct);
+    var allForms = await db.Forms.Include(f => f.Parameters).ToListAsync(ct);
     var formsByNumber = allForms.ToDictionary(f => f.Number, StringComparer.OrdinalIgnoreCase);
 
     // ── Form 4 (family-level) — read once if present ──────────────────────
@@ -57,7 +58,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     if (formsByNumber.ContainsKey("4") && TryLoadMap("4", out var form4Map))
       form4Data = WordFormReader.Read("4", documentPath, form4Map!);
 
-    var componentTypes = await _db.ComponentTypes.ToListAsync(ct);
+    var componentTypes = await db.ComponentTypes.ToListAsync(ct);
     var typesByName = componentTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
 
     var unsupported = new List<string>();
@@ -102,6 +103,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
   public async Task ResolveComponentTypeAsync(WordImportedComponent item, string componentTypeName, CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(item);
 
     var trimmedName = componentTypeName?.Trim() ?? "";
@@ -115,7 +117,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       return;
     }
 
-    var type = await _db.ComponentTypes.FirstOrDefaultAsync(t => t.Name == trimmedName, ct);
+    var type = await db.ComponentTypes.FirstOrDefaultAsync(t => t.Name == trimmedName, ct);
     item.ComponentTypeId = type?.Id;
 
     var parsed = _nameParser.Parse($"{trimmedName} {item.FullName}");
@@ -124,11 +126,12 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
     item.ExistingFamilyId = type is null
         ? null
-        : (await _db.Families.FirstOrDefaultAsync(f => f.ComponentTypeId == type.Id && f.Name == familyName, ct))?.Id;
+        : (await db.Families.FirstOrDefaultAsync(f => f.ComponentTypeId == type.Id && f.Name == familyName, ct))?.Id;
   }
 
   public async Task<Component> ImportAsync(WordImportedComponent item, CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(item);
 
     if (string.IsNullOrWhiteSpace(item.ComponentTypeName))
@@ -147,8 +150,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     else
     {
       var newType = new ComponentType { Name = item.ComponentTypeName!.Trim() };
-      _db.ComponentTypes.Add(newType);
-      await _db.SaveChangesAsync(ct);
+      db.ComponentTypes.Add(newType);
+      await db.SaveChangesAsync(ct);
       componentTypeId = newType.Id;
 
       // A brand-new type has no existing Family under it by definition.
@@ -158,7 +161,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     if (item.ExistingFamilyId is null && string.IsNullOrWhiteSpace(item.FamilyName))
       throw new InvalidOperationException($"Не указано семейство для «{item.FullName}».");
 
-    var ownForm = await _db.Forms
+    var ownForm = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Id == item.OwnFormId, ct)
         ?? throw new InvalidOperationException($"Own form {item.OwnFormId} not found.");
@@ -189,6 +192,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       IReadOnlyDictionary<string, ComponentType> typesByName,
       CancellationToken ct)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var warnings = new List<string>();
 
     // Match this component's full designation against Form4's per-family
@@ -238,13 +242,13 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
       if (componentTypeId is { } id)
       {
-        var family = await _db.Families
+        var family = await db.Families
             .FirstOrDefaultAsync(f => f.ComponentTypeId == id && f.Name == familyName, ct);
         existingFamilyId = family?.Id;
       }
     }
 
-    var alreadyExists = await _db.Components.AnyAsync(c => c.FullName == slot.Name, ct);
+    var alreadyExists = await db.Components.AnyAsync(c => c.FullName == slot.Name, ct);
 
     return new WordImportedComponent
     {
@@ -269,9 +273,10 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
   private async Task<IReadOnlyDictionary<int, string>> MapRowValuesToParamIdsAsync(
       string formNumber, IReadOnlyDictionary<int, string> valuesByRow, CancellationToken ct)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     if (valuesByRow.Count == 0) return new Dictionary<int, string>();
 
-    var form = await _db.Forms
+    var form = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Number == formNumber, ct);
 

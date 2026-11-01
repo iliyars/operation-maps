@@ -20,6 +20,8 @@ using OperationMaps.Wpf.Features.Components.WordImport;
 using OperationMaps.Wpf.Features.Project;
 using OperationMaps.Wpf.Features.Admin;
 using OperationMaps.Wpf.Features.TitlePage;
+using OperationMaps.Wpf.Features.ExportCheck;
+using OperationMaps.Wpf.Features.Overview;
 
 namespace OperationMaps.Wpf
 {
@@ -40,6 +42,12 @@ namespace OperationMaps.Wpf
       services.AddSingleton<SessionStore>();
       services.AddTransient<OwnFormStateService>();
       services.AddSingleton<ProjectFileService>();
+      services.AddSingleton<IProjectFileWriter, ProjectFileWriter>();
+      services.AddSingleton<ProjectRecoveryOptions>();
+      services.AddSingleton<ProjectRecoveryService>();
+      services.AddTransient<ProjectExportCheckService>();
+      services.AddTransient<ExportCheckViewModel>();
+      services.AddTransient<ProjectOverviewViewModel>();
 
       // Shell
       services.AddSingleton<ShellViewModel>();

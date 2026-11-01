@@ -26,7 +26,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 {
   private const string NoValue = "—";
 
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly SessionStore _session;
   private readonly IComponentEntryService _entryService;
   private readonly IComponentNameParser _nameParser;
@@ -72,14 +72,14 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   public bool IsAdmin => _session.IsAdmin;
 
   public CatalogViewModel(
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       SessionStore session,
       IComponentEntryService entryService,
       IComponentNameParser nameParser,
       ICatalogEditService editService,
       IDialogService dialogs)
   {
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _session = session ?? throw new ArgumentNullException(nameof(session));
     _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
@@ -123,9 +123,10 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task LoadTreeAsync(CancellationToken ct)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     // Fresh read on every visit — the catalog changes while the app runs
     // (the "add component" wizard, Word import).
-    var types = await _db.ComponentTypes
+    var types = await db.ComponentTypes
         .AsNoTracking()
         .Include(t => t.Families).ThenInclude(f => f.Components).ThenInclude(c => c.OwnForm)
         .OrderBy(t => t.Name)
@@ -246,7 +247,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task RunWizardAsync(AddComponentTarget target)
   {
-    var vm = new AddComponentDialogViewModel(_db, _entryService, _nameParser, target);
+    var vm = new AddComponentDialogViewModel(_dbFactory, _entryService, _nameParser, target);
     var dialog = new AddComponentDialog(vm) { Owner = System.Windows.Application.Current.MainWindow };
 
     if (dialog.ShowDialog() != true || vm.CreatedComponent is not { } created) return;
@@ -407,24 +408,25 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task<CatalogCard> BuildFamilyCardAsync(CatalogFamilyNode family, CancellationToken ct)
   {
-    var form4Params = await _db.FormParameters
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var form4Params = await db.FormParameters
         .AsNoTracking()
         .Where(p => p.Form.Number == "4")
         .OrderBy(p => p.RowNumber)
         .ToListAsync(ct);
 
-    var values = await _db.FamilyNtdValues
+    var values = await db.FamilyNtdValues
         .AsNoTracking()
         .Where(v => v.FamilyId == family.Id)
         .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
 
-    var notes = await _db.FamilyNotes
+    var notes = await db.FamilyNotes
         .AsNoTracking()
         .Where(n => n.FamilyId == family.Id)
         .Select(n => new { n.FormParameter.RowNumber, n.FormParameter.Name, n.Note.Text })
         .ToListAsync(ct);
 
-    var forms = await _db.FamilyForms
+    var forms = await db.FamilyForms
         .AsNoTracking()
         .Where(ff => ff.FamilyId == family.Id)
         .Select(ff => ff.Form.Number)
@@ -460,7 +462,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task<CatalogCard> BuildComponentCardAsync(CatalogComponentItem component, CancellationToken ct)
   {
-    var entity = await _db.Components
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var entity = await db.Components
         .AsNoTracking()
         .Include(c => c.Family)
         .Include(c => c.OwnForm)
@@ -490,23 +493,23 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         EmptyMessage = "Собственная форма для компонента не задана.",
       };
 
-    var formParams = await _db.FormParameters
+    var formParams = await db.FormParameters
         .AsNoTracking()
         .Where(p => p.FormId == entity.OwnForm.Id)
         .OrderBy(p => p.RowNumber)
         .ToListAsync(ct);
 
-    var values = await _db.ComponentNtdValues
+    var values = await db.ComponentNtdValues
         .AsNoTracking()
         .Where(v => v.ComponentId == entity.Id)
         .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
 
-    var pins = await _db.ComponentPinValues
+    var pins = await db.ComponentPinValues
         .AsNoTracking()
         .Where(v => v.ComponentId == entity.Id)
         .ToDictionaryAsync(v => v.FormParameterId, v => v.Pins, ct);
 
-    var notes = await _db.ComponentNotes
+    var notes = await db.ComponentNotes
         .AsNoTracking()
         .Where(n => n.ComponentId == entity.Id)
         .Select(n => new { n.FormParameter.RowNumber, n.FormParameter.Name, n.Note.Text })

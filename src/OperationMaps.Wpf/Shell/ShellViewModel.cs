@@ -23,9 +23,12 @@ using OperationMaps.Wpf.Features.TitlePage;
 using OperationMaps.Wpf.Services;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Wpf.Features.ExportCheck;
+using OperationMaps.Wpf.Features.Overview;
 
 namespace OperationMaps.Wpf.Shell
 {
+  public enum ProjectOpenResult { Opened, Cancelled, Failed }
   public sealed partial class ShellViewModel : ObservableObject
   {
 
@@ -59,6 +62,32 @@ namespace OperationMaps.Wpf.Shell
     [ObservableProperty] private bool _isSidebarCollapsed;
 
     public ObservableCollection<NavItemViewModel> NavItems { get; } = [];
+    public IEnumerable<NavItemViewModel> MainNavItems => NavItems.Where(i =>
+        i.ScreenType != typeof(CatalogViewModel) && i.ScreenType != typeof(AdminsViewModel) && i.Label != "СИСТЕМА"
+        && (!i.IsSeparator || i.Label == "ПРОЕКТ" || HasProject));
+    public IEnumerable<NavItemViewModel> SystemNavItems => NavItems.Where(i =>
+        i.ScreenType == typeof(CatalogViewModel) || i.ScreenType == typeof(AdminsViewModel));
+    public bool HasProject => _store.HasProject;
+    public string ProjectCaption => _store.ProjectName ?? "Проект не открыт";
+    public string ProjectSummary => $"Компонентов: {_store.Components.Count} · Не сопоставлено: {_store.Components.Count(c => !c.IsMatched)}";
+    public string SaveStatus => _store.IsDirty ? "Есть несохранённые изменения" : _store.ProjectFilePath is null ? "Проект ещё не сохранён" : "Все изменения сохранены";
+    public string ProjectLocation => _store.ProjectFilePath ?? _store.ProjectFolderPath ?? "";
+    private readonly HashSet<ProjectComponentVm> _observedComponents = [];
+
+    private void RefreshProjectStatus()
+    {
+      OnPropertyChanged(nameof(HasProject));
+      OnPropertyChanged(nameof(ProjectCaption));
+      OnPropertyChanged(nameof(ProjectSummary));
+      OnPropertyChanged(nameof(SaveStatus));
+      OnPropertyChanged(nameof(ProjectLocation));
+      OnPropertyChanged(nameof(MainNavItems));
+    }
+
+    private void OnComponentStatusChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+      if (e.PropertyName == nameof(ProjectComponentVm.IsMatched)) RefreshProjectStatus();
+    }
 
     public ShellViewModel(
         INavigationService navigation,
@@ -98,11 +127,38 @@ namespace OperationMaps.Wpf.Shell
 
       _store.PropertyChanged += (_, e) =>
       {
+        RefreshProjectStatus();
         if (e.PropertyName == nameof(ProjectStore.HasProject))
         {
           SaveProjectCommand.NotifyCanExecuteChanged();
           SaveProjectAsCommand.NotifyCanExecuteChanged();
+          CheckProjectCommand.NotifyCanExecuteChanged();
+          ExportReportCommand.NotifyCanExecuteChanged();
         }
+      };
+
+      _store.Components.CollectionChanged += (_, change) =>
+      {
+        if (change.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+        {
+          foreach (var old in _observedComponents) old.PropertyChanged -= OnComponentStatusChanged;
+          _observedComponents.Clear();
+        }
+        if (change.OldItems is not null)
+          foreach (ProjectComponentVm old in change.OldItems)
+          {
+            old.PropertyChanged -= OnComponentStatusChanged;
+            _observedComponents.Remove(old);
+          }
+        if (change.NewItems is not null)
+          foreach (ProjectComponentVm component in change.NewItems)
+            if (_observedComponents.Add(component)) component.PropertyChanged += OnComponentStatusChanged;
+        RefreshProjectStatus();
+      };
+      NavItems.CollectionChanged += (_, _) =>
+      {
+        OnPropertyChanged(nameof(MainNavItems));
+        OnPropertyChanged(nameof(SystemNavItems));
       };
 
       _navigation.CurrentScreenChanged += OnCurrentScreenChanged;
@@ -115,6 +171,7 @@ namespace OperationMaps.Wpf.Shell
     private void OnCurrentScreenChanged(object? sender, NavigationChangedEventArgs e)
     {
       CurrentScreen = e.CurrentScreen;
+      if (e.CurrentScreen is OwnFormViewModel workingForm) _store.LastOwnFormId = workingForm.FormId;
 
       int? activeFormId = e.CurrentScreen is OwnFormViewModel own ? own.FormId : null;
 
@@ -129,6 +186,7 @@ namespace OperationMaps.Wpf.Shell
 
       OnPropertyChanged(nameof(ActiveUndoCommand));
       OnPropertyChanged(nameof(ActiveRedoCommand));
+      OnPropertyChanged(nameof(ActiveNextMissingCommand));
     }
 
     // ── Edit menu — delegates to whatever the active screen exposes; Undo/Redo
@@ -139,6 +197,7 @@ namespace OperationMaps.Wpf.Shell
 
     public ICommand? ActiveUndoCommand => (CurrentScreen as OwnFormViewModel)?.UndoCommand;
     public ICommand? ActiveRedoCommand => (CurrentScreen as OwnFormViewModel)?.RedoCommand;
+    public ICommand? ActiveNextMissingCommand => (CurrentScreen as OwnFormViewModel)?.NextMissingCommand;
 
     // ── Admin mode ────────────────────────────────────────────────────────────
 
@@ -198,6 +257,7 @@ namespace OperationMaps.Wpf.Shell
       try
       {
         await _projectFile.SaveAsync(path, ct);
+        _preferences.RememberProject(path);
         return true;
       }
       catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -210,10 +270,14 @@ namespace OperationMaps.Wpf.Shell
     [RelayCommand]
     private async Task OpenProjectAsync(CancellationToken ct = default)
     {
-      if (!await ConfirmCloseProjectAsync()) return;
-
       var path = await _filePicker.PickAsync("Открыть проект", ProjectFileService.FileFilter);
       if (path is null) return;
+      await OpenProjectPathAsync(path, ct);
+    }
+
+    public async Task<ProjectOpenResult> OpenProjectPathAsync(string path, CancellationToken ct = default)
+    {
+      if (!await ConfirmCloseProjectAsync()) return ProjectOpenResult.Cancelled;
 
       ProjectMatchResult matchResult;
       try
@@ -223,11 +287,13 @@ namespace OperationMaps.Wpf.Shell
       catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
       {
         _dialogService.ShowError($"Не удалось открыть проект:\n{path}\n\n{ex.Message}", "Открытие проекта");
-        return;
+        return ProjectOpenResult.Failed;
       }
 
+      _preferences.RememberProject(path);
       OnProjectLoaded(_store.ProjectName!, matchResult);
-      await _navigation.NavigateAsync<ComponentsViewModel>(parameter: matchResult, addToHistory: false, ct);
+      await _navigation.NavigateAsync<ProjectOverviewViewModel>(addToHistory: false, cancellationToken: ct);
+      return ProjectOpenResult.Opened;
     }
 
     /// <summary>
@@ -244,7 +310,7 @@ namespace OperationMaps.Wpf.Shell
 
       return answer switch
       {
-        true => await SaveProjectAsync(),
+        true => await SaveProjectAsync() && !_store.IsDirty,
         false => true,
         null => false,
       };
@@ -277,6 +343,17 @@ namespace OperationMaps.Wpf.Shell
       IsExportingReport = true;
       try
       {
+        var issues = await _services.GetRequiredService<ProjectExportCheckService>().CheckAsync(ct);
+        if (issues.Count > 0)
+        {
+          await _navigation.NavigateAsync<ExportCheckViewModel>(issues, cancellationToken: ct);
+          var details = string.Join("\n• ", issues.Take(8).Select(i => i.Message));
+          if (issues.Count > 8) details += $"\n… и ещё {issues.Count - 8}. Полный список — на экране проверки.";
+          if (_dialogService.AskYesNoCancel(
+              "Проект содержит замечания:\n• " + details + "\n\nПродолжить экспорт неполного документа?",
+              "Проверка перед экспортом") != true) return;
+        }
+
         var plan = await PlanContentsAsync(ct);
         var parts = new List<byte[]>();
         var missing = new List<string>();
@@ -303,7 +380,7 @@ namespace OperationMaps.Wpf.Shell
             templatePath = _mapLoader.GetTemplatePath(formNumber);
             _mapLoader.Load(formNumber);
           }
-          catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
+          catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException or System.Text.Json.JsonException or InvalidOperationException or FormatException)
           {
             missing.Add($"Форма {formNumber} — нет шаблона Word");
             continue;
@@ -362,7 +439,9 @@ namespace OperationMaps.Wpf.Shell
     public async Task<ContentsPlan> PlanContentsAsync(CancellationToken ct = default)
     {
       var numbers = _formBuilders.Select(f => f.FormNumber).ToList();
-      var titles = await _services.GetRequiredService<CatalogDbContext>().Forms
+      await using var db = await _services.GetRequiredService<IDbContextFactory<CatalogDbContext>>()
+          .CreateDbContextAsync(ct);
+      var titles = await db.Forms
           .AsNoTracking()
           .Where(f => numbers.Contains(f.Number))
           .ToDictionaryAsync(f => f.Number, f => f.Title, ct);
@@ -376,7 +455,7 @@ namespace OperationMaps.Wpf.Shell
           _mapLoader.GetTemplatePath(formNumber);
           perPage = _mapLoader.Load(formNumber).ComponentsPerPage;
         }
-        catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
+        catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException or System.Text.Json.JsonException or InvalidOperationException or FormatException)
         {
           continue;
         }
@@ -412,14 +491,26 @@ namespace OperationMaps.Wpf.Shell
 
     private bool CanExportReport => _store.HasProject && !IsExportingReport;
 
+    [RelayCommand(CanExecute = nameof(CanExportReport))]
+    private Task CheckProjectAsync() => _navigation.NavigateAsync<ExportCheckViewModel>();
+
     partial void OnIsExportingReportChanged(bool value)
-        => ExportReportCommand.NotifyCanExecuteChanged();
+    {
+      ExportReportCommand.NotifyCanExecuteChanged();
+      CheckProjectCommand.NotifyCanExecuteChanged();
+    }
 
     // ── Nav items ─────────────────────────────────────────────────────────────
 
     private void BuildNavItems()
     {
       NavItems.Add(NavItemViewModel.Separator("ПРОЕКТ"));
+      NavItems.Add(new NavItemViewModel
+      {
+        Label = "Обзор проекта", Icon = "\uE80F", IsVisible = false,
+        ScreenType = typeof(ProjectOverviewViewModel),
+        Command = new AsyncRelayCommand(() => _navigation.NavigateAsync<ProjectOverviewViewModel>()),
+      });
 
       NavItems.Add(new NavItemViewModel
       {
@@ -442,7 +533,7 @@ namespace OperationMaps.Wpf.Shell
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Титульный лист и содержание",
+        Label = "Реквизиты",
         Icon = "\uE7C3",
         IsVisible = false,
         ScreenType = typeof(TitlePageViewModel),
@@ -462,24 +553,15 @@ namespace OperationMaps.Wpf.Shell
               () => _navigation.NavigateAsync<Form4ViewModel>()),
       });
 
-      NavItems.Add(NavItemViewModel.Separator("ЭКСПОРТ"));
+      NavItems.Add(NavItemViewModel.Separator("ПОДГОТОВКА"));
 
       NavItems.Add(new NavItemViewModel
       {
-        Label = "Сохранить проект",
-        Icon = "\uE74E",
+        Label = "Проверка проекта",
+        Icon = "\uE73E",
         IsVisible = false,
-        ScreenType = null,
-        Command = SaveProjectCommand,
-      });
-
-      NavItems.Add(new NavItemViewModel
-      {
-        Label = "Собрать итоговый документ",
-        Icon = "\uE8A5",
-        IsVisible = false,
-        ScreenType = null,
-        Command = ExportReportCommand,
+        ScreenType = typeof(ExportCheckViewModel),
+        Command = CheckProjectCommand,
       });
 
       NavItems.Add(NavItemViewModel.Separator("СИСТЕМА"));
@@ -528,8 +610,10 @@ namespace OperationMaps.Wpf.Shell
         switch (item.ScreenType?.Name)
         {
           case nameof(ComponentsViewModel):
+          case nameof(ProjectOverviewViewModel):
           case nameof(TitlePageViewModel):
           case nameof(Form4ViewModel):
+          case nameof(ExportCheckViewModel):
             item.IsVisible = true;
             break;
           case null when item.Label is "Сохранить проект" or "Собрать итоговый документ":
@@ -578,6 +662,7 @@ namespace OperationMaps.Wpf.Shell
       }
 
       ExportReportCommand.NotifyCanExecuteChanged();
+      CheckProjectCommand.NotifyCanExecuteChanged();
     }
 
     // ── Data builders (called at export time) ─────────────────────────────────

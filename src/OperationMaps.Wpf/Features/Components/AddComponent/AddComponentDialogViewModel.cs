@@ -136,7 +136,7 @@ public sealed class AddComponentTarget
 /// </summary>
 public sealed partial class AddComponentDialogViewModel : ObservableObject
 {
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IComponentEntryService _entryService;
   private readonly IComponentNameParser _nameParser;
   private readonly AddComponentTarget _target;
@@ -219,12 +219,12 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   public MatchResult? CreatedMatch { get; private set; }
 
   public AddComponentDialogViewModel(
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       IComponentEntryService entryService,
       IComponentNameParser nameParser,
       AddComponentTarget target)
   {
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
     _target = target ?? throw new ArgumentNullException(nameof(target));
@@ -236,11 +236,12 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
   public async Task InitializeAsync(CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     IsLoading = true;
     try
     {
       var existingFamily = _target.ExistingFamilyId is { } familyId
-          ? await _db.Families.Include(f => f.ComponentType).FirstOrDefaultAsync(f => f.Id == familyId, ct)
+          ? await db.Families.Include(f => f.ComponentType).FirstOrDefaultAsync(f => f.Id == familyId, ct)
           : null;
 
       if (existingFamily is not null)
@@ -253,14 +254,14 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       {
         // New family from the catalog: the admin picks the type.
         TypeOptions.Clear();
-        foreach (var t in await _db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct))
+        foreach (var t in await db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct))
           TypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
         SelectedType = TypeOptions.FirstOrDefault(t => t.Name == _target.TypeName);
       }
       else
       {
         var typeName = _target.TypeName;
-        var type = await _db.ComponentTypes
+        var type = await db.ComponentTypes
             .FirstOrDefaultAsync(t => t.Name == typeName, ct);
 
         if (type is null)
@@ -305,7 +306,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       }
 
       // Form 4 — always Form.Number == "4"
-      var form4 = await _db.Forms
+      var form4 = await db.Forms
           .Include(f => f.Parameters)
           .FirstOrDefaultAsync(f => f.Number == "4", ct);
 
@@ -314,7 +315,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       {
         var existingValues = existingFamily is null
             ? []
-            : await _db.FamilyNtdValues
+            : await db.FamilyNtdValues
                 .Where(v => v.FamilyId == existingFamily.Id)
                 .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
 
@@ -332,7 +333,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       // lexicographically ("6" ends up after "59") — order by the leading
       // numeric part instead, falling back to the full string for ties
       // like "65" vs "65А".
-      var forms = await _db.Forms
+      var forms = await db.Forms
           .Where(f => f.Number != "4")
           .ToListAsync(ct);
 
@@ -347,7 +348,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
 
       if (existingFamily is not null)
       {
-        var linkedFormId = await _db.FamilyForms
+        var linkedFormId = await db.FamilyForms
             .Where(ff => ff.FamilyId == existingFamily.Id)
             .Select(ff => ff.FormId)
             .FirstOrDefaultAsync(ct);
@@ -416,11 +417,12 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   /// </summary>
   private async Task LoadOwnFormParametersAsync(OwnFormOption? option)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(default);
     OwnFormRows.Clear();
     OwnFormShowsPins = false;
     if (option is null) return;
 
-    var form = await _db.Forms
+    var form = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Id == option.Id);
 
@@ -453,6 +455,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   [RelayCommand(CanExecute = nameof(CanSave))]
   private async Task SaveAsync(CancellationToken ct = default)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     if (!CanSave || SelectedOwnForm is null) return;
 
     IsSaving = true;
@@ -501,7 +504,7 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
       CreatedMatch = new MatchResult
       {
         IsMatched = true,
-        MatchedType = await _db.ComponentTypes.FindAsync([_componentTypeId], ct),
+        MatchedType = await db.ComponentTypes.FindAsync([_componentTypeId], ct),
         MatchedFamily = component.Family,
         MatchedComponent = component,
         RequiredForms = component.OwnForm is not null ? [component.OwnForm] : [],

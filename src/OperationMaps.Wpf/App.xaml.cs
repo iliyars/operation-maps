@@ -14,12 +14,17 @@ using OperationMaps.Wpf.Main;
 using OperationMaps.Wpf.Features.Welcome;
 using Serilog;
 using OperationMaps.Wpf.Shared.Themes;
+using OperationMaps.Wpf.Features.Project;
+using OperationMaps.Wpf.Features.Components;
+using OperationMaps.Wpf.Stores;
+using OperationMaps.Wpf.Features.Overview;
 
 namespace OperationMaps.Wpf;
 
 public partial class App : System.Windows.Application
 {
   private IHost? _host;
+  private DispatcherTimer? _recoveryTimer;
 
   /// <summary>
   /// Absolute, so the path shown to the user in error messages is real
@@ -42,6 +47,7 @@ public partial class App : System.Windows.Application
 
   private static IHost BuildHost() =>
     Host.CreateDefaultBuilder()
+      .UseContentRoot(AppContext.BaseDirectory)
       .UseSerilog((ctx, cfg) => cfg
                 .MinimumLevel.Information()
                 .WriteTo.File(
@@ -81,12 +87,38 @@ public partial class App : System.Windows.Application
 
       //Show the window
       var vm = _host.Services.GetRequiredService<MainViewModel>();
-      var window = new MainWindow { DataContext = vm };
+      var recovery = _host.Services.GetRequiredService<ProjectRecoveryService>();
+      var window = new MainWindow(recovery) { DataContext = vm };
+      window.Closed += (_, _) => _recoveryTimer?.Stop();
       window.Show();
 
       // Navigate to the initial screen
       var navigation = _host.Services.GetRequiredService<INavigationService>();
       await navigation.NavigateAsync<WelcomeViewModel>(addToHistory: false);
+      try
+      {
+        if (await recovery.OfferRestoreAsync())
+        {
+          var store = _host.Services.GetRequiredService<ProjectStore>();
+          vm.Shell.OnProjectLoaded(store.ProjectName!, store.MatchResult!);
+          await navigation.NavigateAsync<ProjectOverviewViewModel>(addToHistory: false);
+        }
+      }
+      catch (Exception ex)
+      {
+        Log.Warning(ex, "Could not offer project recovery");
+        MessageBox.Show("Не удалось проверить аварийные копии.\n\n" + ex.Message,
+            "Автовосстановление", MessageBoxButton.OK, MessageBoxImage.Warning);
+      }
+      _recoveryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+      _recoveryTimer.Tick += async (_, _) => await recovery.TickAsync();
+      var recoveryStore = _host.Services.GetRequiredService<ProjectStore>();
+      recoveryStore.PropertyChanged += (_, args) =>
+      {
+        if (args.PropertyName == nameof(ProjectStore.IsDirty) && !recoveryStore.IsDirty)
+          _ = recovery.TickAsync();
+      };
+      _recoveryTimer.Start();
     }
     catch (Exception ex)
     {

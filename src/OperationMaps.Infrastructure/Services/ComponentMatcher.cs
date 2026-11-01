@@ -8,12 +8,12 @@ namespace OperationMaps.Infrastructure.Services;
 
 public sealed class ComponentMatcher : IComponentMatcher
 {
-  private readonly CatalogDbContext _context;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IComponentNameParser _nameParser;
 
-  public ComponentMatcher(CatalogDbContext context, IComponentNameParser nameParser)
+  public ComponentMatcher(IDbContextFactory<CatalogDbContext> dbFactory, IComponentNameParser nameParser)
   {
-    _context = context ?? throw new ArgumentNullException(nameof(context));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
   }
 
@@ -21,13 +21,14 @@ public sealed class ComponentMatcher : IComponentMatcher
     ImportedComponent imported,
     CancellationToken ct = default)
   {
+    await using var context = await _dbFactory.CreateDbContextAsync(ct);
     var typeName = imported.DetectedCategory;
 
     if (string.IsNullOrEmpty(typeName))
       return Unmatched($"Не удалось распарсить тип компонента: {imported.RawName}");
 
     // 1. Ищем тип компонента в БД
-    var type = await _context.ComponentTypes
+    var type = await context.ComponentTypes
         .FirstOrDefaultAsync(t => t.Name == typeName, ct);
 
     if (type is null)
@@ -44,7 +45,7 @@ public sealed class ComponentMatcher : IComponentMatcher
     // be found again on a later import, even though it existed in the DB.
     if (!string.IsNullOrEmpty(parsed.Family))
     {
-      family = await _context.Families
+      family = await context.Families
           .Include(f => f.FamilyForms)
               .ThenInclude(ff => ff.Form)
           .FirstOrDefaultAsync(
@@ -54,7 +55,7 @@ public sealed class ComponentMatcher : IComponentMatcher
 
 
     // 4. Ищем компонент по полному имени
-    var component = await _context.Components
+    var component = await context.Components
     .Include(c => c.OwnForm)
     .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
 
@@ -84,6 +85,7 @@ public sealed class ComponentMatcher : IComponentMatcher
     IReadOnlyList<ImportedComponent> components,
     CancellationToken ct = default)
   {
+    await using var context = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(components);
 
     if (components.Count == 0)
@@ -105,7 +107,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       .ToList();
 
     // Query 1 — all referenced ComponentTypes
-    var typesByName = await _context.ComponentTypes
+    var typesByName = await context.ComponentTypes
       .Where(t => typeNames.Contains(t.Name))
       .ToDictionaryAsync(t => t.Name, ct);
 
@@ -120,7 +122,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       .ToList();
 
     // Query 2 — all referenced Families with their form associations
-    var familiesByTypeAndName = await _context.Families
+    var familiesByTypeAndName = await context.Families
       .Include(f => f.FamilyForms)
         .ThenInclude(ff => ff.Form)
       .Where(f => familyNames.Contains(f.Name))
@@ -136,7 +138,7 @@ public sealed class ComponentMatcher : IComponentMatcher
     .ToList();
 
     // Query 3 — all referenced Components
-    var componentsByName = await _context.Components
+    var componentsByName = await context.Components
         .Include(c => c.OwnForm)
         .Where(c => rawNames.Contains(c.FullName))
         .ToDictionaryAsync(c => c.FullName, ct);

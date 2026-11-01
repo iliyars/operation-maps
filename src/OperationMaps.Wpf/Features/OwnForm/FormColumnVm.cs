@@ -198,19 +198,16 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
 
     /// <summary>
-    /// Calculates fill status based on required parameters.
-    /// If no required params — uses all params with NTD ≠ "—".
+    /// Counts applicable input and calculated rows; hidden optional rows are excluded.
     /// </summary>
     public FillStatus GetFillStatus(IReadOnlyList<FormParameterRowVm> parameters)
     {
-      var relevant = parameters
-          .Where(p => p.IsRequired || (!p.IsRequired && GetNtdValue(p.FormParameterId) != "—"))
-          .ToList();
+      var relevant = FormCompletion.Relevant(this, parameters).ToList();
 
-      if (relevant.Count == 0) return FillStatus.Empty;
+      if (relevant.Count == 0) return FillStatus.Complete;
 
       var filled = relevant
-          .Count(p => !string.IsNullOrWhiteSpace(GetCellValue(p.FormParameterId)));
+          .Count(p => FormCompletion.IsFilled(this, p));
 
       if (filled == 0) return FillStatus.Empty;
       if (filled == relevant.Count) return FillStatus.Complete;
@@ -219,14 +216,11 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     /// <summary>Count of filled relevant parameters.</summary>
     public int GetFilledCount(IReadOnlyList<FormParameterRowVm> parameters)
-        => parameters
-            .Where(p => p.IsRequired || GetNtdValue(p.FormParameterId) != "—")
-            .Count(p => !string.IsNullOrWhiteSpace(GetCellValue(p.FormParameterId)));
+        => FormCompletion.Relevant(this, parameters).Count(p => FormCompletion.IsFilled(this, p));
 
     /// <summary>Total count of relevant parameters.</summary>
     public int GetTotalCount(IReadOnlyList<FormParameterRowVm> parameters)
-        => parameters
-            .Count(p => p.IsRequired || GetNtdValue(p.FormParameterId) != "—");
+        => FormCompletion.Relevant(this, parameters).Count();
 
     // ── Constructor ───────────────────────────────────────────────────────────
 

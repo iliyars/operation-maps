@@ -4,13 +4,18 @@
   <Style x:Key="TitleText"
       TargetType="TextBlock">
     <Setter Property="FontSize"
-        Value="16"/>
+        Value="20"/>
     <Setter Property="FontWeight"
         Value="SemiBold"/>
     <Setter Property="Foreground"
         Value="{DynamicResource TextPrimaryBrush}"/>
     <Setter Property="TextWrapping"
         Value="Wrap"/>
+  </Style>
+
+  <Style x:Key="PageTitleText" TargetType="TextBlock" BasedOn="{StaticResource TitleText}">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+    <Setter Property="TextWrapping" Value="NoWrap"/>
   </Style>
 
   <!-- ── Subtitle ─────────────────────────────────────────────────────── -->

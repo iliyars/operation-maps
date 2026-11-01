@@ -67,7 +67,15 @@ public sealed partial class ProjectStore : ObservableObject
   /// <summary>True when the project has edits not yet written to <see cref="ProjectFilePath"/>.</summary>
   [ObservableProperty] private bool _isDirty;
 
-  public void MarkDirty() => IsDirty = true;
+  public long Revision { get; private set; }
+  public long Generation { get; private set; }
+  public int? LastOwnFormId { get; set; }
+
+  public void MarkDirty()
+  {
+    Revision++;
+    IsDirty = true;
+  }
 
   /// <summary>
   /// Absolute path to the Forms subfolder: <c>{ProjectFolderPath}/Forms</c>.
@@ -136,6 +144,8 @@ public sealed partial class ProjectStore : ObservableObject
 
   public void AddOwnForm(OwnFormState state)
   {
+    if (_ownForms.TryGetValue(state.FormId, out var previous))
+      previous.Edited -= MarkDirty;
     _ownForms[state.FormId] = state;
     state.Edited += MarkDirty;
   }
@@ -157,6 +167,9 @@ public sealed partial class ProjectStore : ObservableObject
   /// <param name="matchResult">Component matching result.</param>
   public void Load(string projectName, string projectFolderPath, ProjectMatchResult matchResult, ImportResult? importResult = null)
   {
+    Generation++;
+    Revision++;
+    LastOwnFormId = null;
     ProjectName = projectName;
     ProjectFolderPath = projectFolderPath;
     ProjectFilePath = null;
@@ -169,8 +182,9 @@ public sealed partial class ProjectStore : ObservableObject
     HeadName = null;
     HeadOccupation = null;
     NormControl = null;
+    Conditions = new();
 
-    Components.Clear();
+    ClearComponents();
     ClearOwnForms();
     History.Clear();
     IsDirty = false;
@@ -189,8 +203,43 @@ public sealed partial class ProjectStore : ObservableObject
     _ownForms.Clear();
   }
 
+  private void ClearComponents()
+  {
+    foreach (var component in Components)
+      component.Edited -= MarkDirty;
+    Components.Clear();
+  }
+
+  /// <summary>Publishes a fully restored project; no asynchronous work remains.</summary>
+  public void ReplaceWith(ProjectStore prepared)
+  {
+    var components = prepared.Components.ToList();
+    var forms = prepared.OwnForms.Values.ToList();
+    prepared.ClearComponents();
+    prepared.ClearOwnForms();
+
+    Load(prepared.ProjectName!, prepared.ProjectFolderPath!, prepared.MatchResult!);
+    DocumentTitle = prepared.DocumentTitle;
+    DocumentNumber = prepared.DocumentNumber;
+    DevelopedBy = prepared.DevelopedBy;
+    CheckedBy = prepared.CheckedBy;
+    ApprovedBy = prepared.ApprovedBy;
+    HeadName = prepared.HeadName;
+    HeadOccupation = prepared.HeadOccupation;
+    NormControl = prepared.NormControl;
+    Conditions = prepared.Conditions;
+    ProjectFilePath = prepared.ProjectFilePath;
+    ClearComponents();
+    foreach (var component in components) Components.Add(component);
+    foreach (var form in forms) AddOwnForm(form);
+    IsDirty = false;
+  }
+
   public void Clear()
   {
+    Generation++;
+    Revision++;
+    LastOwnFormId = null;
     ProjectFilePath = null;
     ProjectName = null;
     ProjectFolderPath = null;
@@ -204,7 +253,7 @@ public sealed partial class ProjectStore : ObservableObject
     HeadOccupation = null;
     NormControl = null;
     Conditions = new();
-    Components.Clear();
+    ClearComponents();
     ClearOwnForms();
     History.Clear();
     IsDirty = false;

@@ -1,0 +1,121 @@
+<UserControl x:Class="OperationMaps.Wpf.Features.Overview.ProjectOverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="OverviewCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource BgPanelBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
+        </Style>
+        <Style x:Key="MetricValue" TargetType="TextBlock" BasedOn="{StaticResource TitleText}">
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="Margin" Value="0,8,0,12"/>
+        </Style>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="20,20,8,24">
+            <Grid Margin="0,0,12,20">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,16,0">
+                    <TextBlock Text="Обзор проекта" Style="{StaticResource PageTitleText}"/>
+                    <TextBlock Text="{Binding ProductTitle}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Designation}" Style="{StaticResource SubtitleText}"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="{Binding ContinueLabel}" Command="{Binding ContinueCommand}"
+                        Style="{StaticResource PrimaryButton}" Padding="16,8" VerticalAlignment="Center"/>
+            </Grid>
+            <UniformGrid Columns="3" Margin="0,0,0,20">
+                <Border Style="{StaticResource OverviewCard}">
+                    <StackPanel>
+                        <TextBlock Text="Компоненты проекта" Style="{StaticResource SubtitleText}"/>
+                        <TextBlock Text="{Binding ComponentCount}" Style="{StaticResource MetricValue}"/>
+                        <Button Content="Открыть список" Command="{Binding OpenComponentsCommand}" Style="{StaticResource OutlineButton}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource OverviewCard}">
+                    <StackPanel>
+                        <TextBlock Text="Сопоставлено с каталогом" Style="{StaticResource SubtitleText}"/>
+                        <TextBlock Text="{Binding MatchProgress}" Style="{StaticResource MetricValue}"/>
+                        <Button Content="Проверить компоненты" Command="{Binding OpenComponentsCommand}" Style="{StaticResource OutlineButton}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource OverviewCard}">
+                    <StackPanel>
+                        <TextBlock Text="Заполнено значений в формах" Style="{StaticResource SubtitleText}"/>
+                        <TextBlock Text="{Binding FieldProgress}" Style="{StaticResource MetricValue}" FontSize="22"/>
+                        <Button Content="Проверить готовность" Command="{Binding OpenChecksCommand}" Style="{StaticResource OutlineButton}" HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+            <Border Style="{StaticResource OverviewCard}" Margin="0,0,12,20">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="{Binding Readiness}" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                        <TextBlock Text="Готовность проверяется по данным проекта и доступности шаблонов." Style="{StaticResource SubtitleText}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Content="Обновить" Command="{Binding RefreshCommand}" Style="{StaticResource OutlineButton}" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <TextBlock Text="Что осталось сделать" Style="{StaticResource TitleText}" Margin="0,0,0,12"
+                       Visibility="{Binding HasIssues, Converter={StaticResource BoolToVis}}"/>
+            <ItemsControl ItemsSource="{Binding Tasks}" Margin="0,0,12,20">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1" Padding="0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,16,0">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding CountLabel}" Style="{StaticResource SubtitleText}"/>
+                                    <TextBlock Text="{Binding Detail}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap" MaxHeight="40" TextTrimming="WordEllipsis" ToolTip="{Binding Detail}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Перейти" Style="{StaticResource OutlineButton}" VerticalAlignment="Center"
+                                        Command="{Binding DataContext.OpenTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="{Binding FormCountLabel}" Style="{StaticResource TitleText}" Margin="0,0,0,12"/>
+            <TextBlock Text="Рабочие формы появятся после сопоставления компонентов и назначения форм в каталоге."
+                       Style="{StaticResource SubtitleText}" TextWrapping="Wrap" Margin="0,0,12,12"
+                       Visibility="{Binding HasForms, Converter={StaticResource InverseBoolToVis}}"/>
+            <ItemsControl ItemsSource="{Binding Forms}" Margin="0,0,12,20">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1" Padding="0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,20,0">
+                                    <TextBlock Text="{Binding Caption}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap"/>
+                                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" Maximum="100" Height="4" Margin="0,10,0,6" Foreground="{DynamicResource AccentBrush}" Background="{DynamicResource BgActiveBrush}"/>
+                                    <TextBlock Text="{Binding ProgressText}" Style="{StaticResource SubtitleText}"/>
+                                    <TextBlock Text="{Binding TemplateStatus}" Style="{StaticResource SubtitleText}"/>
+                                </StackPanel>
+                                <Button Grid.Column="1" Content="Открыть форму" Style="{StaticResource OutlineButton}" VerticalAlignment="Center"
+                                        Command="{Binding DataContext.OpenFormCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Style="{StaticResource OverviewCard}" Margin="0,0,12,0">
+                <StackPanel>
+                    <TextBlock Text="Итоговый комплект" Style="{StaticResource TitleText}"/>
+                    <TextBlock Text="Титульный лист · Содержание · Форма 4 · Рабочие формы · Лист регистрации изменений"
+                               Style="{StaticResource SubtitleText}" TextWrapping="Wrap" Margin="0,8,0,12"/>
+                    <WrapPanel>
+                        <Button Content="Общие условия · Форма 4" Command="{Binding OpenForm4Command}" Style="{StaticResource OutlineButton}" Margin="0,0,8,8"/>
+                        <Button Content="Полный список замечаний" Command="{Binding OpenChecksCommand}" Style="{StaticResource OutlineButton}" Margin="0,0,8,8"/>
+                        <Button Content="Экспорт комплекта" Command="{Binding ExportCommand}" Style="{StaticResource OutlineButton}" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

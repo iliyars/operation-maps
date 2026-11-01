@@ -50,8 +50,8 @@ public sealed class CatalogEditTests : IDisposable
     _db.SaveChanges();
 
     _session.SignIn(new AdminAccount(1, "ilya", "Илья"));
-    _vm = new CatalogViewModel(_db, _session, new ComponentEntryService(_db), new ComponentNameParser(),
-        new CatalogEditService(_db), _dialogs.Object);
+    _vm = new CatalogViewModel(TestCatalogDbContextFactory.From(_db), _session, new ComponentEntryService(TestCatalogDbContextFactory.From(_db)), new ComponentNameParser(),
+        new CatalogEditService(TestCatalogDbContextFactory.From(_db)), _dialogs.Object);
   }
 
   private CatalogFamilyNode Family(string name) => _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == name);

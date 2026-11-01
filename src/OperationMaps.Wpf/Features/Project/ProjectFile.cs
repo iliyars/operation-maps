@@ -1,4 +1,5 @@
 using OperationMaps.Application.Models;
+using System.Text.Json.Serialization;
 
 namespace OperationMaps.Wpf.Features.Project;
 
@@ -17,6 +18,7 @@ public sealed class ProjectFile
 {
   public const int CurrentVersion = 1;
 
+  [JsonRequired]
   public int Version { get; set; } = CurrentVersion;
 
   public string ProjectName { get; set; } = "";
@@ -35,6 +37,7 @@ public sealed class ProjectFile
 
   public OperatingConditions Conditions { get; set; } = new();
 
+  [JsonRequired]
   public List<SavedComponent> Components { get; set; } = [];
   public List<SavedForm4Notes> Form4Notes { get; set; } = [];
   public List<SavedOwnForm> OwnForms { get; set; } = [];

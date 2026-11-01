@@ -26,7 +26,7 @@ public sealed partial class ColumnListItemVm : ObservableObject
   public int FilledCount { get; private set; }
   public int TotalCount { get; private set; }
 
-  public string StatusLabel => FillStatus switch
+  public string StatusLabel => TotalCount == 0 ? "Не требуется" : FillStatus switch
   {
     FillStatus.Complete => "Заполнено",
     FillStatus.Partial => "Не полностью",
@@ -40,7 +40,7 @@ public sealed partial class ColumnListItemVm : ObservableObject
     _ => "#CCCCCC",
   };
 
-  public double ProgressFraction => TotalCount == 0 ? 0 :
+  public double ProgressFraction => TotalCount == 0 ? 1 :
         (double)FilledCount / TotalCount;
 
   public string ProgressText => TotalCount == 0 ? "" : $"{FilledCount}/{TotalCount}";
@@ -66,6 +66,7 @@ public sealed partial class ColumnListItemVm : ObservableObject
     OnPropertyChanged(nameof(TotalCount));
     OnPropertyChanged(nameof(ProgressText));
     OnPropertyChanged(nameof(ProgressFraction));
+    OnPropertyChanged(nameof(StatusLabel));
   }
 
 

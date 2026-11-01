@@ -40,7 +40,7 @@ public class ComponentMatcherTests : IDisposable
     _db = new CatalogDbContext(options);
     _db.Database.EnsureCreated();
 
-    _matcher = new ComponentMatcher(_db, new ComponentNameParser());
+    _matcher = new ComponentMatcher(TestCatalogDbContextFactory.From(_db), new ComponentNameParser());
 
     Seed();
   }
@@ -77,6 +77,25 @@ public class ComponentMatcherTests : IDisposable
     DetectedCategory = category,
     Positions = ["C1"],
   };
+
+  [Fact]
+  public async Task Repeated_match_reads_catalog_changes_without_recreating_service()
+  {
+    var imported = Imported(KnownDesignation, Category);
+    var before = await _matcher.MatchAsync(imported);
+    Assert.False(before.MatchedComponent!.NeedsAdminReview);
+
+    await using (var writer = TestCatalogDbContextFactory.From(_db).CreateDbContext())
+    {
+      var component = await writer.Components.SingleAsync(c => c.FullName == KnownDesignation);
+      component.NeedsAdminReview = true;
+      await writer.SaveChangesAsync();
+    }
+
+    var after = await _matcher.MatchAsync(imported);
+    Assert.True(after.MatchedComponent!.NeedsAdminReview);
+    Assert.False(before.MatchedComponent.NeedsAdminReview);
+  }
 
   [Fact]
   public async Task MatchAsync_finds_known_component_and_its_required_form()

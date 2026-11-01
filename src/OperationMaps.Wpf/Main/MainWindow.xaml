@@ -24,6 +24,7 @@
         <KeyBinding Key="S" Modifiers="Control" Command="{Binding Shell.SaveProjectCommand}"/>
         <KeyBinding Key="S" Modifiers="Control+Shift" Command="{Binding Shell.SaveProjectAsCommand}"/>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding Shell.OpenProjectCommand}"/>
+        <KeyBinding Key="F8" Command="{Binding Shell.ActiveNextMissingCommand}"/>
     </Window.InputBindings>
     <!-- WindowStyle has to be a direct local attribute (see AppStyles.xaml's
          AppWindowChrome comment) — setting it via a Style didn't reliably
@@ -63,6 +64,8 @@
                               InputGestureText="Ctrl+Shift+S"
                               Command="{Binding SaveProjectAsCommand}"/>
                     <Separator/>
+                    <MenuItem Header="Проверить проект"
+                              Command="{Binding CheckProjectCommand}"/>
                     <MenuItem Header="Собрать итоговый документ"
                               Command="{Binding ExportReportCommand}"/>
                     <Separator/>

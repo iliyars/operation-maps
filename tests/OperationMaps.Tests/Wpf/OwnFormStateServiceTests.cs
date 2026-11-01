@@ -94,7 +94,7 @@ public sealed class OwnFormStateServiceTests : IDisposable
   }
 
   // Each navigation resolves a fresh service, exactly like the transient ViewModel does.
-  private Task<OwnFormState?> OpenFormAsync() => new OwnFormStateService(_store, _db).GetAsync(_form.Id);
+  private Task<OwnFormState?> OpenFormAsync() => new OwnFormStateService(_store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id);
 
   [Fact]
   public async Task EditsSurviveReopeningTheForm()

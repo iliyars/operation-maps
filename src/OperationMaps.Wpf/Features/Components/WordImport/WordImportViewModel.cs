@@ -23,7 +23,7 @@ namespace OperationMaps.Wpf.Features.Components.WordImport;
 public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigatedTo
 {
   private readonly IWordCatalogImportService _importService;
-  private readonly CatalogDbContext _db;
+  private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly INavigationService _navigation;
 
   public string? DocumentPath { get; private set; }
@@ -56,11 +56,11 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
 
   public WordImportViewModel(
       IWordCatalogImportService importService,
-      CatalogDbContext db,
+      IDbContextFactory<CatalogDbContext> dbFactory,
       INavigationService navigation)
   {
     _importService = importService ?? throw new ArgumentNullException(nameof(importService));
-    _db = db ?? throw new ArgumentNullException(nameof(db));
+    _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
     _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
   }
 
@@ -76,11 +76,12 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
 
   private async Task InitializeAsync(CancellationToken ct)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     IsLoading = true;
     ErrorMessage = null;
     try
     {
-      var types = await _db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct);
+      var types = await db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct);
       ComponentTypeOptions.Clear();
       foreach (var t in types)
         ComponentTypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
@@ -119,12 +120,13 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
 
   private async Task LoadDetailAsync(WordImportRowVm? row)
   {
+    await using var db = await _dbFactory.CreateDbContextAsync(default);
     SelectedParameters.Clear();
     SelectedForm4Summary.Clear();
     OnPropertyChanged(nameof(HasForm4Summary));
     if (row is null) return;
 
-    var ownForm = await _db.Forms
+    var ownForm = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Id == row.Model.OwnFormId);
 
@@ -139,7 +141,7 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
 
     if (row.Model.Form4NtdValuesByRow.Count > 0)
     {
-      var form4 = await _db.Forms
+      var form4 = await db.Forms
           .Include(f => f.Parameters)
           .FirstOrDefaultAsync(f => f.Number == "4");
 

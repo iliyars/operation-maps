@@ -7,6 +7,24 @@ namespace OperationMaps.Tests.Persistence;
 
 public class DatabaseSeederTests : IDisposable
 {
+  [Fact]
+  public async Task Seed_preserves_empty_catalog_and_legacy_form4_parameters()
+  {
+    var form = new OperationMaps.Domain.Entities.Forms.Form { Number = "4", Title = "Форма 4" };
+    for (int row = 1; row <= 14; row++)
+      form.Parameters.Add(new() { RowNumber = row, Name = row == 1 ? "Показатель ресурса" : $"Параметр {row}" });
+    _db.Forms.Add(form);
+    await _db.SaveChangesAsync();
+    var ids = form.Parameters.Select(p => p.Id).Order().ToArray();
+    await DatabaseSeeder.SeedAsync(_db);
+    await DatabaseSeeder.SeedAsync(_db);
+    Assert.Equal(ids, await _db.FormParameters.Where(p => p.FormId == form.Id).Select(p => p.Id).OrderBy(id => id).ToArrayAsync());
+    Assert.Empty(await _db.Components.ToListAsync());
+    Assert.Empty(await _db.Families.ToListAsync());
+    Assert.Empty(await _db.ComponentTypes.ToListAsync());
+    Assert.Empty(await _db.Notes.ToListAsync());
+  }
+
   private readonly SqliteConnection _connection;
   private readonly CatalogDbContext _db;
 

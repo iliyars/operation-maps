@@ -113,6 +113,22 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       await using var db = await _dbFactory.CreateDbContextAsync(ct);
       var relevant = RelevantComponents(state.FormId);
+      foreach (var column in state.Columns)
+      {
+        var source = relevant.FirstOrDefault(c => c == column.Component
+          || c.Entry.Imported.Positions.Intersect(column.Component.Entry.Imported.Positions).Any());
+        if (source is not null && source != column.Component) column.Component.SelectRegime(source.ActiveRegime);
+      }
+      var changedRegimes = state.Columns.Where(c => c.NeedsRegimeRefresh).ToList();
+      if (changedRegimes.Count > 0)
+      {
+        var regimeParameters = await db.FormParameters.Where(p => p.FormId == state.FormId).ToListAsync(ct);
+        foreach (var column in changedRegimes)
+        {
+          column.RefreshRegime(state.FormNumber, regimeParameters);
+          state.RecalculateLoadFactor(column);
+        }
+      }
 
       // Split/merge replace columns with clones holding the same positions,
       // so "is this component represented?" is answered by positions, with
@@ -214,6 +230,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
       var optionalParamIds = parameters.Where(p => p.IsOptional).Select(p => p.Id).ToHashSet();
 
       var columns = new List<FormColumnVm>();
+      var catalogNotes = await db.ComponentNotes.Include(n => n.Note)
+        .Where(n => componentIds.Contains(n.ComponentId) && n.FormParameter.FormId == formId)
+        .OrderBy(n => n.NoteId).ToListAsync(ct);
 
       foreach (var component in components)
       {
@@ -222,6 +241,9 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
         if (componentId is not null)
         {
+          foreach (var note in catalogNotes.Where(n => n.ComponentId == componentId))
+            column.AddCatalogNote(note.FormParameterId, note.Note.Text);
+          column.RecalculateNoteOrders();
           if (ntdByComponent.TryGetValue(componentId.Value, out var ntdValues))
             foreach (var ntd in ntdValues)
               if (optionalParamIds.Contains(ntd.FormParameterId))
@@ -238,6 +260,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
           column.LoadFactorBaseParameterId = explicitOverride ?? state.DefaultLoadFactorParameterId;
         }
 
+        column.RefreshRegime(state.FormNumber, parameters);
         columns.Add(column);
       }
 

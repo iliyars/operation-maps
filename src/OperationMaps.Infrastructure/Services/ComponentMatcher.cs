@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Word;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
@@ -21,11 +22,23 @@ public sealed class ComponentMatcher : IComponentMatcher
     ImportedComponent imported,
     CancellationToken ct = default)
   {
+    if (Form3DataBuilder.IsBoard(imported)) return new MatchResult { IsMatched = true };
     await using var context = await _dbFactory.CreateDbContextAsync(ct);
     var typeName = imported.DetectedCategory;
 
     if (string.IsNullOrEmpty(typeName))
       return Unmatched($"Не удалось распарсить тип компонента: {imported.RawName}");
+
+    // Full names are unique in the catalog. XML may describe the same part
+    // with another category (e.g. "Модуль фильтрации и защиты" vs "Фильтр").
+    var exact = await context.Components
+      .Include(c => c.OwnForm)
+      .Include(c => c.Family).ThenInclude(f => f.ComponentType)
+      .Include(c => c.Family).ThenInclude(f => f.FamilyForms).ThenInclude(ff => ff.Form)
+      .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
+    if (exact is not null)
+      return BuildResult(_nameParser.Parse($"{typeName} {imported.RawName}"),
+        exact.Family.ComponentType, exact.Family, exact);
 
     // 1. Ищем тип компонента в БД
     var type = await context.ComponentTypes
@@ -55,9 +68,7 @@ public sealed class ComponentMatcher : IComponentMatcher
 
 
     // 4. Ищем компонент по полному имени
-    var component = await context.Components
-    .Include(c => c.OwnForm)
-    .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
+    Component? component = null;
 
     // 4. Определяем требуемые формы
     var requiredForms = new List<Form>();
@@ -140,6 +151,8 @@ public sealed class ComponentMatcher : IComponentMatcher
     // Query 3 — all referenced Components
     var componentsByName = await context.Components
         .Include(c => c.OwnForm)
+        .Include(c => c.Family).ThenInclude(f => f.ComponentType)
+        .Include(c => c.Family).ThenInclude(f => f.FamilyForms).ThenInclude(ff => ff.Form)
         .Where(c => rawNames.Contains(c.FullName))
         .ToDictionaryAsync(c => c.FullName, ct);
 
@@ -152,8 +165,24 @@ public sealed class ComponentMatcher : IComponentMatcher
     {
       ct.ThrowIfCancellationRequested();
 
+      if (Form3DataBuilder.IsBoard(imported))
+      {
+        matched.Add(new ComponentMatchEntry { Imported = imported, MatchResult = new MatchResult { IsMatched = true } });
+        continue;
+      }
+
       var p = parsed[imported];
       var typeName = imported.DetectedCategory;
+
+      if (componentsByName.TryGetValue(imported.RawName, out var exact))
+      {
+        matched.Add(new ComponentMatchEntry
+        {
+          Imported = imported,
+          MatchResult = BuildResult(p, exact.Family.ComponentType, exact.Family, exact)
+        });
+        continue;
+      }
 
       if (string.IsNullOrEmpty(typeName))
       {

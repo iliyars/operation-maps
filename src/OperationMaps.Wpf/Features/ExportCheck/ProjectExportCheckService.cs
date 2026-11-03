@@ -2,6 +2,7 @@ using System.IO;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
+using OperationMaps.Application.Word;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Word;
 using OperationMaps.Wpf.Features.OwnForm;
@@ -42,6 +43,7 @@ public sealed class ProjectExportCheckService(
 
     foreach (var component in store.Components)
     {
+      if (Form3DataBuilder.IsBoard(component.Entry.Imported)) continue;
       if (!component.IsMatched)
         issues.Add(new($"{component.Positions} — {component.Name}: компонент не сопоставлен с каталогом.", ExportIssueTarget.Components));
       else if (component.Entry.MatchResult.MatchedComponent?.OwnFormId is null)
@@ -49,7 +51,9 @@ public sealed class ProjectExportCheckService(
     }
 
     var forms = store.Components.SelectMany(c => c.Entry.MatchResult.RequiredForms)
-        .Where(f => f.Number != "4").DistinctBy(f => f.Id).OrderBy(f => f.Number).ToList();
+        .Where(f => f.Number is not ("3" or "4")).DistinctBy(f => f.Id).OrderBy(f => f.Number).ToList();
+    if (store.Components.Any(c => Form3DataBuilder.IsBoard(c.Entry.Imported)) && CheckTemplate("3") is { } form3Issue)
+      issues.Add(form3Issue);
     if (CheckTemplate("4") is { } form4Issue) issues.Add(form4Issue);
     foreach (var form in forms)
     {
@@ -68,7 +72,7 @@ public sealed class ProjectExportCheckService(
     var requiredForm4Rows = await db.FormParameters.AsNoTracking()
         .Where(p => p.Form.Number == "4" && p.IsRequired)
         .Select(p => p.RowNumber).ToListAsync(ct);
-    foreach (var component in store.Components.Where(c => c.HasFamily))
+    foreach (var component in store.Components.Where(c => c.HasFamily && !Form3DataBuilder.IsBoard(c.Entry.Imported)))
     {
       await component.LoadNtdValuesAsync(db, ct);
       var missing = component.NtdValues.Where(r => requiredForm4Rows.Contains(r.RowNumber) && Missing(r.Value))

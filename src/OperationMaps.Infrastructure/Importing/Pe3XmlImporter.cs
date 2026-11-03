@@ -44,8 +44,8 @@ public sealed class Pe3XmlImporter : IComponentListImporter
     {
       docTitle = (string?)passportData.Attribute("field_2");
       docNumber = (string?)passportData.Attribute("field_3");
-      developedBy = (string?)passportData.Attribute("field_16");
-      checkedBy = (string?)passportData.Attribute("field_17");
+      developedBy = (string?)passportData.Attribute("field_9");
+      checkedBy = (string?)passportData.Attribute("field_16");
       approvedBy = (string?)passportData.Attribute("field_18");
     }
 
@@ -73,6 +73,9 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       if (string.IsNullOrEmpty(rawName))
         continue;
 
+      var firstWord = rawName.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)[0];
+      var isBoard = string.Equals(firstWord, "Плата", StringComparison.OrdinalIgnoreCase);
+
       if (rawName.StartsWith("Примечание", StringComparison.OrdinalIgnoreCase) ||
           rawName.StartsWith("См.", StringComparison.OrdinalIgnoreCase))
         continue;
@@ -81,7 +84,23 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       ParsedComponentName parsed;
       try
       {
-        parsed = _nameParser.Parse(rawName);
+        if (isBoard)
+        {
+          // A board designation can be in field_4 or already part of field_5.
+          var name = rawName[firstWord.Length..].Trim();
+          var designation = ((string?)rec.Attribute("field_4"))?.Trim();
+          if (!string.IsNullOrEmpty(designation) && !name.Contains(designation, StringComparison.Ordinal))
+            name = $"{name} {designation}".Trim();
+          parsed = new ParsedComponentName
+          {
+            Raw = rawName,
+            Type = "Плата",
+            Name = string.IsNullOrEmpty(name) ? rawName : name,
+            Family = string.IsNullOrEmpty(name) ? rawName : name
+          };
+        }
+        else
+          parsed = _nameParser.Parse(rawName);
       }
       catch (Exception ex)
       {

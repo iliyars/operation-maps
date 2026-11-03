@@ -70,6 +70,26 @@ public class ComponentMatcherTests : IDisposable
     _db.SaveChanges();
   }
 
+  [Fact]
+  public async Task Boards_need_no_catalog_entries_in_single_or_batch_matching()
+  {
+    var board = new ImportedComponent
+    { RawName = "ВЕИР.687282.840", DetectedCategory = "Плата", Positions = ["A1"] };
+    var single = await _matcher.MatchAsync(board);
+    Assert.True(single.IsMatched);
+    Assert.Null(single.Warning);
+    Assert.Null(single.MatchedComponent);
+    Assert.Empty(single.RequiredForms);
+    var batch = await _matcher.MatchAllAsync([board]);
+    Assert.Single(batch.Matched);
+    Assert.Empty(batch.Unresolved);
+    Assert.Empty(batch.Warnings);
+    var vm = new OperationMaps.Wpf.Features.Components.ProjectComponentVm(batch.Matched.Single());
+    Assert.True(vm.IsMatched);
+    Assert.False(vm.HasFamily);
+    Assert.Equal(OperationMaps.Wpf.Features.Components.ComponentMatchStatus.Automatic, vm.MatchStatus);
+  }
+
   private static ImportedComponent Imported(string rawName, string category, int index = 0) => new()
   {
     ImportIndex = index,
@@ -77,6 +97,27 @@ public class ComponentMatcherTests : IDisposable
     DetectedCategory = category,
     Positions = ["C1"],
   };
+
+  [Theory]
+  [InlineData("Модуль фильтрации и защиты")]
+  [InlineData("Резистор")]
+  public async Task Exact_name_uses_catalog_type_family_and_forms_when_xml_category_differs(string xmlCategory)
+  {
+    var imported = Imported(KnownDesignation, xmlCategory);
+    var single = await _matcher.MatchAsync(imported);
+    Assert.True(single.IsMatched);
+    Assert.Equal(Category, single.MatchedType!.Name);
+    Assert.Equal("К10-79", single.MatchedFamily!.Name);
+    Assert.Contains(single.RequiredForms, f => f.Number == "67");
+    Assert.Null(single.Warning);
+    var batch = await _matcher.MatchAllAsync([imported]);
+    var entry = Assert.Single(batch.Matched);
+    Assert.Equal(single.MatchedComponent!.Id, entry.MatchResult.MatchedComponent!.Id);
+    Assert.Equal(Category, entry.MatchResult.MatchedType!.Name);
+    Assert.Contains(entry.MatchResult.RequiredForms, f => f.Number == "67");
+    Assert.Empty(batch.Unresolved);
+    Assert.Empty(batch.Warnings);
+  }
 
   [Fact]
   public async Task Repeated_match_reads_catalog_changes_without_recreating_service()

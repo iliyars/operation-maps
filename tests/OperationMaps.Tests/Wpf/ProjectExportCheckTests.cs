@@ -21,6 +21,90 @@ namespace OperationMaps.Tests.Wpf;
 public sealed class ProjectExportCheckTests
 {
   [Fact]
+  public async Task Form4_exposes_empty_cells_for_notes_and_exports_their_markers()
+  {
+    using var connection = new SqliteConnection("DataSource=:memory:");
+    connection.Open();
+    using var db = new CatalogDbContext(new DbContextOptionsBuilder<CatalogDbContext>().UseSqlite(connection).Options);
+    db.Database.EnsureCreated();
+    db.Forms.Add(new Form { Number = "4", Title = "Форма 4", Parameters = [
+      new FormParameter { RowNumber = 1, Name = "Первый параметр" },
+      new FormParameter { RowNumber = 2, Name = "Второй параметр" }
+    ] });
+    db.SaveChanges();
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddInfrastructure("Data Source=:memory:", new CatalogDatabaseOptions());
+    services.AddPresentation();
+    services.AddSingleton(OperationMaps.Wpf.Services.UserPreferences.CreateInMemory());
+    services.AddSingleton<IDbContextFactory<CatalogDbContext>>(TestCatalogDbContextFactory.From(db));
+    await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+    var store = provider.GetRequiredService<ProjectStore>();
+    store.Load("Примечания", Path.GetTempPath(), new ProjectMatchResult
+    {
+      Matched = [], Warnings = [], Unresolved = [new ComponentMatchEntry
+      {
+        Imported = new ImportedComponent { RawName = "Неизвестный компонент", DetectedCategory = "Резистор", Positions = ["R1"] },
+        MatchResult = new MatchResult { IsMatched = false }
+      }]
+    });
+    var vm = provider.GetRequiredService<OperationMaps.Wpf.Features.Form4.Form4ViewModel>();
+    await vm.OnNavigatedToAsync();
+    var group = Assert.Single(vm.Groups);
+    Assert.False(group.HasCatalogData);
+    Assert.True(group.HasNtdValues);
+    Assert.Equal(2, group.NtdValues.Count);
+    group.NtdValues[0].AddNote("Первое примечание");
+    group.NtdValues[1].AddNote("Второе примечание");
+    var exported = Assert.Single(vm.BuildWordFormData().Components);
+    Assert.Equal("— *", exported.NtdValues[1]);
+    Assert.Equal("— **", exported.NtdValues[2]);
+    Assert.Equal("* Первое примечание\n** Второе примечание", exported.Note);
+    group.NtdValues[0].Notes[0].DeleteCommand.Execute(null);
+    Assert.Equal("*", group.NtdValues[1].Notes[0].Marker);
+  }
+
+  [Fact]
+  public async Task Boards_are_planned_as_form3_before_form4_without_catalog_requirements()
+  {
+    using var connection = new SqliteConnection("DataSource=:memory:");
+    connection.Open();
+    using var db = new CatalogDbContext(new DbContextOptionsBuilder<CatalogDbContext>().UseSqlite(connection).Options);
+    db.Database.EnsureCreated();
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddInfrastructure("Data Source=:memory:", new CatalogDatabaseOptions());
+    services.AddPresentation();
+    services.AddSingleton(OperationMaps.Wpf.Services.UserPreferences.CreateInMemory());
+    services.AddSingleton<IDbContextFactory<CatalogDbContext>>(TestCatalogDbContextFactory.From(db));
+    services.AddSingleton(Mock.Of<IDialogService>());
+    services.AddSingleton(Mock.Of<INavigationService>());
+    await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+    var board = new ImportedComponent
+    {
+      RawName = "модуля питания ВЕИР.687282.840", DetectedCategory = "Плата", Positions = ["A1"]
+    };
+    var result = new ProjectMatchResult
+    {
+      Matched = [], Warnings = [],
+      Unresolved = [new ComponentMatchEntry { Imported = board, MatchResult = new MatchResult { IsMatched = false } }]
+    };
+    var store = provider.GetRequiredService<ProjectStore>();
+    store.Load("Тест формы 3", Path.GetTempPath(), result);
+    var shell = provider.GetRequiredService<ShellViewModel>();
+    shell.OnProjectLoaded("Тест формы 3", result);
+    var plan = await shell.PlanContentsAsync();
+    Assert.Equal(3, plan.FirstSheetOf("3"));
+    Assert.Equal(4, plan.FirstSheetOf("4"));
+    var issues = await provider.GetRequiredService<ProjectExportCheckService>().CheckAsync();
+    Assert.DoesNotContain(issues, i => i.Target == ExportIssueTarget.Components);
+    Assert.DoesNotContain(issues, i => i.Message.StartsWith("Форма 3:"));
+    var form4 = provider.GetRequiredService<OperationMaps.Wpf.Features.Form4.Form4ViewModel>();
+    await form4.OnNavigatedToAsync();
+    Assert.Empty(form4.BuildWordFormData().Components);
+  }
+
+  [Fact]
   public async Task Declining_incomplete_export_shows_check_screen_and_writes_no_document()
   {
     using var connection = new SqliteConnection("DataSource=:memory:");

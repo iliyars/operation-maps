@@ -1,0 +1,265 @@
+{
+  "formNumber": "56",
+  "tableIndex": 0,
+  "componentsPerPage": 3,
+  "componentSlots": [
+    {
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 2
+        },
+        "componentName": {
+          "row": 3,
+          "col": 2
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "schemeCol": 4,
+          "ntdCol": 5
+        },
+        "2": {
+          "row": 6,
+          "schemeCol": 4,
+          "ntdCol": 5
+        },
+        "3": {
+          "row": 7,
+          "schemeCol": 4,
+          "ntdCol": 5
+        },
+        "4": {
+          "row": 8,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "5": {
+          "row": 9,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "6": {
+          "row": 10,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "7": {
+          "row": 11,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "8": {
+          "row": 12,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "9": {
+          "row": 13,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "10": {
+          "row": 14,
+          "schemeCol": 3,
+          "ntdCol": 4
+        },
+        "11": {
+          "row": 15,
+          "schemeCol": 3,
+          "ntdCol": 4
+        }
+      },
+      "noteCell": {
+        "row": 16,
+        "col": 3
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 2,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "text": "по НТД"
+        }
+      ]
+    },
+    {
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 3
+        },
+        "componentName": {
+          "row": 3,
+          "col": 3
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "schemeCol": 6,
+          "ntdCol": 7
+        },
+        "2": {
+          "row": 6,
+          "schemeCol": 6,
+          "ntdCol": 7
+        },
+        "3": {
+          "row": 7,
+          "schemeCol": 6,
+          "ntdCol": 7
+        },
+        "4": {
+          "row": 8,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "5": {
+          "row": 9,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "6": {
+          "row": 10,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "7": {
+          "row": 11,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "8": {
+          "row": 12,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "9": {
+          "row": 13,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "10": {
+          "row": 14,
+          "schemeCol": 5,
+          "ntdCol": 6
+        },
+        "11": {
+          "row": 15,
+          "schemeCol": 5,
+          "ntdCol": 6
+        }
+      },
+      "noteCell": {
+        "row": 16,
+        "col": 4
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 4,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 5,
+          "text": "по НТД"
+        }
+      ]
+    },
+    {
+      "metaCells": {
+        "positionsNumber": {
+          "row": 2,
+          "col": 4
+        },
+        "componentName": {
+          "row": 3,
+          "col": 4
+        }
+      },
+      "parameterCells": {
+        "1": {
+          "row": 5,
+          "schemeCol": 8,
+          "ntdCol": 9
+        },
+        "2": {
+          "row": 6,
+          "schemeCol": 8,
+          "ntdCol": 9
+        },
+        "3": {
+          "row": 7,
+          "schemeCol": 8,
+          "ntdCol": 9
+        },
+        "4": {
+          "row": 8,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "5": {
+          "row": 9,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "6": {
+          "row": 10,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "7": {
+          "row": 11,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "8": {
+          "row": 12,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "9": {
+          "row": 13,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "10": {
+          "row": 14,
+          "schemeCol": 7,
+          "ntdCol": 8
+        },
+        "11": {
+          "row": 15,
+          "schemeCol": 7,
+          "ntdCol": 8
+        }
+      },
+      "noteCell": {
+        "row": 16,
+        "col": 5
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 6,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 7,
+          "text": "по НТД"
+        }
+      ]
+    }
+  ],
+  "headerReplacements": {
+    "{{designation}}": "designation"
+  }
+}

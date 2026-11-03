@@ -6,53 +6,200 @@
     {
       "comment": "Slot 0 — первый компонент (col 1)",
       "metaCells": {
-        "positionsNumber": { "row": 2, "col": 2 },
-        "componentName": { "row": 3, "col": 2 }
+        "positionsNumber": {
+          "row": 2,
+          "col": 2
+        },
+        "componentName": {
+          "row": 3,
+          "col": 2
+        }
       },
       "parameterCells": {
-        "1": { "row": 6, "ntdCol": 4, "schemeCol": 3 },
-        "2": { "row": 7, "ntdCol": 5, "schemeCol": 4 },
-        "3": { "row": 8, "ntdCol": 5, "schemeCol": 4 },
-        "4": { "row": 9, "ntdCol": 5, "schemeCol": 4 },
-        "5": { "row": 10, "ntdCol": 5, "schemeCol": 4 },
-        "6": { "row": 11, "ntdCol": 4, "schemeCol": 3 },
-        "7": { "row": 12, "ntdCol": 4, "schemeCol": 3 }
+        "1": {
+          "row": 6,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "2": {
+          "row": 7,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "3": {
+          "row": 8,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "4": {
+          "row": 9,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "5": {
+          "row": 10,
+          "ntdCol": 5,
+          "schemeCol": 4
+        },
+        "6": {
+          "row": 11,
+          "ntdCol": 4,
+          "schemeCol": 3
+        },
+        "7": {
+          "row": 12,
+          "ntdCol": 4,
+          "schemeCol": 3
+        }
       },
-      "noteCell": { "row": 13, "col": 3 }
+      "noteCell": {
+        "row": 13,
+        "col": 3
+      },
+      "labels": [
+        {
+          "row": 5,
+          "col": 2,
+          "text": "в схеме"
+        },
+        {
+          "row": 5,
+          "col": 3,
+          "text": "по НТД"
+        }
+      ]
     },
     {
       "comment": "Slot 1 — второй компонент (col 2)",
       "metaCells": {
-        "positionsNumber": { "row": 2, "col": 3 },
-        "componentName": { "row": 3, "col": 3 }
+        "positionsNumber": {
+          "row": 2,
+          "col": 3
+        },
+        "componentName": {
+          "row": 3,
+          "col": 3
+        }
       },
       "parameterCells": {
-        "1": { "row": 6, "ntdCol": 6, "schemeCol": 5 },
-        "2": { "row": 7, "ntdCol": 7, "schemeCol": 6 },
-        "3": { "row": 8, "ntdCol": 7, "schemeCol": 6 },
-        "4": { "row": 9, "ntdCol": 7, "schemeCol": 6 },
-        "5": { "row": 10, "ntdCol": 7, "schemeCol": 6 },
-        "6": { "row": 11, "ntdCol": 6, "schemeCol": 5 },
-        "7": { "row": 12, "ntdCol": 6, "schemeCol": 5 }
+        "1": {
+          "row": 6,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "2": {
+          "row": 7,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "3": {
+          "row": 8,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "4": {
+          "row": 9,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "5": {
+          "row": 10,
+          "ntdCol": 7,
+          "schemeCol": 6
+        },
+        "6": {
+          "row": 11,
+          "ntdCol": 6,
+          "schemeCol": 5
+        },
+        "7": {
+          "row": 12,
+          "ntdCol": 6,
+          "schemeCol": 5
+        }
       },
-      "noteCell": { "row": 13, "col": 4 }
+      "noteCell": {
+        "row": 13,
+        "col": 4
+      },
+      "labels": [
+        {
+          "row": 5,
+          "col": 4,
+          "text": "в схеме"
+        },
+        {
+          "row": 5,
+          "col": 5,
+          "text": "по НТД"
+        }
+      ]
     },
     {
       "comment": "Slot 2 — третий компонент (col 3)",
       "metaCells": {
-        "positionsNumber": { "row": 2, "col": 4 },
-        "componentName": { "row": 3, "col": 4 }
+        "positionsNumber": {
+          "row": 2,
+          "col": 4
+        },
+        "componentName": {
+          "row": 3,
+          "col": 4
+        }
       },
       "parameterCells": {
-        "1": { "row": 6, "ntdCol": 8, "schemeCol": 7 },
-        "2": { "row": 7, "ntdCol": 9, "schemeCol": 8 },
-        "3": { "row": 8, "ntdCol": 9, "schemeCol": 8 },
-        "4": { "row": 9, "ntdCol": 9, "schemeCol": 8 },
-        "5": { "row": 10, "ntdCol": 9, "schemeCol": 8 },
-        "6": { "row": 11, "ntdCol": 8, "schemeCol": 7 },
-        "7": { "row": 12, "ntdCol": 8, "schemeCol": 7 }
+        "1": {
+          "row": 6,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "2": {
+          "row": 7,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "3": {
+          "row": 8,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "4": {
+          "row": 9,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "5": {
+          "row": 10,
+          "ntdCol": 9,
+          "schemeCol": 8
+        },
+        "6": {
+          "row": 11,
+          "ntdCol": 8,
+          "schemeCol": 7
+        },
+        "7": {
+          "row": 12,
+          "ntdCol": 8,
+          "schemeCol": 7
+        }
       },
-      "noteCell": { "row": 13, "col": 5 }
+      "noteCell": {
+        "row": 13,
+        "col": 5
+      },
+      "labels": [
+        {
+          "row": 5,
+          "col": 6,
+          "text": "в схеме"
+        },
+        {
+          "row": 5,
+          "col": 7,
+          "text": "по НТД"
+        }
+      ]
     }
   ],
   "headerReplacements": {

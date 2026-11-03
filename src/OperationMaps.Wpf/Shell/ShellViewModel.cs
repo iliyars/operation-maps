@@ -462,7 +462,7 @@ namespace OperationMaps.Wpf.Shell
 
         var data = await buildData(ct);
         planned.Add(new PlannedForm(
-            titles.GetValueOrDefault(formNumber) ?? $"Форма {formNumber}", data.Components.Count, perPage, formNumber));
+            titles.GetValueOrDefault(formNumber) ?? (formNumber == "3" ? Form3DataBuilder.Title : $"Форма {formNumber}"), data.Components.Count, perPage, formNumber));
       }
 
       return ContentsPlanner.Plan(planned);
@@ -623,6 +623,13 @@ namespace OperationMaps.Wpf.Shell
       }
 
       // Register Form 4 builder
+      if (_store.Components.Any(c => Form3DataBuilder.IsBoard(c.Entry.Imported)))
+        _formBuilders.Add(("3", ct =>
+        {
+          ct.ThrowIfCancellationRequested();
+          return Task.FromResult(Form3DataBuilder.Build(
+            _store.Components.Select(c => c.Entry.Imported), _store.DocumentNumber ?? _store.ProjectName ?? ""));
+        }));
       _formBuilders.Add(("4", BuildForm4DataAsync));
 
       // Dynamic own-form nav items
@@ -637,7 +644,7 @@ namespace OperationMaps.Wpf.Shell
       var forms = matchResult.Matched
           .Concat(matchResult.Unresolved)
           .SelectMany(e => e.MatchResult.RequiredForms)
-          .Where(f => f.Number != "4")
+            .Where(f => f.Number is not ("3" or "4"))
           .DistinctBy(f => f.Id)
           .OrderBy(f => f.Number);
 

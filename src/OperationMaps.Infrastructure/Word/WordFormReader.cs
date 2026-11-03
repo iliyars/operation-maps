@@ -148,6 +148,7 @@ namespace OperationMaps.Infrastructure.Word
           {
             Name = name,
             ComponentTypeName = typeName,
+            DecimalNumber = ReadCoord(table, slot.MetaCells, MetaCellKey.DecimalNumber),
             Quantity = quantity,
             NtdValues = ntdValues,
             SchemeValues = schemeValues,

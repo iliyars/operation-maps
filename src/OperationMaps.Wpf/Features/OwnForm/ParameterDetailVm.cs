@@ -14,6 +14,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public int RowNumber { get; init; }
     public string DisplayName { get; init; } = "";
     public string NtdValue { get; init; } = "—";
+    public string RegimeCondition { get; init; } = "";
     public string? Formula { get; init; }
     public bool IsRequired { get; init; }
     public bool IsDerived => Formula is not null;
@@ -45,6 +46,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public ObservableCollection<OwnFormNoteVm> Notes
       => _column.GetNotes(FormParameterId);
+    public ObservableCollection<OperationMaps.Wpf.Features.Components.CatalogNoteChoice> AvailableNotes
+      => _column.GetAvailableNotes(FormParameterId);
 
     // ── Pins (Form 64 only) ───────────────────────────────────────────────────
 

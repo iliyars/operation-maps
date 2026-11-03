@@ -152,7 +152,9 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
         {
           if (!paramsByRow.TryGetValue(rowNumber, out var param)) continue;
           var name = param.Unit is { Length: > 0 } ? $"{param.Name}, {param.Unit}" : param.Name;
-          SelectedForm4Summary.Add(new Form4SummaryRowVm(name, value));
+          var notes = row.Model.Form4NotesByRow.TryGetValue(rowNumber, out var texts)
+            ? string.Join("\n", texts.Select(t => $"* {t}")) : "";
+          SelectedForm4Summary.Add(new Form4SummaryRowVm(name, value, notes));
         }
 
         OnPropertyChanged(nameof(HasForm4Summary));

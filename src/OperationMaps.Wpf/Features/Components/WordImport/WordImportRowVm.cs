@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using OperationMaps.Application.Services;
 
 namespace OperationMaps.Wpf.Features.Components.WordImport;
@@ -33,6 +33,17 @@ public sealed partial class WordImportRowVm : ObservableObject
   public bool IsTypeResolved => !ShowTypeEditor;
   public bool CanToggleSelection => !string.IsNullOrWhiteSpace(Model.ComponentTypeName);
   public IReadOnlyList<string> Warnings => Model.Warnings;
+  public string NotesDisplay => string.Join("\n\n", new[]
+  {
+    string.IsNullOrWhiteSpace(Model.Form4NoteText) || Model.Form4NoteText.Trim() == "—" || Model.Form4NotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы 4:\n{Model.Form4NoteText}",
+    string.IsNullOrWhiteSpace(Model.OwnFormNoteText) || Model.OwnFormNoteText.Trim() == "—" || Model.OwnFormNotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы {Model.OwnFormNumber}:\n{Model.OwnFormNoteText}"
+  }.Where(t => t.Length > 0));
+  public bool HasNotes => NotesDisplay.Length > 0;
+  public bool HasConditionalValues => Model.Form4NotesByRow.Count > 0 || Model.OwnFormNotesByRow.Count > 0
+    || Model.AdditionalVariants.Any(v => v.Form4Notes.Count > 0 || v.OwnNotes.Count > 0);
+  public string AdditionalVariantsDisplay => string.Join("\n", Model.AdditionalVariants
+    .SelectMany(v => v.Form4Notes.Concat(v.OwnNotes).SelectMany(n => n.Value.Select(t => $"Примечание: {t}")))
+    .Distinct());
 
   [ObservableProperty] private bool _isSelected;
   [ObservableProperty] private string _typeText = "";

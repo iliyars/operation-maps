@@ -20,6 +20,29 @@ internal static class ProjectFileValidator
       if (component is null || string.IsNullOrWhiteSpace(component.RawName)
           || component.DetectedCategory is null || component.Positions is null)
         Fail("Некорректные данные компонента.");
+      if (component.Regime is { } regime && (string.IsNullOrWhiteSpace(regime.Name)
+          || string.IsNullOrWhiteSpace(regime.Condition) || regime.Values is null
+          || regime.Values.Any(v => v is null || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1
+            || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))
+          || regime.Values.Select(v => (v.FormNumber, v.RowNumber)).Distinct().Count() != regime.Values.Count))
+        Fail("Некорректный режим компонента.");
+      if (component.Regime is { } selection)
+      {
+        if (selection.Conditions is null || selection.Conditions.Any(c => c is null || c.Conditions is null
+          || c.Conditions.Count > 0 || string.IsNullOrWhiteSpace(c.Name) || string.IsNullOrWhiteSpace(c.Condition)
+          || c.Values is null || c.Values.Count == 0 || c.Values.Any(v => v is null
+            || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1 || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))))
+          Fail("Некорректные условия компонента.");
+        if (selection.Conditions.Count > 0)
+        {
+          OperationMaps.Application.Models.ComponentRegimeSelection combined;
+          try { combined = OperationMaps.Application.Models.ComponentRegimeSelection.Combine(selection.Conditions)!; }
+          catch (InvalidOperationException) { Fail("Противоречащие условия компонента."); throw; }
+          if (!combined.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)
+            .SequenceEqual(selection.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)))
+            Fail("Значения компонента не соответствуют выбранным условиям.");
+        }
+      }
       foreach (var position in component.Positions)
         if (string.IsNullOrWhiteSpace(position) || !positions.Add(position))
           Fail("Пустое или повторяющееся позиционное обозначение компонента.");

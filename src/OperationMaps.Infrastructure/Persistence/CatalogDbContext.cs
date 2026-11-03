@@ -27,6 +27,8 @@ public class CatalogDbContext : DbContext
   public DbSet<FamilyForm> FamilyForms => Set<FamilyForm>();
   public DbSet<FamilyParsingRule> FamilyParsingRules => Set<FamilyParsingRule>();
   public DbSet<Component> Components => Set<Component>();
+  public DbSet<ComponentRegime> ComponentRegimes => Set<ComponentRegime>();
+  public DbSet<ComponentRegimeValue> ComponentRegimeValues => Set<ComponentRegimeValue>();
   public DbSet<FamilyNtdValue> FamilyNtdValues => Set<FamilyNtdValue>();
   public DbSet<ComponentNtdValue> ComponentNtdValues => Set<ComponentNtdValue>();
   public DbSet<ComponentPinValue> ComponentPinValues => Set<ComponentPinValue>();

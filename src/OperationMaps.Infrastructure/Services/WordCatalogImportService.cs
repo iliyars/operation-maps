@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Models;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
 using OperationMaps.Domain.Entities.Catalog;
@@ -58,6 +59,20 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     if (formsByNumber.ContainsKey("4") && TryLoadMap("4", out var form4Map))
       form4Data = WordFormReader.Read("4", documentPath, form4Map!);
 
+    // Older catalogs start at resource (row 1); current maps include the two
+    // list-availability rows first. Keep catalog IDs and stored projects intact.
+    if (form4Data is not null && formsByNumber.TryGetValue("4", out var catalogForm4)
+        && catalogForm4.Parameters.Any(p => p.RowNumber == 1 && p.Name == "Показатель ресурса"))
+      form4Data = new WordFormData
+      {
+        FormNumber = "4",
+        Components = form4Data.Components.Select(c => new WordComponentData
+        {
+          Name = c.Name, ComponentTypeName = c.ComponentTypeName, Quantity = c.Quantity, Note = c.Note,
+          NtdValues = c.NtdValues.Where(v => v.Key >= 3).ToDictionary(v => v.Key - 2, v => v.Value)
+        }).ToList()
+      };
+
     var componentTypes = await db.ComponentTypes.ToListAsync(ct);
     var typesByName = componentTypes.ToDictionary(t => t.Name, StringComparer.Ordinal);
 
@@ -67,17 +82,15 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     // The same full designation legitimately appears in several own-form
     // slots — e.g. positions C1 and C2 use the identical capacitor value,
     // each tracked as its own slot so their "в схеме" values can differ —
-    // but "по НТД" (the reference values this feature actually reads) is
-    // the SAME for every slot sharing a designation, and Form4 is written
-    // per-designation, never per-slot. Keep only the first occurrence of
-    // each FullName across the whole document instead of proposing the
-    // same catalog component several times.
-    var seenFullNames = new HashSet<string>(StringComparer.Ordinal);
+    // Repeated slots still produce one catalog component. Keep their values:
+    // unmarked values may supply a default, while marked values describe
+    // alternative regimes of that same component.
+    var seenFullNames = new Dictionary<string, WordImportedComponent>(StringComparer.Ordinal);
 
     foreach (var formNumber in formNumbersInDoc)
     {
       // Form 4 itself and the cover/TOC/changelog pages aren't own-forms.
-      if (string.Equals(formNumber, "4", StringComparison.OrdinalIgnoreCase)) continue;
+      if (formNumber is "3" or "4") continue;
 
       if (!formsByNumber.TryGetValue(formNumber, out var form) || !TryLoadMap(formNumber, out var map))
       {
@@ -89,8 +102,22 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
       foreach (var slot in formData.Components)
       {
-        if (!seenFullNames.Add(slot.Name)) continue;
-        resolved.Add(await ResolveComponentAsync(slot, form, form4Data, typesByName, ct));
+        var item = await ResolveComponentAsync(slot, form, form4Data, typesByName, ct);
+        if (seenFullNames.TryGetValue(slot.Name, out var previous))
+        {
+          if (previous.OwnFormId == item.OwnFormId)
+          {
+            if (previous.LoadFactorBaseRow is { } previousRow && item.LoadFactorBaseRow is { } nextRow && previousRow != nextRow)
+              throw new InvalidOperationException($"Для «{item.FullName}» указаны разные базовые параметры коэффициента нагрузки.");
+            previous.LoadFactorBaseRow ??= item.LoadFactorBaseRow;
+            previous.AdditionalVariants.Add(new(item.Form4NtdValuesByRow, item.OwnFormNtdValuesByRow,
+              item.Form4NotesByRow, item.OwnFormNotesByRow));
+            previous.AdditionalVariants.AddRange(item.AdditionalVariants);
+          }
+          continue;
+        }
+        seenFullNames.Add(slot.Name, item);
+        resolved.Add(item);
       }
     }
 
@@ -131,8 +158,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
   public async Task<Component> ImportAsync(WordImportedComponent item, CancellationToken ct = default)
   {
-    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(item);
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
     if (string.IsNullOrWhiteSpace(item.ComponentTypeName))
       throw new InvalidOperationException($"Не указан тип компонента для «{item.FullName}».");
@@ -167,17 +194,86 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
         ?? throw new InvalidOperationException($"Own form {item.OwnFormId} not found.");
 
     var ownFormRowToParamId = ownForm.Parameters.ToDictionary(p => p.RowNumber, p => p.Id);
+    int? loadFactorParameterId = null;
+    if (item.LoadFactorBaseRow is { } baseRow)
+    {
+      var parameter = ownForm.Parameters.FirstOrDefault(p => p.RowNumber == baseRow && !p.IsOptional
+        && !p.IsLoadFactorResult && p.Name != "Коэффициент нагрузки");
+      if (parameter is null)
+        throw new InvalidOperationException($"В форме {ownForm.Number} нет базового параметра № {baseRow} для коэффициента нагрузки.");
+      loadFactorParameterId = parameter.Id;
+    }
 
+    var form4Values = (await MapRowValuesToParamIdsAsync("4", item.Form4NtdValuesByRow, ct)).ToDictionary();
+    var ownValues = MapRowValues(ownFormRowToParamId, item.OwnFormNtdValuesByRow).ToDictionary();
+    var form4Notes = (await MapNotesAsync("4", item.Form4NotesByRow, ct)).ToDictionary();
+    var ownNotes = (await MapNotesAsync(item.OwnFormNumber, item.OwnFormNotesByRow, ct)).ToDictionary();
+    var conditions = new Dictionary<string, Dictionary<int, string>>(StringComparer.Ordinal);
+    ExtractConditions(form4Values, form4Notes);
+    ExtractConditions(ownValues, ownNotes);
+    foreach (var variant in item.AdditionalVariants)
+    {
+      var extraForm4 = (await MapRowValuesToParamIdsAsync("4", variant.Form4Values, ct)).ToDictionary();
+      var extraOwn = MapRowValues(ownFormRowToParamId, variant.OwnValues).ToDictionary();
+      var extraForm4Notes = (await MapNotesAsync("4", variant.Form4Notes, ct)).ToDictionary();
+      var extraOwnNotes = (await MapNotesAsync(item.OwnFormNumber, variant.OwnNotes, ct)).ToDictionary();
+      ExtractConditions(extraForm4, extraForm4Notes);
+      ExtractConditions(extraOwn, extraOwnNotes);
+      MergeVariant(form4Values, form4Notes, extraForm4, extraForm4Notes);
+      MergeVariant(ownValues, ownNotes, extraOwn, extraOwnNotes);
+    }
+
+    void ExtractConditions(Dictionary<int, string> values, Dictionary<int, List<string>> notes)
+    {
+      foreach (var (id, texts) in notes.ToArray())
+      {
+        var selected = texts.Where(ReliefNote.IsMatch).Distinct().ToArray();
+        if (selected.Length == 0) continue;
+        if (selected.Length > 1)
+          throw new InvalidOperationException("У значения несколько условий. Уточните их совместное применение перед импортом.");
+        if (!values.TryGetValue(id, out var value) || string.IsNullOrWhiteSpace(value))
+          throw new InvalidOperationException("Условие должно быть связано с непустым значением параметра.");
+        // All explanations on a conditional value remain mandatory with that value.
+        var condition = string.Join("\n", texts.Distinct());
+        if (!conditions.TryGetValue(condition, out var changes)) conditions[condition] = changes = [];
+        if (changes.TryGetValue(id, out var previous) && previous != value)
+          throw new InvalidOperationException($"Условие «{condition}» задаёт разные значения одного параметра.");
+        changes[id] = value;
+        values.Remove(id);
+        notes.Remove(id);
+      }
+    }
+
+    static void MergeVariant(Dictionary<int, string> values, Dictionary<int, List<string>> notes,
+      Dictionary<int, string> extraValues, IReadOnlyDictionary<int, List<string>> extraNotes)
+    {
+      foreach (var (id, value) in extraValues)
+      {
+        if (values.TryGetValue(id, out var previous) && previous != value)
+          throw new InvalidOperationException($"В документе указаны разные значения одного параметра: «{previous}» и «{value}». Уточните данные перед импортом; режимы создаются вручную в карточке компонента.");
+        values[id] = value;
+      }
+      foreach (var (id, texts) in extraNotes)
+      {
+        if (!notes.TryGetValue(id, out var existing)) notes[id] = existing = [];
+        foreach (var text in texts)
+          if (!existing.Contains(text)) existing.Add(text);
+      }
+    }
     var input = new NewComponentInput
     {
       ComponentTypeId = componentTypeId,
       ExistingFamilyId = item.ExistingFamilyId,
       NewFamilyName = item.ExistingFamilyId is null ? item.FamilyName : null,
       FullName = item.FullName,
-      Form4Values = await MapRowValuesToParamIdsAsync("4", item.Form4NtdValuesByRow, ct),
+      Form4Values = form4Values,
       OwnFormId = item.OwnFormId,
-      OwnFormValues = MapRowValues(ownFormRowToParamId, item.OwnFormNtdValuesByRow),
+      LoadFactorParameterId = loadFactorParameterId,
+      OwnFormValues = ownValues,
       PinValues = MapRowValues(ownFormRowToParamId, item.OwnFormPinValuesByRow),
+      Form4Notes = form4Notes,
+      OwnFormNotes = ownNotes,
+      Regimes = conditions.Select(c => new NewComponentRegimeInput(c.Key, c.Key, c.Value)).ToArray(),
     };
 
     return await _entryService.CreateComponentAsync(input, ct);
@@ -205,7 +301,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     //     quality-grade prefix that the own-form's "Наименование изделия"
     //     omits — tried as a fallback so the base designation still matches.
     var normalizedSlotName = NormalizeHomoglyphs(slot.Name);
-    var form4Match = form4Data?.Components
+    var form4Matches = form4Data?.Components
         .Where(f => !string.IsNullOrWhiteSpace(f.ComponentTypeName))
         .Select(f => new
         {
@@ -216,7 +312,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
             || normalizedSlotName.StartsWith(StripKnownDesignationPrefix(x.Designation), StringComparison.OrdinalIgnoreCase))
         .OrderByDescending(x => x.Designation.Length)
         .Select(x => x.Component)
-        .FirstOrDefault();
+        .ToList() ?? [];
+    var form4Match = form4Matches.FirstOrDefault();
 
     string? typeName = form4Match?.Name?.Trim();
     int? componentTypeId = null;
@@ -249,8 +346,30 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     }
 
     var alreadyExists = await db.Components.AnyAsync(c => c.FullName == slot.Name, ct);
+    var form4Values = form4Match is null ? new Dictionary<int, string>() : new Dictionary<int, string>(form4Match.NtdValues);
+    var ownValues = new Dictionary<int, string>(slot.NtdValues);
+    var form4Notes = WordNoteParser.Extract(form4Match?.Note ?? "", form4Values);
+    var ownNotes = WordNoteParser.Extract(slot.Note, ownValues);
+    int? loadFactorBaseRow = null;
+    foreach (var parameter in ownForm.Parameters.Where(p => p.IsLoadFactorResult || p.Name == "Коэффициент нагрузки"))
+      foreach (var values in new[] { ownValues, slot.SchemeValues })
+      {
+        if (!values.TryGetValue(parameter.RowNumber, out var text)) continue;
+        var match = System.Text.RegularExpressions.Regex.Match(text, @"\(\s*(\d+)\s*\)");
+        if (!match.Success) continue;
+        if (!int.TryParse(match.Groups[1].Value, out var row) || row < 1)
+          throw new InvalidOperationException("Некорректный номер базового параметра коэффициента нагрузки.");
+        if (loadFactorBaseRow is { } existingRow && existingRow != row)
+          throw new InvalidOperationException("В строке коэффициента нагрузки указаны разные базовые параметры.");
+        loadFactorBaseRow = row;
+        if (ReferenceEquals(values, ownValues)) ownValues[parameter.RowNumber] = text.Remove(match.Index, match.Length).Trim();
+      }
+    if (!string.IsNullOrWhiteSpace(slot.Note) && ownNotes.Count == 0)
+      warnings.Add("Примечания собственной формы прочитаны, но не привязаны к строкам НТД: проверьте маркеры в ячейках.");
+    if (!string.IsNullOrWhiteSpace(form4Match?.Note) && form4Notes.Count == 0)
+      warnings.Add("Примечания формы 4 прочитаны, но не привязаны к строкам НТД: проверьте маркеры в ячейках.");
 
-    return new WordImportedComponent
+    var resolved = new WordImportedComponent
     {
       FullName = slot.Name,
       OwnFormNumber = ownForm.Number,
@@ -264,10 +383,25 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       AlreadyInCatalog = alreadyExists,
       Form4DataFound = form4Match is not null,
       Warnings = warnings,
-      Form4NtdValuesByRow = form4Match is null ? [] : new Dictionary<int, string>(form4Match.NtdValues),
-      OwnFormNtdValuesByRow = new Dictionary<int, string>(slot.NtdValues),
+      Form4NtdValuesByRow = form4Values,
+      OwnFormNtdValuesByRow = ownValues,
+      Form4NotesByRow = form4Notes,
+      OwnFormNotesByRow = ownNotes,
+      Form4NoteText = form4Match?.Note ?? "",
+      OwnFormNoteText = slot.Note,
       OwnFormPinValuesByRow = new Dictionary<int, string>(slot.PinValues),
+      LoadFactorBaseRow = loadFactorBaseRow,
     };
+    if (form4Match is not null)
+      foreach (var alternative in form4Matches.Skip(1).Where(f =>
+        StripKnownDesignationPrefix(NormalizeHomoglyphs(f.ComponentTypeName.Trim())) ==
+        StripKnownDesignationPrefix(NormalizeHomoglyphs(form4Match.ComponentTypeName.Trim()))))
+      {
+        var alternativeValues = new Dictionary<int, string>(alternative.NtdValues);
+        var alternativeNotes = WordNoteParser.Extract(alternative.Note, alternativeValues);
+        resolved.AdditionalVariants.Add(new(alternativeValues, [], alternativeNotes, []));
+      }
+    return resolved;
   }
 
   private async Task<IReadOnlyDictionary<int, string>> MapRowValuesToParamIdsAsync(
@@ -284,6 +418,15 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
     var rowToParamId = form.Parameters.ToDictionary(p => p.RowNumber, p => p.Id);
     return MapRowValues(rowToParamId, valuesByRow);
+  }
+
+  private async Task<IReadOnlyDictionary<int, List<string>>> MapNotesAsync(
+    string formNumber, Dictionary<int, List<string>> notes, CancellationToken ct)
+  {
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var ids = await db.FormParameters.Where(p => p.Form.Number == formNumber)
+      .ToDictionaryAsync(p => p.RowNumber, p => p.Id, ct);
+    return notes.Where(n => ids.ContainsKey(n.Key)).ToDictionary(n => ids[n.Key], n => n.Value);
   }
 
   private static IReadOnlyDictionary<int, string> MapRowValues(

@@ -66,6 +66,17 @@
         Value="{DynamicResource TextLinkBrush}"/>
   </Style>
 
+  <Style x:Key="OptionalParameterText" TargetType="TextBlock">
+    <Style.Triggers>
+      <Trigger Property="Text" Value="">
+        <Setter Property="Visibility" Value="Collapsed"/>
+      </Trigger>
+      <Trigger Property="Text" Value="{x:Null}">
+        <Setter Property="Visibility" Value="Collapsed"/>
+      </Trigger>
+    </Style.Triggers>
+  </Style>
+
   <!-- ── Muted text (позиции, подсказки) ──────────────────────────────── -->
   <Style x:Key="MutedText"
       TargetType="TextBlock">

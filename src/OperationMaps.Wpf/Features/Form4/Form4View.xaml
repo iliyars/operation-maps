@@ -1,4 +1,4 @@
-<UserControl x:Class="OperationMaps.Wpf.Features.Form4.Form4View"
+﻿<UserControl x:Class="OperationMaps.Wpf.Features.Form4.Form4View"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,6 +13,11 @@
                     Value="{x:Null}"/>
             <Setter Property="Focusable"
                     Value="False"/>
+            <Style.Triggers>
+                <Trigger Property="HasItems" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
@@ -218,7 +223,7 @@
                                 CornerRadius="6"
                                 Padding="12,10"
                                 Margin="0,16,0,0"
-                                Visibility="{Binding HasNtdValues, Converter={StaticResource InverseBoolToVis}}">
+                                Visibility="{Binding HasCatalogData, Converter={StaticResource InverseBoolToVis}}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="&#xE7BA;"
                                         Style="{StaticResource IconText}"
@@ -227,11 +232,11 @@
                                            VerticalAlignment="Center"
                                         Margin="0,0,10,0"/>
                                 <StackPanel>
-                                    <TextBlock Text="Параметры не найдены"
+                                    <TextBlock Text="Данные НТД не найдены"
                                             FontSize="13"
                                             FontWeight="Medium"
                                                Foreground="{DynamicResource StatusWarningBrush}"/>
-                                    <TextBlock Text="Компонент отсутствует в каталоге ЭРИ"
+                                    <TextBlock Text="Компонент отсутствует в каталоге ЭРИ. К ячейкам можно добавить примечания."
                                             FontSize="12"
                                                Foreground="{DynamicResource StatusWarningBrush}"
                                             Margin="0,2,0,0"/>
@@ -245,13 +250,21 @@
                                     <DataTemplate DataType="{x:Type comp:NtdParameterVm}">
                                         <Border BorderBrush="{DynamicResource BorderDefaultBrush}"
                                                 BorderThickness="0,0,0,1"
-                                                Padding="0,10,0,10">
+                                                Padding="0,6">
                                             <StackPanel>
-                                                <TextBlock Text="{Binding DisplayName}"
-                                                           Style="{StaticResource ParamLabel}"
-                                                        Margin="0"/>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="30"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding RowNumber}" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding DisplayName}" TextWrapping="Wrap"
+                                                               Style="{StaticResource ParamLabel}" Margin="0"/>
+                                                </Grid>
+                                                <TextBlock Text="{Binding RegimeCondition}" Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap" Margin="30,2,0,0"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 <StackPanel Orientation="Horizontal"
-                                                        Margin="0,2,0,0">
+                                                        Margin="30,2,0,0">
                                                     <TextBlock Text="{Binding Value}"
                                                             Style="{StaticResource ParamValue}"/>
                                                     <ItemsControl ItemsSource="{Binding Notes}">
@@ -299,7 +312,19 @@
                                                         </DataTemplate>
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
-                                                <Grid Margin="0,6,0,0"
+                                                <TextBlock Text="{Binding ValueHint}" Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0,4,0,0"/>
+<ItemsControl ItemsSource="{Binding AvailableNotes}" Margin="0,6,0,4">
+  <ItemsControl.ItemTemplate>
+    <DataTemplate>
+      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,3"
+                Foreground="{DynamicResource TextPrimaryBrush}">
+        <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
+      </CheckBox>
+    </DataTemplate>
+  </ItemsControl.ItemTemplate>
+</ItemsControl><TextBlock Text="{Binding SelectionError}" Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap" Foreground="{DynamicResource StatusErrorBrush}"/>
+
+<Grid Margin="0,6,0,0"
                                                       Visibility="{Binding IsAddingNote, Converter={StaticResource BoolToVis}}">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
@@ -336,9 +361,9 @@
                                                     </Button>
                                                 </Grid>
                                                 <Button Command="{Binding StartAddNoteCommand}"
-                                                        Style="{StaticResource GhostButton}"
+                                                        Style="{StaticResource OutlineButton}"
                                                         HorizontalAlignment="Left"
-                                                        Padding="0"
+                                                        Padding="8,4"
                                                         Margin="0,4,0,0"
                                                         Visibility="{Binding IsAddingNote, Converter={StaticResource InverseBoolToVis}}">
                                                     <StackPanel Orientation="Horizontal">
@@ -348,7 +373,7 @@
                                                                 Foreground="{DynamicResource TextMutedBrush}"
                                                                    VerticalAlignment="Center"
                                                                 Margin="0,0,4,0"/>
-                                                        <TextBlock Text="Добавить примечание"
+                                                        <TextBlock Text="Примечание к ячейке"
                                                                 FontSize="12"
                                                                    Foreground="{DynamicResource TextMutedBrush}"/>
                                                     </StackPanel>

@@ -370,7 +370,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
                 optionalFormParameterId: optionalParamId,
                 optionalNtdValue: hasOptionalRow ? column.OptionalNtdValues[optionalParamId] : "—",
                 optionalPinsValue: hasOptionalRow ? column.GetPinValue(optionalParamId) : "",
-                isLoadFactorResult: p.IsLoadFactorResult);
+                isLoadFactorResult: p.IsLoadFactorResult)
+            { RegimeCondition = column.RegimeConditions.GetValueOrDefault(p.FormParameterId, "") };
           })
           .ToList();
 

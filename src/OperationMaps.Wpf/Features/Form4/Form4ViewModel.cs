@@ -153,14 +153,23 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
   private static WordComponentData BuildComponentData(Form4Group group)
   {
-    var ntdValues = group.NtdValues
-        .ToDictionary(p => p.RowNumber, p => p.Value);
+    var rowOffset = group.NtdValues.Any(p => p.RowNumber == 1 && p.Name == "Показатель ресурса") ? 2 : 0;
+    var allNotes = group.NtdValues.SelectMany(p => p.Notes).OrderBy(n => n.Order).ToList();
+    var regimeRows = group.NtdValues.Where(p => p.RegimeCondition.Length > 0).ToList();
+    var conditions = regimeRows.Select(p => p.RegimeCondition).Distinct().ToList();
+    var ntdValues = group.NtdValues.ToDictionary(p => p.RowNumber + rowOffset, p =>
+    {
+      var markers = p.Notes.OrderBy(n => n.Order).Select(n => n.Marker).ToList();
+      if (p.RegimeCondition.Length > 0) markers.Add(new string('*', allNotes.Count + conditions.IndexOf(p.RegimeCondition) + 1));
+      return markers.Count == 0 ? p.Value : $"{p.Value} {string.Join(", ", markers)}";
+    });
 
     var noteLines = group.NtdValues
         .SelectMany(p => p.Notes)
         .OrderBy(n => n.Order)
         .Select(n => $"{n.Marker} {n.NoteText.Trim()}")
         .ToList();
+    noteLines.AddRange(conditions.Select((text, index) => $"{new string('*', allNotes.Count + index + 1)} {text}"));
 
     return new WordComponentData
     {
@@ -192,8 +201,8 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
     // RLC components — group by family name
     var rlcComponents = _store.Components
-        .Where(c => c.HasFamily && c.FamilyName is not null)
-        .GroupBy(c => (FamilyName: c.FamilyName!, TypeName: c.TypeName));
+        .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && c.HasFamily && c.FamilyName is not null)
+        .GroupBy(c => (FamilyName: c.FamilyName!, TypeName: c.TypeName, Regime: c.ActiveRegime));
 
     foreach (var group in rlcComponents)
     {
@@ -226,23 +235,25 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
     // Non-RLC components — group by full name
     var otherComponents = _store.Components
-        .Where(c => !c.HasFamily)
-        .GroupBy(c => c.Name);
+        .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && !c.HasFamily)
+        .GroupBy(c => (c.Name, c.ActiveRegime));
 
     foreach (var group in otherComponents)
     {
       var components = group.ToList();
+      await components[0].LoadNtdValuesAsync(db, ct);
 
       var otherGroup = new Form4Group
       {
-        DisplayName = group.Key,
+        DisplayName = group.Key.Name,
         ComponentTypeName = components.First().ComponentTypeName,
-        NtdValues = [],
+        NtdValues = components[0].NtdValues,
         SourceComponents = components,
       };
 
       foreach (var ntdParam in otherGroup.NtdValues)
         ntdParam.RecalculateGroupOrders = otherGroup.RecalculateNoteOrders;
+      otherGroup.RecalculateNoteOrders();
 
       groups.Add(otherGroup);
     }

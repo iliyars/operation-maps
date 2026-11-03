@@ -10,6 +10,8 @@ namespace OperationMaps.Application.Services;
 /// </summary>
 public sealed class NewComponentInput
 {
+  public int? LoadFactorParameterId { get; init; }
+  public IReadOnlyList<NewComponentRegimeInput> Regimes { get; init; } = [];
   /// <summary>ComponentType.Id — already known from DetectedCategory.</summary>
   public required int ComponentTypeId { get; init; }
 
@@ -52,7 +54,11 @@ public sealed class NewComponentInput
   /// component in the catalog: it is verified by definition.
   /// </summary>
   public bool NeedsAdminReview { get; init; } = true;
+  public IReadOnlyDictionary<int, List<string>> Form4Notes { get; init; } = new Dictionary<int, List<string>>();
+  public IReadOnlyDictionary<int, List<string>> OwnFormNotes { get; init; } = new Dictionary<int, List<string>>();
 }
+
+public sealed record NewComponentRegimeInput(string Name, string Condition, IReadOnlyDictionary<int, string> Values);
 
 public interface IComponentEntryService
 {

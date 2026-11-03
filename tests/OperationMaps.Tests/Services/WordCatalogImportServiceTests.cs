@@ -1,8 +1,9 @@
-using DocumentFormat.OpenXml.Packaging;
+﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
@@ -235,6 +236,185 @@ public sealed class WordCatalogImportServiceTests : IDisposable
     mainPart.Document = new Document(new Body(new Paragraph(new Run(new Text("")))));
     mainPart.Document.Save();
     return path;
+  }
+
+  [Fact]
+  public async Task Repeated_word_slots_with_conflicting_values_require_explicit_resolution()
+  {
+    var form4 = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "4", Components = [
+        new WordComponentData { Name = CapacitorType, ComponentTypeName = KnownFamilyDesignation,
+          NtdValues = new Dictionary<int, string> { [3] = "100000" } },
+        new WordComponentData { Name = CapacitorType, ComponentTypeName = KnownFamilyDesignation,
+          NtdValues = new Dictionary<int, string> { [3] = "150000 *" }, Note = "* Облегчённый режим" }
+      ]
+    }, _mapLoader.GetTemplatePath("4"));
+    var bytes = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [
+        new WordComponentData { Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "10" } },
+        new WordComponentData { Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "6 *" }, Note = "* Облегчённый режим" },
+        new WordComponentData { Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "4 *" }, Note = "* Облегчённый режим при охлаждении" }
+      ]
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"regimes-{Guid.NewGuid()}.docx");
+    _tempFiles.Add(path); await File.WriteAllBytesAsync(path, WordDocumentMerger.Merge([form4, bytes]));
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    item.ComponentTypeName = CapacitorType;
+    var created = await _service.ImportAsync(item);
+    var conditions = await _db.ComponentRegimes.Include(r => r.Values).Where(r => r.ComponentId == created.Id).ToListAsync();
+    Assert.Equal(2, conditions.Count);
+    Assert.Contains(conditions, c => c.Condition == "Облегчённый режим"
+      && c.Values.Any(v => v.Value == "150000") && c.Values.Any(v => v.Value == "6"));
+    Assert.Contains(conditions, c => c.Condition == "Облегчённый режим при охлаждении" && c.Values.Single().Value == "4");
+    Assert.Equal("10", await _db.ComponentNtdValues.Where(v => v.ComponentId == created.Id && v.FormParameter.RowNumber == 1).Select(v => v.Value).SingleAsync());
+  }
+
+  [Fact]
+  public async Task Relief_note_does_not_invent_default_or_require_mode_selection()
+  {
+    var item = new WordImportedComponent
+    {
+      FullName = OwnFormFullName, OwnFormId = _form67Id, OwnFormNumber = "67", OwnFormTitle = "Форма 67",
+      ComponentTypeName = CapacitorType,
+      OwnFormNtdValuesByRow = new() { [1] = "50" },
+      OwnFormNotesByRow = new() { [1] = ["Используется в облегчённом режиме"] }
+    };
+    var created = await _service.ImportAsync(item);
+    Assert.False(await _db.ComponentNtdValues.AnyAsync(v => v.ComponentId == created.Id));
+    Assert.False(await _db.ComponentNotes.AnyAsync(v => v.ComponentId == created.Id));
+    var condition = await _db.ComponentRegimes.Include(r => r.Values).SingleAsync(r => r.ComponentId == created.Id);
+    Assert.Equal("Используется в облегчённом режиме", condition.Condition);
+    Assert.Equal("50", Assert.Single(condition.Values).Value);
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Load_factor_parenthesis_is_saved_as_component_base_parameter(bool inScheme)
+  {
+    var parameters = await _db.FormParameters.Where(p => p.FormId == _form67Id).OrderBy(p => p.RowNumber).ToListAsync();
+    var basis = parameters.First();
+    basis.CanBeLoadFactorBase = true;
+    var result = parameters.Last();
+    result.Name = "Коэффициент нагрузки";
+    result.IsLoadFactorResult = true;
+    await _db.SaveChangesAsync();
+    var coefficient = $"0,6 ({basis.RowNumber})";
+    var bytes = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [new WordComponentData
+      {
+        Name = OwnFormFullName,
+        NtdValues = new Dictionary<int, string> { [basis.RowNumber] = "50", [result.RowNumber] = inScheme ? "0,8" : coefficient },
+        SchemeValues = inScheme ? new Dictionary<int, string> { [result.RowNumber] = coefficient } : new Dictionary<int, string>()
+      }]
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"load-factor-{Guid.NewGuid()}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, bytes);
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    Assert.Equal(basis.RowNumber, item.LoadFactorBaseRow);
+    Assert.Equal(inScheme ? "0,8" : "0,6", item.OwnFormNtdValuesByRow[result.RowNumber]);
+    item.ComponentTypeName = CapacitorType;
+    var created = await _service.ImportAsync(item);
+    Assert.Equal(basis.Id, await _db.Components.Where(c => c.Id == created.Id).Select(c => c.LoadFactorParameterId).SingleAsync());
+    var matches = await new ComponentMatcher(TestCatalogDbContextFactory.From(_db), new ComponentNameParser())
+      .MatchAllAsync([new ImportedComponent { RawName = OwnFormFullName, DetectedCategory = CapacitorType, Positions = ["C1"] }]);
+    var store = new OperationMaps.Wpf.Stores.ProjectStore();
+    store.Load("Базовый параметр", Path.GetTempPath(), matches);
+    var state = await new OperationMaps.Wpf.Features.OwnForm.OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form67Id);
+    Assert.Equal(basis.Id, Assert.Single(state.Columns).LoadFactorBaseParameterId);
+  }
+
+  [Fact]
+  public async Task Missing_load_factor_base_row_is_rejected_before_component_creation()
+  {
+    var error = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ImportAsync(new WordImportedComponent
+    {
+      FullName = OwnFormFullName, OwnFormId = _form67Id, OwnFormNumber = "67", OwnFormTitle = "Форма 67",
+      ComponentTypeName = CapacitorType, LoadFactorBaseRow = 999
+    }));
+    Assert.Contains("999", error.Message);
+    Assert.False(await _db.Components.AnyAsync(c => c.FullName == OwnFormFullName));
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Scan_and_import_preserve_form4_and_own_form_notes_as_catalog_links(bool legacyForm4)
+  {
+    var form4Parameters = await _db.FormParameters.Where(p => p.Form.Number == "4").ToListAsync();
+    if (legacyForm4)
+    {
+      _db.FormParameters.RemoveRange(form4Parameters.Where(p => p.RowNumber > 14));
+      form4Parameters.Single(p => p.RowNumber == 1).Name = "Показатель ресурса";
+    }
+    else form4Parameters.Single(p => p.RowNumber == 3).Name = "Показатель ресурса";
+    await _db.SaveChangesAsync();
+    var resourceRow = legacyForm4 ? 1 : 3;
+    var service = new WordService(_mapLoader);
+    var form4 = await service.ExportAsync(new WordFormData
+    {
+      FormNumber = "4", Components = [new WordComponentData
+      {
+        Name = CapacitorType, ComponentTypeName = KnownFamilyDesignation,
+        NtdValues = new Dictionary<int, string> { [1] = "Да", [3] = "150000 *" },
+        Note = "* Допускается уточнение ресурса при испытаниях"
+      }]
+    }, _mapLoader.GetTemplatePath("4"));
+    var own = await service.ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [new WordComponentData
+      {
+        Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "50 **" },
+        Note = "** При температуре 25 °C\nДопускается уточнение"
+      }]
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"notes-{Guid.NewGuid()}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, WordDocumentMerger.Merge([form4, own]));
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    Assert.Equal("150000", item.Form4NtdValuesByRow[resourceRow]);
+    Assert.Equal("50", item.OwnFormNtdValuesByRow[1]);
+    Assert.Equal("Допускается уточнение ресурса при испытаниях", Assert.Single(item.Form4NotesByRow[resourceRow]));
+    Assert.Equal("При температуре 25 °C\nДопускается уточнение", Assert.Single(item.OwnFormNotesByRow[1]));
+    var created = await _service.ImportAsync(item);
+    var savedResource = await _db.FamilyNtdValues
+      .Where(v => v.FamilyId == created.FamilyId && v.FormParameter.Form.Number == "4"
+        && v.FormParameter.RowNumber == resourceRow)
+      .Select(v => v.Value).SingleAsync();
+    Assert.Equal("150000", savedResource);
+    Assert.False(await _db.ComponentRegimes.AnyAsync());
+    var savedOwnValue = await _db.ComponentNtdValues
+      .Where(v => v.ComponentId == created.Id && v.FormParameter.RowNumber == 1)
+      .Select(v => v.Value).SingleAsync();
+    Assert.Equal("50", savedOwnValue);
+    var familyNotes = await _db.FamilyNotes.Include(n => n.Note).Where(n => n.FamilyId == created.FamilyId).ToListAsync();
+    Assert.Equal("Допускается уточнение ресурса при испытаниях", Assert.Single(familyNotes).Note.Text);
+    var ownNotes = await _db.ComponentNotes.Include(n => n.Note).Where(n => n.ComponentId == created.Id).ToListAsync();
+    Assert.Equal("При температуре 25 °C\nДопускается уточнение", Assert.Single(ownNotes).Note.Text);
+    var matches = await new ComponentMatcher(TestCatalogDbContextFactory.From(_db), new ComponentNameParser())
+      .MatchAllAsync([new ImportedComponent { RawName = OwnFormFullName, DetectedCategory = CapacitorType, Positions = ["C1"] }]);
+    var store = new OperationMaps.Wpf.Stores.ProjectStore();
+    store.Load("Примечания", Path.GetTempPath(), matches);
+    await store.Components[0].LoadNtdValuesAsync(_db);
+    Assert.Equal("Допускается уточнение ресурса при испытаниях", Assert.Single(store.Components[0].NtdValues.Single(r => r.RowNumber == resourceRow).Notes).NoteText);
+    Assert.False(store.IsDirty);
+    var preview = new OperationMaps.Wpf.Features.Components.ComponentRegimesViewModel(TestCatalogDbContextFactory.From(_db));
+    await preview.LoadAsync(store.Components[0]);
+    Assert.True(preview.IsAvailable);
+    Assert.Equal("Допускается уточнение ресурса при испытаниях",
+      Assert.Single(preview.Values.Single(v => v.FormNumber == "4" && v.RowNumber == resourceRow).Notes));
+    var ownNotePreview = Assert.Single(preview.OwnFormNotes);
+    Assert.Equal("50", ownNotePreview.EffectiveValue);
+    Assert.Equal("При температуре 25 °C\nДопускается уточнение", Assert.Single(ownNotePreview.Notes));
+    var state = await new OperationMaps.Wpf.Features.OwnForm.OwnFormStateService(store, TestCatalogDbContextFactory.From(_db))
+      .GetAsync(_form67Id);
+    var column = Assert.Single(state!.Columns);
+    var paramId = state.Parameters.Single(p => p.RowNumber == 1).FormParameterId;
+    Assert.Equal("При температуре 25 °C\nДопускается уточнение", Assert.Single(column.GetNotes(paramId)).NoteText);
   }
 
   // ── Tests ─────────────────────────────────────────────────────────────────

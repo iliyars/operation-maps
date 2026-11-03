@@ -22,6 +22,7 @@ namespace OperationMaps.Wpf.Features.Components
     private readonly OperationMaps.Application.Importing.IComponentNameParser _nameParser;
     private readonly UserPreferences _preferences;
     internal UserPreferences WorkspacePreferences => _preferences;
+    public ComponentRegimesViewModel Regimes { get; }
 
     public ComponentsViewModel(
         ProjectStore store,
@@ -32,6 +33,7 @@ namespace OperationMaps.Wpf.Features.Components
     {
       _store = store ?? throw new ArgumentNullException(nameof(store));
       _dbFactory = dbFactory ?? throw new ArgumentNullException(nameof(dbFactory));
+      Regimes = new ComponentRegimesViewModel(_dbFactory);
       _entryService = entryService ?? throw new ArgumentNullException(nameof(entryService));
       _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
       _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
@@ -86,12 +88,14 @@ namespace OperationMaps.Wpf.Features.Components
 
     partial void OnSelectedComponentChanged(ProjectComponentVm? value)
     {
+      _ = Regimes.LoadAsync(value);
       if (value is not null)
         _ = LoadSelectedComponentAsync(value);
     }
 
     private async Task LoadSelectedComponentAsync(ProjectComponentVm component)
     {
+      if (component.IsBoard) return;
       await using var db = await _dbFactory.CreateDbContextAsync(default);
       await component.LoadNtdValuesAsync(db);
     }
@@ -112,7 +116,7 @@ namespace OperationMaps.Wpf.Features.Components
     [RelayCommand]
     private void AddComponentData(ProjectComponentVm? component)
     {
-      if (component is null) return;
+      if (component is null || component.IsBoard) return;
 
       var dialogVm = new AddComponentDialogViewModel(
           _dbFactory, _entryService, _nameParser, AddComponentTarget.FromProject(component));

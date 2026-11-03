@@ -32,6 +32,9 @@ public sealed class ComponentEntryService : IComponentEntryService
       throw new InvalidOperationException($"Компонент «{fullName}» уже есть в справочнике.");
 
     // ── 1. Resolve or create the Family ─────────────────────────────────────
+    if (input.LoadFactorParameterId is { } baseId && !await db.FormParameters.AnyAsync(
+      p => p.Id == baseId && p.FormId == input.OwnFormId && !p.IsLoadFactorResult && !p.IsOptional, ct))
+      throw new InvalidOperationException("Базовый параметр коэффициента нагрузки отсутствует в выбранной форме.");
     Family family;
 
     if (input.ExistingFamilyId is { } familyId)
@@ -84,6 +87,7 @@ public sealed class ComponentEntryService : IComponentEntryService
       FullName = fullName,
       FamilyId = family.Id,
       OwnFormId = input.OwnFormId,
+      LoadFactorParameterId = input.LoadFactorParameterId,
       NeedsAdminReview = input.NeedsAdminReview,
     };
     db.Components.Add(component);
@@ -118,6 +122,27 @@ public sealed class ComponentEntryService : IComponentEntryService
     await db.SaveChangesAsync(ct);
 
     // Reload with navigation properties populated for the caller (matcher/UI).
+    foreach (var regime in input.Regimes)
+    {
+      if (string.IsNullOrWhiteSpace(regime.Name) || string.IsNullOrWhiteSpace(regime.Condition) || regime.Values.Count == 0)
+        throw new InvalidOperationException("Режим должен содержать название, условие и значения параметров.");
+      db.ComponentRegimes.Add(new ComponentRegime
+      {
+        ComponentId = component.Id, Name = regime.Name.Trim(), Condition = regime.Condition.Trim(),
+        Values = regime.Values.Select(v => new ComponentRegimeValue { FormParameterId = v.Key, Value = v.Value.Replace("*", "").Trim() }).ToList()
+      });
+    }
+    foreach (var (parameterId, texts) in input.Form4Notes)
+      foreach (var text in texts.Distinct())
+      {
+        if (await db.FamilyNotes.AnyAsync(n => n.FamilyId == family.Id && n.FormParameterId == parameterId && n.Note.Text == text, ct)) continue;
+        db.FamilyNotes.Add(new FamilyNote { FamilyId = family.Id, FormParameterId = parameterId, Note = new Note { Text = text } });
+      }
+    foreach (var (parameterId, texts) in input.OwnFormNotes)
+      foreach (var text in texts.Distinct())
+        db.ComponentNotes.Add(new ComponentNote { ComponentId = component.Id, FormParameterId = parameterId, Note = new Note { Text = text } });
+    await db.SaveChangesAsync(ct);
+
     var created = await db.Components
         .Include(c => c.Family)
         .Include(c => c.OwnForm)

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using OperationMaps.Application.Word;
+using OperationMaps.Application.Models;
 using OperationMaps.Infrastructure.Persistence;
 
 namespace OperationMaps.Wpf.Features.Components
@@ -23,6 +25,8 @@ namespace OperationMaps.Wpf.Features.Components
                               ?? Entry.Imported.RawName;
     public string? TypeName => Entry.Imported.DetectedCategory;
     public string? FamilyName => Entry.MatchResult.MatchedFamily?.Name;
+    public string Classification => IsBoard ? "Плата · Форма 3 · без каталога"
+      : $"{TypeName} · {FamilyName ?? "семейство не определено"}";
 
     /// <summary>
     /// Тип компонента для Формы 4: "Конденсатор", "Резистор" и т.д.
@@ -30,16 +34,40 @@ namespace OperationMaps.Wpf.Features.Components
     /// </summary>
     public string ComponentTypeName => Entry.Imported.DetectedCategory;
 
-    public ComponentMatchStatus MatchStatus => Entry.MatchResult switch
+    public bool IsBoard => Form3DataBuilder.IsBoard(Entry.Imported);
+    public ComponentRegimeSelection? ActiveRegime { get; private set; }
+    public string RegimeName => ActiveRegime?.Name ?? "Основной";
+
+    public void SelectRegime(ComponentRegimeSelection? regime)
+    {
+      if (Equals(ActiveRegime, regime)) return;
+      ActiveRegime = regime;
+      ApplyRegimeValues();
+      OnPropertyChanged(nameof(ActiveRegime));
+      OnPropertyChanged(nameof(RegimeName));
+      Edited?.Invoke();
+    }
+
+    private void ApplyRegimeValues()
+    {
+      foreach (var row in NtdValues)
+      {
+        var value = ActiveRegime?.Values.FirstOrDefault(v => v.FormNumber == "4" && v.RowNumber == row.RowNumber);
+        row.Value = value?.Value ?? row.DefaultValue;
+        row.RegimeCondition = value is null ? "" : value.Condition ?? ActiveRegime!.Condition;
+      }
+    }
+
+    public ComponentMatchStatus MatchStatus => IsBoard ? ComponentMatchStatus.Automatic : Entry.MatchResult switch
     {
       { MatchedComponent: not null } => ComponentMatchStatus.Matched,
       { MatchedFamily: not null } => ComponentMatchStatus.FamilyFound,
       _ => ComponentMatchStatus.Unresolved,
     };
 
-    public bool IsMatched => MatchStatus == ComponentMatchStatus.Matched;
+    public bool IsMatched => IsBoard || MatchStatus == ComponentMatchStatus.Matched;
 
-    public bool HasFamily => MatchStatus != ComponentMatchStatus.Unresolved;
+    public bool HasFamily => !IsBoard && MatchStatus != ComponentMatchStatus.Unresolved;
 
     // ── UI state ──────────────────────────────────────────────────────────────
 
@@ -83,14 +111,9 @@ namespace OperationMaps.Wpf.Features.Components
         CatalogDbContext db,
         CancellationToken ct = default)
     {
-      if (NtdLoaded || IsLoadingNtd) return;
+      if (NtdLoaded || IsLoadingNtd || IsBoard) return;
 
       var familyId = Entry.MatchResult.MatchedFamily?.Id;
-      if (familyId is null)
-      {
-        NtdLoaded = true;
-        return;
-      }
 
       IsLoadingNtd = true;
 
@@ -109,11 +132,65 @@ namespace OperationMaps.Wpf.Features.Components
             .Where(v => v.FamilyId == familyId)
             .ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
 
-        NtdValues = form4Parameters
+        var rows = form4Parameters
             .Select(p => new NtdParameterVm(
                 p,
                 existingValues.TryGetValue(p.Id, out var value) ? value : "—"))
             .ToList();
+
+        var catalogNotes = await db.FamilyNotes.Include(n => n.Note)
+          .Where(n => n.FamilyId == familyId && n.FormParameter.Form.Number == "4")
+          .OrderBy(n => n.NoteId).ToListAsync(ct);
+        foreach (var note in catalogNotes)
+          rows.FirstOrDefault(r => r.FormParameterId == note.FormParameterId)?.AddCatalogNote(note.Note.Text);
+        var componentId = Entry.MatchResult.MatchedComponent?.Id;
+        var storedVariants = await db.ComponentRegimes.AsNoTracking()
+          .Include(r => r.Values).ThenInclude(v => v.FormParameter).ThenInclude(p => p.Form)
+          .Where(r => r.ComponentId == componentId).ToListAsync(ct);
+        foreach (var ordinary in storedVariants.Where(r => !ReliefNote.IsMatch(r.Condition)))
+          foreach (var value in ordinary.Values.Where(v => v.FormParameter.Form.Number == "4"))
+          {
+            var row = rows.FirstOrDefault(r => r.FormParameterId == value.FormParameterId);
+            if (row is null) continue;
+            row.RestoreCatalogValue(value.Value);
+            row.AddCatalogNote(ordinary.Condition);
+          }
+        var variants = storedVariants.Where(r => ReliefNote.IsMatch(r.Condition))
+          .Select(r => new ComponentRegimeSelection(r.Name, r.Condition,
+            r.Values.Select(v => new RegimeParameterValue(v.FormParameter.Form.Number, v.FormParameter.RowNumber, v.Value)).ToArray())).ToList();
+        var savedVariants = ActiveRegime is { } saved
+          ? saved.Conditions.Count > 0 ? saved.Conditions : new[] { saved } : [];
+        foreach (var savedVariant in savedVariants.Where(v => ReliefNote.IsMatch(v.Condition)))
+        {
+          variants.RemoveAll(v => v.Name == savedVariant.Name && v.Condition == savedVariant.Condition);
+          variants.Add(savedVariant);
+        }
+        foreach (var variant in variants)
+          foreach (var value in variant.Values.Where(v => v.FormNumber == "4"))
+          {
+            var row = rows.FirstOrDefault(r => r.RowNumber == value.RowNumber);
+            if (row is null) continue;
+            var option = new CatalogNoteChoice($"{variant.Condition} — {value.Value}",
+              () => ReliefSelected(variant), selected =>
+              {
+                try
+                {
+                  var choices = ActiveRegime is { } active
+                    ? (active.Conditions.Count > 0 ? active.Conditions : new[] { active }).ToList() : [];
+                  choices.RemoveAll(c => c.Name == variant.Name && c.Condition == variant.Condition);
+                  if (selected) choices.Add(variant);
+                  SelectRegime(ComponentRegimeSelection.Combine(choices));
+                  row.SelectionError = "";
+                }
+                catch (InvalidOperationException)
+                { row.SelectionError = "Сначала снимите другое примечание, задающее иное значение этого параметра."; }
+                foreach (var parameter in NtdValues)
+                  foreach (var choice in parameter.AvailableNotes) choice.Refresh();
+              });
+            row.AddReliefOption(option, variant.Condition);
+          }
+        NtdValues = rows;
+        ApplyRegimeValues();
 
         NtdLoaded = true;
       }
@@ -122,6 +199,10 @@ namespace OperationMaps.Wpf.Features.Components
         IsLoadingNtd = false;
       }
     }
+
+    private bool ReliefSelected(ComponentRegimeSelection variant)
+      => ActiveRegime is { } active && (active.Conditions.Count > 0 ? active.Conditions : new[] { active })
+        .Any(c => c.Name == variant.Name && c.Condition == variant.Condition);
 
     // ── Mutation (used by undo/redo commands) ─────────────────────────────────
 
@@ -148,7 +229,9 @@ namespace OperationMaps.Wpf.Features.Components
         MatchResult = Entry.MatchResult,
       };
 
-      return new ProjectComponentVm(clonedEntry);
+      var clone = new ProjectComponentVm(clonedEntry);
+      clone.SelectRegime(ActiveRegime);
+      return clone;
     }
 
     // ── Re-matching after manual component creation ───────────────────────────
@@ -179,6 +262,7 @@ namespace OperationMaps.Wpf.Features.Components
       OnPropertyChanged(nameof(FamilyName));
       OnPropertyChanged(nameof(MatchStatus));
       OnPropertyChanged(nameof(IsMatched));
+      OnPropertyChanged(nameof(Classification));
       OnPropertyChanged(nameof(HasFamily));
     }
   }

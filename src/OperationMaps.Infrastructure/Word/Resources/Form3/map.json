@@ -1,0 +1,724 @@
+{
+  "formNumber": "3",
+  "tableIndex": 0,
+  "componentsPerPage": 42,
+  "componentSlots": [
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 3,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 3,
+          "col": 2
+        },
+        "quantity": {
+          "row": 3,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 4,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 4,
+          "col": 2
+        },
+        "quantity": {
+          "row": 4,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 5,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 5,
+          "col": 2
+        },
+        "quantity": {
+          "row": 5,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 6,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 6,
+          "col": 2
+        },
+        "quantity": {
+          "row": 6,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 7,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 7,
+          "col": 2
+        },
+        "quantity": {
+          "row": 7,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 8,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 8,
+          "col": 2
+        },
+        "quantity": {
+          "row": 8,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 9,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 9,
+          "col": 2
+        },
+        "quantity": {
+          "row": 9,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 10,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 10,
+          "col": 2
+        },
+        "quantity": {
+          "row": 10,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 11,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 11,
+          "col": 2
+        },
+        "quantity": {
+          "row": 11,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 12,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 12,
+          "col": 2
+        },
+        "quantity": {
+          "row": 12,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 13,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 13,
+          "col": 2
+        },
+        "quantity": {
+          "row": 13,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 14,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 14,
+          "col": 2
+        },
+        "quantity": {
+          "row": 14,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 15,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 15,
+          "col": 2
+        },
+        "quantity": {
+          "row": 15,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 16,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 16,
+          "col": 2
+        },
+        "quantity": {
+          "row": 16,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 17,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 17,
+          "col": 2
+        },
+        "quantity": {
+          "row": 17,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 18,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 18,
+          "col": 2
+        },
+        "quantity": {
+          "row": 18,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 19,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 19,
+          "col": 2
+        },
+        "quantity": {
+          "row": 19,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 20,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 20,
+          "col": 2
+        },
+        "quantity": {
+          "row": 20,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 21,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 21,
+          "col": 2
+        },
+        "quantity": {
+          "row": 21,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 22,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 22,
+          "col": 2
+        },
+        "quantity": {
+          "row": 22,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 23,
+          "col": 1
+        },
+        "decimalNumber": {
+          "row": 23,
+          "col": 2
+        },
+        "quantity": {
+          "row": 23,
+          "col": 3
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 3,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 3,
+          "col": 6
+        },
+        "quantity": {
+          "row": 3,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 4,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 4,
+          "col": 6
+        },
+        "quantity": {
+          "row": 4,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 5,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 5,
+          "col": 6
+        },
+        "quantity": {
+          "row": 5,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 6,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 6,
+          "col": 6
+        },
+        "quantity": {
+          "row": 6,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 7,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 7,
+          "col": 6
+        },
+        "quantity": {
+          "row": 7,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 8,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 8,
+          "col": 6
+        },
+        "quantity": {
+          "row": 8,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 9,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 9,
+          "col": 6
+        },
+        "quantity": {
+          "row": 9,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 10,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 10,
+          "col": 6
+        },
+        "quantity": {
+          "row": 10,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 11,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 11,
+          "col": 6
+        },
+        "quantity": {
+          "row": 11,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 12,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 12,
+          "col": 6
+        },
+        "quantity": {
+          "row": 12,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 13,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 13,
+          "col": 6
+        },
+        "quantity": {
+          "row": 13,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 14,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 14,
+          "col": 6
+        },
+        "quantity": {
+          "row": 14,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 15,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 15,
+          "col": 6
+        },
+        "quantity": {
+          "row": 15,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 16,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 16,
+          "col": 6
+        },
+        "quantity": {
+          "row": 16,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 17,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 17,
+          "col": 6
+        },
+        "quantity": {
+          "row": 17,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 18,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 18,
+          "col": 6
+        },
+        "quantity": {
+          "row": 18,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 19,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 19,
+          "col": 6
+        },
+        "quantity": {
+          "row": 19,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 20,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 20,
+          "col": 6
+        },
+        "quantity": {
+          "row": 20,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 21,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 21,
+          "col": 6
+        },
+        "quantity": {
+          "row": 21,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 22,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 22,
+          "col": 6
+        },
+        "quantity": {
+          "row": 22,
+          "col": 7
+        }
+      },
+      "labels": []
+    },
+    {
+      "metaCells": {
+        "componentName": {
+          "row": 23,
+          "col": 5
+        },
+        "decimalNumber": {
+          "row": 23,
+          "col": 6
+        },
+        "quantity": {
+          "row": 23,
+          "col": 7
+        }
+      },
+      "labels": []
+    }
+  ],
+  "headerReplacements": {
+    "{{designation}}": "designation"
+  }
+}

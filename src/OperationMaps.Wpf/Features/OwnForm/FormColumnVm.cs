@@ -19,6 +19,40 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     public string Name => Component.Name;
     public string Positions => Component.Positions;
+    public Dictionary<int, string> RegimeConditions { get; } = [];
+    private Dictionary<int, string>? _defaultNtd;
+    private Dictionary<int, string>? _defaultOptionalNtd;
+    private OperationMaps.Application.Models.ComponentRegimeSelection? _appliedRegime;
+    public bool NeedsRegimeRefresh => !Equals(_appliedRegime, Component.ActiveRegime);
+
+    public void RefreshRegime(string formNumber, IEnumerable<OperationMaps.Domain.Entities.Forms.FormParameter> parameters)
+    {
+      _defaultNtd ??= new(NtdValues);
+      _appliedRegime = Component.ActiveRegime;
+      _defaultOptionalNtd ??= new(OptionalNtdValues);
+      NtdValues.Clear(); OptionalNtdValues.Clear(); RegimeConditions.Clear();
+      foreach (var pair in _defaultNtd) NtdValues[pair.Key] = pair.Value;
+      foreach (var pair in _defaultOptionalNtd) OptionalNtdValues[pair.Key] = pair.Value;
+      if (Component.ActiveRegime is not { } regime) return;
+      foreach (var value in regime.Values.Where(v => v.FormNumber == formNumber))
+      {
+        var parameter = parameters.FirstOrDefault(p => p.RowNumber == value.RowNumber);
+        if (parameter is null) continue;
+        if (parameter.IsOptional) OptionalNtdValues[parameter.Id] = value.Value;
+        else NtdValues[parameter.Id] = value.Value;
+        RegimeConditions[parameter.Id] = value.Condition ?? regime.Condition;
+      }
+    }
+
+    public string RegimeMarker(string condition) => new('*', Notes.Values.Sum(n => n.Count)
+      + RegimeConditions.Values.Distinct().ToList().IndexOf(condition) + 1);
+
+    public string ValueWithNotes(int parameterId, string value)
+    {
+      var markers = Notes.TryGetValue(parameterId, out var notes) ? notes.OrderBy(n => n.Order).Select(n => n.Marker).ToList() : [];
+      if (RegimeConditions.TryGetValue(parameterId, out var condition)) markers.Add(RegimeMarker(condition));
+      return markers.Count == 0 ? value : $"{value} {string.Join(", ", markers)}";
+    }
 
     [ObservableProperty] private bool _isSelected;
 
@@ -150,6 +184,27 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     /// <summary>Notes keyed by FormParameterId.</summary>
     public Dictionary<int, ObservableCollection<OwnFormNoteVm>> Notes { get; } = new();
+    private readonly Dictionary<int, ObservableCollection<OperationMaps.Wpf.Features.Components.CatalogNoteChoice>> _availableNotes = new();
+    public ObservableCollection<OperationMaps.Wpf.Features.Components.CatalogNoteChoice> GetAvailableNotes(int parameterId)
+    {
+      if (!_availableNotes.TryGetValue(parameterId, out var choices)) _availableNotes[parameterId] = choices = [];
+      return choices;
+    }
+
+    public void AddCatalogNote(int parameterId, string text)
+    {
+      var choices = GetAvailableNotes(parameterId);
+      if (choices.Any(c => c.Text == text)) return;
+      var choice = new OperationMaps.Wpf.Features.Components.CatalogNoteChoice(text,
+        () => GetNotes(parameterId).Any(n => n.NoteText == text), selected =>
+        {
+          if (selected) AddNote(parameterId, text);
+          else foreach (var note in GetNotes(parameterId).Where(n => n.NoteText == text).ToArray()) GetNotes(parameterId).Remove(note);
+        });
+      GetNotes(parameterId).CollectionChanged += (_, _) => choice.Refresh();
+      choices.Add(choice);
+      AddNote(parameterId, text);
+    }
 
     public ObservableCollection<OwnFormNoteVm> GetNotes(int formParameterId)
     {
@@ -253,6 +308,15 @@ namespace OperationMaps.Wpf.Features.OwnForm
         cloned.OptionalCellValues[key] = value;
 
       cloned.LoadFactorBaseParameterId = LoadFactorBaseParameterId;
+      cloned._defaultNtd = _defaultNtd is null ? null : new(_defaultNtd);
+      cloned._defaultOptionalNtd = _defaultOptionalNtd is null ? null : new(_defaultOptionalNtd);
+      cloned._appliedRegime = _appliedRegime;
+      foreach (var pair in RegimeConditions) cloned.RegimeConditions[pair.Key] = pair.Value;
+      foreach (var (id, choices) in _availableNotes)
+        foreach (var choice in choices) cloned.AddCatalogNote(id, choice.Text);
+      foreach (var notes in cloned.Notes.Values) notes.Clear();
+      foreach (var (id, notes) in Notes)
+        foreach (var note in notes) cloned.AddNote(id, note.NoteText);
 
       return cloned;
     }

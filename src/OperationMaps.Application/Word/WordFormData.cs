@@ -63,6 +63,7 @@ namespace OperationMaps.Application.Word
     public string Positions { get; init; } = "";
 
     public string ComponentTypeName { get; init; } = "";
+    public string DecimalNumber { get; init; } = "";
 
     /// <summary>Total quantity across all positions.</summary>
     public string Quantity { get; init; } = "";

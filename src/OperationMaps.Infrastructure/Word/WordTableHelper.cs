@@ -78,8 +78,13 @@ namespace OperationMaps.Infrastructure.Word
       for (int i = 0; i < paragraphs.Count; i++)
       {
         if (i > 0) sb.Append('\n');
-        foreach (var run in paragraphs[i].Elements<Run>())
-          sb.Append(run.InnerText);
+        foreach (var element in paragraphs[i].Descendants())
+          switch (element)
+          {
+            case Text text: sb.Append(text.Text); break;
+            case Break or CarriageReturn: sb.Append('\n'); break;
+            case TabChar: sb.Append('\t'); break;
+          }
       }
 
       return sb.ToString();

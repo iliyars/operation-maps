@@ -56,7 +56,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
       var ntdValues = column.NtdValues
           .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
-          .ToDictionary(kv => paramIdToRow[kv.Key], kv => kv.Value);
+          .ToDictionary(kv => paramIdToRow[kv.Key], kv => column.ValueWithNotes(kv.Key, kv.Value));
 
       var pinValues = column.PinValues
           .Where(kv => paramIdToRow.ContainsKey(kv.Key) && !string.IsNullOrEmpty(kv.Value))
@@ -74,7 +74,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
               kv => optionalParamIdToOptionalRowNumber[kv.Key],
               kv => new OptionalRowValues
               {
-                NtdValue = kv.Value,
+                NtdValue = column.ValueWithNotes(kv.Key, kv.Value),
                 SchemeValue = column.GetOptionalCellValue(kv.Key),
                 PinsValue = column.GetPinValue(kv.Key),
               });
@@ -84,6 +84,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
           .OrderBy(n => n.Order)
           .Select(n => $"{n.Marker} {n.NoteText.Trim()}")
           .ToList();
+      noteLines.AddRange(column.RegimeConditions.Values.Distinct().Select(c => $"{column.RegimeMarker(c)} {c}"));
 
       return new WordComponentData
       {

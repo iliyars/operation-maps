@@ -20,6 +20,8 @@ public sealed partial class WordImportParameterRowVm : ObservableObject
 
   /// <summary>Whether this own-form has a "номера выводов" column (Form 64).</summary>
   public bool ShowPins { get; }
+  public string NotesText { get; }
+  public bool HasNotes => NotesText.Length > 0;
 
   [ObservableProperty] private string _value = "";
   [ObservableProperty] private string _pinsValue = "";
@@ -32,6 +34,8 @@ public sealed partial class WordImportParameterRowVm : ObservableObject
         ? $"{parameter.Name}, {parameter.Unit}"
         : parameter.Name;
     ShowPins = showPins;
+    NotesText = model.OwnFormNotesByRow.TryGetValue(RowNumber, out var notes)
+      ? string.Join("\n", notes.Select(t => $"* {t}")) : "";
 
     // Direct field assignment (not the property setter) so the
     // OnXChanged handlers below don't immediately write the same value
@@ -51,4 +55,8 @@ public sealed partial class WordImportParameterRowVm : ObservableObject
 }
 
 /// <summary>Read-only Form-4 (family-level) value shown alongside the editable own-form parameters, for context.</summary>
-public sealed record Form4SummaryRowVm(string DisplayName, string Value);
+public sealed record Form4SummaryRowVm(string DisplayName, string Value, string NotesText = "")
+{
+  public bool HasNotes => NotesText.Length > 0;
+  public string DisplayValue => HasNotes ? $"{Value} *" : Value;
+}

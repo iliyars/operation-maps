@@ -51,6 +51,30 @@ public sealed class CatalogViewModelTests : IDisposable
   private CatalogFamilyNode Family(string name) => _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == name);
 
   [Fact]
+  public async Task Family_and_component_cards_show_family_and_component_notes()
+  {
+    var component = await _db.Components.SingleAsync(c => c.FullName == "К10-79-50В-0,1мкФ");
+    var resource = await _db.FormParameters.SingleAsync(p => p.Form.Number == "4" && p.RowNumber == 1);
+    var voltage = await _db.FormParameters.SingleAsync(p => p.Form.Number == "67");
+    _db.FamilyNotes.Add(new FamilyNote { FamilyId = component.FamilyId, FormParameterId = resource.Id,
+      Note = new Note { Text = "Примечание ресурса" } });
+    _db.ComponentNotes.Add(new ComponentNote { ComponentId = component.Id, FormParameterId = voltage.Id,
+      Note = new Note { Text = "Примечание напряжения" } });
+    await _db.SaveChangesAsync();
+    await _vm.OnNavigatedToAsync();
+    await _vm.SelectFamilyCommand.ExecuteAsync(Family("К10-79"));
+    Assert.True(_vm.Card!.HasNotes);
+    Assert.Equal(2, _vm.Card.Notes.Count);
+    Assert.Contains(_vm.Card.Notes, n => n.Text == "Примечание напряжения"
+      && n.Parameter.Contains(component.FullName) && n.Parameter.Contains("Форма 67"));
+    await _vm.SelectComponentCommand.ExecuteAsync(_vm.VisibleComponents.Single(c => c.Id == component.Id));
+    Assert.Equal(2, _vm.Card!.Notes.Count);
+    Assert.Contains(_vm.Card.Notes, n => n.Text == "Примечание ресурса" && n.Parameter.Contains("Форма 4"));
+    Assert.Contains(_vm.Regimes.FormSections.Single(s => s.Title == "Форма 67").Parameters,
+      p => p.Notes.Contains("Примечание напряжения"));
+  }
+
+  [Fact]
   public async Task Lists_types_families_and_components()
   {
     await _vm.OnNavigatedToAsync();
@@ -59,6 +83,69 @@ public sealed class CatalogViewModelTests : IDisposable
     Assert.Equal(2, _vm.FamilyCount);
     Assert.Equal(3, _vm.ComponentCount);
     Assert.True(Family("К10-79").HasUnverified);
+  }
+
+  [Fact]
+  public async Task Component_card_previews_catalog_regimes_and_reset_without_editing_default_values()
+  {
+    var component = await _db.Components.SingleAsync(c => c.FullName == "К10-79-50В-0,1мкФ");
+    var resource = await _db.FormParameters.SingleAsync(p => p.Form.Number == "4" && p.RowNumber == 1);
+    _db.ComponentRegimes.Add(new ComponentRegime
+    {
+      ComponentId = component.Id, Name = "Облегчённый", Condition = "U ≤ 0,6 Uном",
+      Values = [new ComponentRegimeValue { FormParameterId = resource.Id, Value = "150000" }]
+    });
+    await _db.SaveChangesAsync();
+    await _vm.OnNavigatedToAsync();
+    await _vm.SelectFamilyCommand.ExecuteAsync(Family("К10-79"));
+    Assert.False(_vm.Regimes.IsAvailable);
+    await _vm.SelectComponentCommand.ExecuteAsync(_vm.VisibleComponents.Single(c => c.Id == component.Id));
+    Assert.True(_vm.Regimes.IsAvailable);
+    Assert.True(_vm.Regimes.IsCatalogPreview);
+    Assert.Equal(new[] { "Форма 4", "Форма 67" }, _vm.Regimes.FormSections.Select(s => s.Title));
+    Assert.Equal(new[] { 1, 2 }, _vm.Regimes.FormSections[0].Parameters.Select(p => p.RowNumber));
+    Assert.DoesNotContain("Форма 4", _vm.Regimes.FormSections[0].Parameters[0].Label);
+    Assert.False(_vm.Regimes.CanEdit);
+    Assert.False(_vm.Regimes.SaveCommand.CanExecute(null));
+    Assert.False(_vm.ShowBaseParameters);
+    var previewResource = _vm.Regimes.Values.Single(v => v.ParameterId == resource.Id);
+    Assert.Equal("100000", previewResource.EffectiveValue);
+    _vm.Regimes.Selected = _vm.Regimes.Choices.Single(c => c.Name == "Облегчённый");
+    Assert.Equal("150000", previewResource.EffectiveValue);
+    Assert.Equal("U ≤ 0,6 Uном", _vm.Regimes.Condition);
+    _vm.Regimes.ResetCommand.Execute(null);
+    Assert.Equal("100000", previewResource.EffectiveValue);
+    Assert.Equal("100000", await _db.FamilyNtdValues.Where(v => v.FormParameterId == resource.Id).Select(v => v.Value).SingleAsync());
+    await _vm.SelectFamilyCommand.ExecuteAsync(Family("1564ЛА3"));
+    Assert.True(_vm.Regimes.IsAvailable);
+    Assert.Null(_vm.Regimes.Selected!.Selection);
+    Assert.False(_vm.ShowBaseParameters);
+  }
+
+  [Fact]
+  public async Task Single_component_family_offers_regimes_directly_in_family_card()
+  {
+    var component = await _db.Components.SingleAsync(c => c.FullName == "1564ЛА3");
+    var resource = await _db.FormParameters.SingleAsync(p => p.Form.Number == "4" && p.RowNumber == 1);
+    _db.ComponentRegimes.Add(new ComponentRegime
+    {
+      ComponentId = component.Id, Name = "Облегчённый", Condition = "Пониженная нагрузка",
+      Values = [new ComponentRegimeValue { FormParameterId = resource.Id, Value = "150000" }]
+    });
+    await _db.SaveChangesAsync();
+    await _vm.OnNavigatedToAsync();
+    await _vm.SelectFamilyCommand.ExecuteAsync(Family("1564ЛА3"));
+
+    Assert.Null(_vm.SelectedComponent);
+    Assert.Equal("1564ЛА3", _vm.Card!.Title);
+    Assert.True(_vm.Regimes.IsAvailable);
+    Assert.False(_vm.ShowFamilyComponentPicker);
+    _vm.Regimes.Selected = _vm.Regimes.Choices.Single(c => c.Name == "Облегчённый");
+    Assert.Equal("150000", _vm.Regimes.Values.Single(v => v.ParameterId == resource.Id).EffectiveValue);
+
+    await _vm.SelectFamilyCommand.ExecuteAsync(Family("К10-79"));
+    Assert.True(_vm.ShowFamilyComponentPicker);
+    Assert.False(_vm.Regimes.IsAvailable);
   }
 
   [Fact]

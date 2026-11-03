@@ -1,4 +1,4 @@
-using OperationMaps.Domain.Entities.Catalog;
+﻿using OperationMaps.Domain.Entities.Catalog;
 
 namespace OperationMaps.Application.Services;
 
@@ -64,7 +64,17 @@ public sealed class WordImportedComponent
   public Dictionary<int, string> Form4NtdValuesByRow { get; init; } = new();
   public Dictionary<int, string> OwnFormNtdValuesByRow { get; init; } = new();
   public Dictionary<int, string> OwnFormPinValuesByRow { get; init; } = new();
+  public int? LoadFactorBaseRow { get; set; }
+  public Dictionary<int, List<string>> Form4NotesByRow { get; init; } = new();
+  public Dictionary<int, List<string>> OwnFormNotesByRow { get; init; } = new();
+  public string Form4NoteText { get; init; } = "";
+  public string OwnFormNoteText { get; init; } = "";
+  public List<WordImportValueVariant> AdditionalVariants { get; } = [];
 }
+
+public sealed record WordImportValueVariant(
+  Dictionary<int, string> Form4Values, Dictionary<int, string> OwnValues,
+  Dictionary<int, List<string>> Form4Notes, Dictionary<int, List<string>> OwnNotes);
 
 public sealed class WordImportScanResult
 {

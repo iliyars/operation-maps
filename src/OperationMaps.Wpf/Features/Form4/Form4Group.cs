@@ -21,6 +21,7 @@ public sealed partial class Form4Group : ObservableObject
     .Sum(c => c.Entry.Imported.Positions.Count);
 
   public bool HasNtdValues => NtdValues.Count > 0;
+  public bool HasCatalogData => SourceComponents.Any(c => c.HasFamily);
 
   [ObservableProperty] private bool _isSelected;
 

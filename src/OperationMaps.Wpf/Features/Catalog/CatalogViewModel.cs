@@ -6,6 +6,7 @@ using OperationMaps.Application.Services;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Wpf.Features.Components.AddComponent;
+using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Stores;
 using OperationMaps.Wpf.Infrastructure.Navigation;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
@@ -70,6 +71,16 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   public int ComponentCount => Types.Sum(t => t.AllFamilies.Sum(f => f.Components.Count));
 
   public bool IsAdmin => _session.IsAdmin;
+  public ComponentRegimesViewModel Regimes { get; }
+  public bool ShowBaseParameters => IsEditing || !Regimes.IsAvailable;
+  public bool ShowFamilyComponentPicker => !IsEditing && SelectedComponent is null && SelectedFamily?.Components.Count > 1;
+  partial void OnSelectedFamilyChanged(CatalogFamilyNode? value) => OnPropertyChanged(nameof(ShowFamilyComponentPicker));
+  partial void OnSelectedComponentChanged(CatalogComponentItem? value) => OnPropertyChanged(nameof(ShowFamilyComponentPicker));
+  partial void OnIsEditingChanged(bool value)
+  {
+    OnPropertyChanged(nameof(ShowBaseParameters));
+    OnPropertyChanged(nameof(ShowFamilyComponentPicker));
+  }
 
   public CatalogViewModel(
       IDbContextFactory<CatalogDbContext> dbFactory,
@@ -85,6 +96,11 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     _nameParser = nameParser ?? throw new ArgumentNullException(nameof(nameParser));
     _editService = editService ?? throw new ArgumentNullException(nameof(editService));
     _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+    Regimes = new ComponentRegimesViewModel(_dbFactory) { IsCatalogPreview = true, CanEdit = _session.IsAdmin };
+    Regimes.PropertyChanged += (_, args) =>
+    {
+      if (args.PropertyName == nameof(ComponentRegimesViewModel.IsAvailable)) OnPropertyChanged(nameof(ShowBaseParameters));
+    };
 
     // Signing in/out while the catalog is open shows/hides the admin buttons.
     _session.PropertyChanged += OnSessionChanged;
@@ -94,6 +110,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   {
     if (e.PropertyName != nameof(SessionStore.IsAdmin)) return;
     OnPropertyChanged(nameof(IsAdmin));
+    Regimes.CanEdit = IsAdmin;
     AddComponentCommand.NotifyCanExecuteChanged();
     AddFamilyCommand.NotifyCanExecuteChanged();
     VerifyCommand.NotifyCanExecuteChanged();
@@ -216,6 +233,10 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     UpdateVisibleComponents();
 
     Card = await BuildFamilyCardAsync(family, ct);
+    if (SelectedFamily != family || SelectedComponent is not null) return;
+    // Regimes belong to a component; a single-component family needs no extra selection.
+    if (family.Components.Count == 1)
+      await LoadRegimePreviewAsync(family.Components[0], ct);
   }
 
   [RelayCommand]
@@ -223,11 +244,31 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   {
     CancelEdit();
     SelectComponentItem(component);
-    Card = await BuildComponentCardAsync(component, ct);
+    var card = await BuildComponentCardAsync(component, ct);
+    if (SelectedComponent?.Id != component.Id) return;
+    Card = card;
+    await LoadRegimePreviewAsync(component, ct);
+  }
+
+  private async Task LoadRegimePreviewAsync(CatalogComponentItem component, CancellationToken ct)
+  {
+    var family = SelectedFamily;
+    var selected = SelectedComponent;
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var entity = await db.Components.AsNoTracking().Include(c => c.Family).ThenInclude(f => f.ComponentType)
+      .Include(c => c.OwnForm).FirstOrDefaultAsync(c => c.Id == component.Id, ct);
+    if (SelectedFamily != family || SelectedComponent != selected || entity is null) return;
+    // A detached preview object: browsing the catalog cannot switch a project's active regime.
+    await Regimes.LoadAsync(new ProjectComponentVm(new ComponentMatchEntry
+    {
+      Imported = new ImportedComponent { RawName = entity.FullName, DetectedCategory = entity.Family.ComponentType.Name, Positions = [] },
+      MatchResult = new MatchResult { IsMatched = true, MatchedComponent = entity, MatchedFamily = entity.Family, MatchedType = entity.Family.ComponentType }
+    }));
   }
 
   private void SelectComponentItem(CatalogComponentItem? component)
   {
+    _ = Regimes.LoadAsync(null);
     if (SelectedComponent is not null) SelectedComponent.IsSelected = false;
     SelectedComponent = component;
     if (component is not null) component.IsSelected = true;
@@ -432,6 +473,16 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         .Select(ff => ff.Form.Number)
         .ToListAsync(ct);
 
+    var componentNotes = await db.ComponentNotes.AsNoTracking()
+      .Where(n => n.Component.FamilyId == family.Id)
+      .OrderBy(n => n.Component.FullName).ThenBy(n => n.FormParameter.RowNumber)
+      .Select(n => new CatalogNoteRow
+      {
+        Parameter = n.Component.FullName + " · Форма " + n.FormParameter.Form.Number + " · "
+          + n.FormParameter.RowNumber + ". " + n.FormParameter.Name,
+        Text = n.Note.Text
+      }).ToListAsync(ct);
+
     var subtitle = $"Семейство · компонентов: {family.Components.Count}";
     if (forms.Count > 0)
       subtitle += " · формы: " + string.Join(", ", forms.OrderBy(FormNumberOrder));
@@ -455,7 +506,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
           .ToList(),
       Notes = notes
           .OrderBy(n => n.RowNumber)
-          .Select(n => new CatalogNoteRow { Parameter = $"{n.RowNumber}. {n.Name}", Text = n.Text })
+          .Select(n => new CatalogNoteRow { Parameter = $"Форма 4 · {n.RowNumber}. {n.Name}", Text = n.Text })
+          .Concat(componentNotes)
           .ToList(),
     };
   }
@@ -480,6 +532,23 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
       };
 
     var subtitle = $"Семейство: {entity.Family.Name}";
+    var familyNotes = await db.FamilyNotes.AsNoTracking()
+      .Where(n => n.FamilyId == entity.FamilyId)
+      .OrderBy(n => n.FormParameter.RowNumber)
+      .Select(n => new CatalogNoteRow
+      {
+        Parameter = "Форма " + n.FormParameter.Form.Number + " · " + n.FormParameter.RowNumber + ". " + n.FormParameter.Name,
+        Text = n.Note.Text
+      }).ToListAsync(ct);
+
+    var componentNotes = await db.ComponentNotes.AsNoTracking()
+      .Where(n => n.ComponentId == entity.Id).OrderBy(n => n.FormParameter.RowNumber)
+      .Select(n => new CatalogNoteRow
+      {
+        Parameter = "Форма " + n.FormParameter.Form.Number + " · " + n.FormParameter.RowNumber + ". " + n.FormParameter.Name,
+        Text = n.Note.Text
+      }).ToListAsync(ct);
+    var allNotes = familyNotes.Concat(componentNotes).ToList();
 
     if (entity.OwnForm is null)
       return new CatalogCard
@@ -491,6 +560,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         NeedsReview = entity.NeedsAdminReview,
         ParametersHeader = "",
         EmptyMessage = "Собственная форма для компонента не задана.",
+        Notes = allNotes,
       };
 
     var formParams = await db.FormParameters
@@ -508,12 +578,6 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         .AsNoTracking()
         .Where(v => v.ComponentId == entity.Id)
         .ToDictionaryAsync(v => v.FormParameterId, v => v.Pins, ct);
-
-    var notes = await db.ComponentNotes
-        .AsNoTracking()
-        .Where(n => n.ComponentId == entity.Id)
-        .Select(n => new { n.FormParameter.RowNumber, n.FormParameter.Name, n.Note.Text })
-        .ToListAsync(ct);
 
     return new CatalogCard
     {
@@ -538,10 +602,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
             Pins = pins.TryGetValue(p.Id, out var pn) && !string.IsNullOrWhiteSpace(pn) ? pn : null,
           })
           .ToList(),
-      Notes = notes
-          .OrderBy(n => n.RowNumber)
-          .Select(n => new CatalogNoteRow { Parameter = $"{n.RowNumber}. {n.Name}", Text = n.Text })
-          .ToList(),
+      Notes = allNotes,
     };
   }
 

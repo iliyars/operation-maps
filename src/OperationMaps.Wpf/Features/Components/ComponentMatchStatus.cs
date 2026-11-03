@@ -6,6 +6,8 @@ namespace OperationMaps.Wpf.Features.Components;
 /// </summary>
 public enum ComponentMatchStatus
 {
+  /// <summary>Board exported automatically to Form 3, without catalog data.</summary>
+  Automatic,
   /// <summary>Component found in catalog (Family + Component exist).</summary>
   Matched,
 

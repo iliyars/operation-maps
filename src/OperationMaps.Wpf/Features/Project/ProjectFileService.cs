@@ -89,20 +89,19 @@ public sealed class ProjectFileService
     NormControl = _store.NormControl,
     Conditions = _store.Conditions,
     Components = _store.Components
-        .Select(c => c.Entry.Imported)
-        .Select(i => new SavedComponent
+        .Select(c => new SavedComponent
         {
-          ImportIndex = i.ImportIndex,
-          RawName = i.RawName,
-          DetectedCategory = i.DetectedCategory,
-          Positions = i.Positions.ToList(),
-          RawPositions = i.RawPositions,
+          ImportIndex = c.Entry.Imported.ImportIndex,
+          RawName = c.Entry.Imported.RawName,
+          DetectedCategory = c.Entry.Imported.DetectedCategory,
+          Positions = c.Entry.Imported.Positions.ToList(),
+          RawPositions = c.Entry.Imported.RawPositions,
+          Regime = c.ActiveRegime,
         })
         .ToList(),
     Form4Notes = _store.Components
         .Where(c => c.Entry.Imported.Positions.Count > 0)
         .SelectMany(c => c.NtdValues
-            .Where(row => row.Notes.Count > 0)
             .Select(row => new SavedForm4Notes
             {
               Position = c.Entry.Imported.Positions[0],
@@ -257,6 +256,12 @@ public sealed class ProjectFileService
     prepared.HeadName = file.HeadName;
     prepared.HeadOccupation = file.HeadOccupation;
     prepared.NormControl = file.NormControl;
+    foreach (var component in prepared.Components)
+    {
+      var savedComponent = file.Components.FirstOrDefault(c => c.Positions.Intersect(component.Entry.Imported.Positions).Any())
+        ?? file.Components.FirstOrDefault(c => c.ImportIndex == component.Entry.Imported.ImportIndex && c.RawName == component.Entry.Imported.RawName);
+      component.SelectRegime(savedComponent?.Regime);
+    }
 
     await RestoreForm4NotesAsync(prepared, file.Form4Notes, ct);
     foreach (var saved in file.OwnForms)
@@ -287,6 +292,7 @@ public sealed class ProjectFileService
       var row = component.NtdValues.FirstOrDefault(r => r.RowNumber == entry.Row);
       if (row is null) continue;
 
+      row.Notes.Clear();
       foreach (var text in entry.Notes)
         row.AddNote(text);
     }
@@ -338,6 +344,7 @@ public sealed class ProjectFileService
       if (positions.Count == 0) continue;
 
       var column = columnByPosition[positions[0]].CloneWithPositions(positions);
+      foreach (var notes in column.Notes.Values) notes.Clear();
 
       if (savedCol.LoadFactorBaseRow is { } baseRow && primaryByRow.TryGetValue(baseRow, out var baseParam))
         column.LoadFactorBaseParameterId = baseParam.FormParameterId;

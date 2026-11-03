@@ -110,7 +110,19 @@
       "noteCell": {
         "row": 23,
         "col": 3
-      }
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 2,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 3,
+          "text": "по НТД"
+        }
+      ]
     },
     {
       "comment": "Slot 1 — компонент 2 (сгенерировано по дампу template.docx)",
@@ -219,7 +231,19 @@
       "noteCell": {
         "row": 23,
         "col": 4
-      }
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 4,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 5,
+          "text": "по НТД"
+        }
+      ]
     },
     {
       "comment": "Slot 2 — компонент 3 (сгенерировано по дампу template.docx)",
@@ -328,7 +352,19 @@
       "noteCell": {
         "row": 23,
         "col": 5
-      }
+      },
+      "labels": [
+        {
+          "row": 4,
+          "col": 6,
+          "text": "в схеме"
+        },
+        {
+          "row": 4,
+          "col": 7,
+          "text": "по НТД"
+        }
+      ]
     }
   ],
   "headerReplacements": {

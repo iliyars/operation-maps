@@ -15,6 +15,31 @@ namespace OperationMaps.Tests.Wpf;
 /// <summary>Admin edits and deletes catalog records from "Справочник ЭРИ".</summary>
 public sealed class CatalogEditTests : IDisposable
 {
+  [Fact]
+  public async Task Admin_can_create_regime_in_catalog_and_signing_out_disables_saving()
+  {
+    await _vm.OnNavigatedToAsync();
+    var family = _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == "К10-79");
+    await _vm.SelectFamilyCommand.ExecuteAsync(family);
+    var component = _vm.VisibleComponents.First();
+    await _vm.SelectComponentCommand.ExecuteAsync(component);
+    Assert.True(_vm.Regimes.CanEdit);
+    _vm.Regimes.NewRegimeCommand.Execute(null);
+    _vm.Regimes.Name = "Облегчённый";
+    _vm.Regimes.Condition = "U ≤ 0,6 Uном";
+    _vm.Regimes.Values.Single(v => v.ParameterId == _resourceParamId).Value = "150000";
+    await _vm.Regimes.SaveCommand.ExecuteAsync(null);
+    Assert.Empty(_vm.Regimes.Error);
+    Assert.Equal("Облегчённый", _vm.Regimes.Selected!.Name);
+    Assert.True(await _db.ComponentRegimes.AnyAsync(r => r.ComponentId == component.Id && r.Name == "Облегчённый"));
+    Assert.Equal("100000", await _db.FamilyNtdValues.Select(v => v.Value).SingleAsync());
+    _session.SignOut();
+    Assert.False(_vm.Regimes.CanEdit);
+    Assert.False(_vm.Regimes.SaveCommand.CanExecute(null));
+    _vm.Regimes.ResetCommand.Execute(null);
+    Assert.Equal("100000", _vm.Regimes.Values.Single(v => v.ParameterId == _resourceParamId).EffectiveValue);
+  }
+
   private readonly SqliteConnection _connection;
   private readonly CatalogDbContext _db;
   private readonly Mock<IDialogService> _dialogs = new();

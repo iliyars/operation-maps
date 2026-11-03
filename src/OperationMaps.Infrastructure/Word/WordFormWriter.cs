@@ -44,6 +44,25 @@ namespace OperationMaps.Infrastructure.Word
 
         var originalTable = WordTableHelper.GetTable(doc, map.TableIndex);
 
+        // Start every page from empty component slots, even if an older template
+        // still contains sample values. Shared headings and conditions stay intact.
+        foreach (var slot in map.ComponentSlots)
+        {
+          var cells = slot.MetaCells.Values.Concat(slot.Labels.Select(l => l.Cell)).ToList();
+          if (slot.NoteCell is { } note) cells.Add(note);
+          foreach (var parameter in slot.ParameterCells.Values)
+          {
+            cells.Add(new CellCoord(parameter.Row, parameter.NtdCol));
+            if (parameter.SchemeCol is { } scheme) cells.Add(new CellCoord(parameter.Row, scheme));
+            if (parameter.PinsCol is { } pins) cells.Add(new CellCoord(parameter.Row, pins));
+          }
+          foreach (var cell in cells.Distinct())
+          {
+            var target = WordTableHelper.TryGetCell(originalTable, cell.Row, cell.Col);
+            if (target is not null) WordTableHelper.SetCellText(target, "");
+          }
+        }
+
         // Remove any stray paragraphs that follow the original table
         WordTableHelper.RemoveTrailingParagraphsAfterTable(doc, originalTable);
 
@@ -91,9 +110,13 @@ namespace OperationMaps.Infrastructure.Word
           var component = data.Components[i];
           var slot = map.ComponentSlots[slotIndex];
 
+          foreach (var label in slot.Labels)
+            WordTableHelper.SetCellText(WordTableHelper.GetCell(table, label.Cell.Row, label.Cell.Col), label.Text);
+
           Dbg($"Component[{i}] '{component.Name}' page={pageIndex} slot={slotIndex} NTD={component.NtdValues.Count}");
 
           DebugFill(table, slot.MetaCells, MetaCellKey.ComponentName, component.Name, "name");
+          DebugFill(table, slot.MetaCells, MetaCellKey.DecimalNumber, component.DecimalNumber, "decimalNumber");
           DebugFill(table, slot.MetaCells, MetaCellKey.ComponentType, component.ComponentTypeName, "componentType");
           DebugFill(table, slot.MetaCells, MetaCellKey.Quantity, component.Quantity, "quantity");
           DebugFill(table, slot.MetaCells, MetaCellKey.PositionsNumber, component.Positions, "positionsNumber");

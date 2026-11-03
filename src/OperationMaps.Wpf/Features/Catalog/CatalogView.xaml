@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:OperationMaps.Wpf.Features.Catalog"
+             xmlns:components="clr-namespace:OperationMaps.Wpf.Features.Components"
              mc:Ignorable="d"
              Background="{DynamicResource BgAppBrush}">
 
@@ -436,11 +437,31 @@
                                    TextWrapping="Wrap"
                                    Visibility="{Binding EmptyMessage, Converter={StaticResource NullToVis}}"/>
 
+                        <StackPanel Margin="0,0,0,12"
+                                    Visibility="{Binding DataContext.ShowFamilyComponentPicker, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="Выберите компонент для просмотра режимов" Style="{StaticResource MutedText}" Margin="0,0,0,6"/>
+                            <ItemsControl ItemsSource="{Binding DataContext.SelectedFamily.Components, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Content="{Binding FullName}" Style="{StaticResource OutlineButton}" Margin="0,0,0,4"
+                                                HorizontalAlignment="Left" CommandParameter="{Binding}"
+                                                Command="{Binding DataContext.SelectComponentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <components:ComponentRegimesView
+                            DataContext="{Binding DataContext.Regimes, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            Visibility="{Binding DataContext.IsEditing, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBoolToVis}}"/>
+
                         <TextBlock Text="{Binding ParametersHeader}"
+                                   Visibility="{Binding DataContext.ShowBaseParameters, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"
                                    Style="{StaticResource SectionLabel}"
                                    Margin="0,0,0,8"/>
 
                         <ItemsControl ItemsSource="{Binding Parameters}"
+                                      Visibility="{Binding DataContext.ShowBaseParameters, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVis}}"
                                       Focusable="False">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type local:CatalogParamRow}">

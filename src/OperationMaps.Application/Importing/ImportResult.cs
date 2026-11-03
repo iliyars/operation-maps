@@ -7,8 +7,8 @@ public sealed class ImportResult
 
   public string? DocumentTitle { get; init; }      // field_2
   public string? DocumentNumber { get; init; }     // field_3
-  public string? DevelopedBy { get; init; }        // field_16
-  public string? CheckedBy { get; init; }          // field_17
+  public string? DevelopedBy { get; init; }        // field_9
+  public string? CheckedBy { get; init; }          // field_16
   public string? ApprovedBy { get; init; }         // field_18
 
   public int ComponentCount => Components.Count;

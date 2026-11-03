@@ -105,6 +105,8 @@ namespace OperationMaps.Infrastructure.Word
   /// </summary>
   public sealed class ComponentSlotMap
   {
+    /// <summary>Labels written only when this component slot is occupied.</summary>
+    public IReadOnlyList<SlotLabel> Labels { get; init; } = [];
     /// <summary>
     /// Coordinates of the fixed meta-cells (component name, designation, quantity).
     /// Keys match <see cref="MetaCellKey"/> constants.
@@ -127,6 +129,7 @@ namespace OperationMaps.Infrastructure.Word
 
   /// <summary>Zero-based row/column pair.</summary>
   public readonly record struct CellCoord(int Row, int Col);
+  public sealed record SlotLabel(CellCoord Cell, string Text);
 
   /// <summary>
   /// Coordinate for a parameter cell that may have separate columns
@@ -141,6 +144,7 @@ namespace OperationMaps.Infrastructure.Word
   public static class MetaCellKey
   {
     public const string ComponentName = "componentName";
+    public const string DecimalNumber = "decimalNumber";
     public const string ComponentType = "componentType";
     public const string Quantity = "quantity";
     public const string PositionsNumber = "positionsNumber";

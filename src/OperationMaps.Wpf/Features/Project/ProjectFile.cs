@@ -16,7 +16,7 @@ namespace OperationMaps.Wpf.Features.Project;
 /// </summary>
 public sealed class ProjectFile
 {
-  public const int CurrentVersion = 1;
+  public const int CurrentVersion = 3;
 
   [JsonRequired]
   public int Version { get; set; } = CurrentVersion;
@@ -46,6 +46,7 @@ public sealed class ProjectFile
 /// <summary>One line of the imported component list (ПЭ3).</summary>
 public sealed class SavedComponent
 {
+  public ComponentRegimeSelection? Regime { get; set; }
   public int ImportIndex { get; set; }
   public string RawName { get; set; } = "";
   public string DetectedCategory { get; set; } = "";

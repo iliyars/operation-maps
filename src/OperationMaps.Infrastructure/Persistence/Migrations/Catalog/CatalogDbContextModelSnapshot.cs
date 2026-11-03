@@ -129,6 +129,51 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
                     b.ToTable("ComponentPinValues");
                 });
 
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentRegime", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ComponentId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComponentId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ComponentRegimes");
+                });
+
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentRegimeValue", b =>
+                {
+                    b.Property<int>("ComponentRegimeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("FormParameterId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ComponentRegimeId", "FormParameterId");
+
+                    b.HasIndex("FormParameterId");
+
+                    b.ToTable("ComponentRegimeValues");
+                });
+
             modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentType", b =>
                 {
                     b.Property<int>("Id")
@@ -740,6 +785,36 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
                     b.Navigation("FormParameter");
                 });
 
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentRegime", b =>
+                {
+                    b.HasOne("OperationMaps.Domain.Entities.Catalog.Component", "Component")
+                        .WithMany()
+                        .HasForeignKey("ComponentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Component");
+                });
+
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentRegimeValue", b =>
+                {
+                    b.HasOne("OperationMaps.Domain.Entities.Catalog.ComponentRegime", "ComponentRegime")
+                        .WithMany("Values")
+                        .HasForeignKey("ComponentRegimeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OperationMaps.Domain.Entities.Forms.FormParameter", "FormParameter")
+                        .WithMany()
+                        .HasForeignKey("FormParameterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComponentRegime");
+
+                    b.Navigation("FormParameter");
+                });
+
             modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.Family", b =>
                 {
                     b.HasOne("OperationMaps.Domain.Entities.Catalog.ComponentType", "ComponentType")
@@ -1013,6 +1088,11 @@ namespace OperationMaps.Infrastructure.Persistence.Migrations.Catalog
                     b.Navigation("NtdValues");
 
                     b.Navigation("PinValues");
+                });
+
+            modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentRegime", b =>
+                {
+                    b.Navigation("Values");
                 });
 
             modelBuilder.Entity("OperationMaps.Domain.Entities.Catalog.ComponentType", b =>

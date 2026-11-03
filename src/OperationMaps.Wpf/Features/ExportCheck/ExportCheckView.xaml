@@ -8,12 +8,47 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <DockPanel>
-            <Button DockPanel.Dock="Right" Content="Повторить проверку" Command="{Binding RefreshCommand}" Padding="12,6"/>
+            <Button DockPanel.Dock="Right" Content="Повторить проверку" Command="{Binding RefreshCommand}"
+                    Style="{StaticResource OutlineButton}" Padding="12,6"/>
             <TextBlock Text="Проверка проекта" Style="{StaticResource PageTitleText}" Foreground="{DynamicResource TextPrimaryBrush}"/>
         </DockPanel>
         <TextBlock Grid.Row="1" Text="{Binding Summary}" TextWrapping="Wrap" Margin="0,12,0,16"
                    Foreground="{DynamicResource TextPrimaryBrush}"/>
-        <ListBox Grid.Row="2" ItemsSource="{Binding Issues}" HorizontalContentAlignment="Stretch">
+        <ListBox Grid.Row="2" ItemsSource="{Binding Issues}" HorizontalContentAlignment="Stretch"
+                 Background="{DynamicResource BgPanelBrush}"
+                 Foreground="{DynamicResource TextPrimaryBrush}"
+                 BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource RowHoverBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="{DynamicResource RowSelectedBrush}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                        <Setter Property="BorderBrush" Value="{DynamicResource BorderFocusBrush}"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid Margin="6,8">
@@ -25,7 +60,7 @@
                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <Button Grid.Column="1" Content="Перейти" IsEnabled="{Binding CanNavigate}"
                                 Command="{Binding DataContext.OpenIssueCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
-                                CommandParameter="{Binding}" Padding="12,6"/>
+                                CommandParameter="{Binding}" Style="{StaticResource OutlineButton}" Padding="12,6"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

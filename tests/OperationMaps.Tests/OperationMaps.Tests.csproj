@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="../../xml/*.XML" Link="TestData/Xml/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   <None Update="TestData/sample_pe3.xml">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>

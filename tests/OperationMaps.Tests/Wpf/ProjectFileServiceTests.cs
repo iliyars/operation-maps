@@ -469,6 +469,93 @@ public sealed class ProjectFileServiceTests : IDisposable
   }
 
   [Fact]
+  public async Task Form4_notes_on_components_without_catalog_family_survive_save_and_open()
+  {
+    var store = new ProjectStore();
+    var component = new ImportedComponent
+    { RawName = "Нет в каталоге", DetectedCategory = "Неизвестный тип", Positions = ["X99"] };
+    store.Load("Примечания", Path.GetTempPath(), await new CatalogNameMatcher(_db).MatchAllAsync([component]));
+    await store.Components[0].LoadNtdValuesAsync(_db);
+    var row = Assert.Single(store.Components[0].NtdValues.Take(1));
+    row.StartAddNoteCommand.Execute(null);
+    row.PendingNoteText = "Уточняется при испытаниях";
+    row.ConfirmAddNoteCommand.Execute(null);
+    Assert.True(store.IsDirty);
+    await CreateService(store).SaveAsync(_path);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    Assert.False(restored.IsDirty);
+    var restoredRow = restored.Components[0].NtdValues.Single(r => r.RowNumber == row.RowNumber);
+    Assert.Equal("Уточняется при испытаниях", Assert.Single(restoredRow.Notes).NoteText);
+    restoredRow.Notes[0].DeleteCommand.Execute(null);
+    Assert.Empty(restoredRow.Notes);
+    Assert.True(restored.IsDirty);
+  }
+
+  [Fact]
+  public async Task Deselected_catalog_note_stays_available_after_save_and_open()
+  {
+    var store = await LoadedStoreAsync();
+    var component = store.Components[0];
+    var familyId = component.Entry.MatchResult.MatchedFamily!.Id;
+    var parameter = await _db.FormParameters.FirstAsync(p => p.Form.Number == "4");
+    _db.FamilyNotes.Add(new FamilyNote { FamilyId = familyId, FormParameterId = parameter.Id,
+      Note = new Note { Text = "Доступно для выбора" } });
+    await _db.SaveChangesAsync();
+    // Reload after adding catalog data to avoid the existing lazy-load cache.
+    store = await LoadedStoreAsync();
+    component = store.Components[0];
+    await component.LoadNtdValuesAsync(_db);
+    var row = component.NtdValues.Single(r => r.FormParameterId == parameter.Id);
+    Assert.Single(row.AvailableNotes).IsSelected = false;
+    await CreateService(store).SaveAsync(_path);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    var restoredRow = restored.Components[0].NtdValues.Single(r => r.FormParameterId == parameter.Id);
+    Assert.Empty(restoredRow.Notes);
+    var choice = Assert.Single(restoredRow.AvailableNotes);
+    Assert.False(choice.IsSelected);
+    Assert.False(restored.IsDirty);
+    choice.IsSelected = true;
+    Assert.Single(restoredRow.Notes);
+    Assert.True(restored.IsDirty);
+  }
+
+  [Fact]
+  public async Task Multiple_conditions_and_parameter_conditions_survive_save_and_open()
+  {
+    var store = await LoadedStoreAsync();
+    var snapshot = OperationMaps.Application.Models.ComponentRegimeSelection.Combine([
+      new("Ресурс", "Облегчённый режим", [new("4", 1, "150000")]),
+      new("Напряжение", "При охлаждении", [new("67", 1, "50")])
+    ]);
+    store.Components[0].SelectRegime(snapshot);
+    await CreateService(store).SaveAsync(_path);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    var actual = restored.Components[0].ActiveRegime!;
+    Assert.Equal(2, actual.Conditions.Count);
+    Assert.Equal(snapshot!.Values, actual.Values);
+    Assert.Equal("Облегчённый режим", actual.Values.Single(v => v.FormNumber == "4").Condition);
+    Assert.False(restored.IsDirty);
+  }
+
+  [Fact]
+  public async Task Selected_regime_is_a_project_snapshot_and_survives_save_and_open()
+  {
+    var store = await LoadedStoreAsync();
+    var component = store.Components[0];
+    component.SelectRegime(new OperationMaps.Application.Models.ComponentRegimeSelection(
+      "Облегчённый", "U ≤ 0,6 Uном", [new("4", 1, "150000")]));
+    await CreateService(store).SaveAsync(_path);
+    var restored = new ProjectStore();
+    await CreateService(restored).OpenAsync(_path);
+    Assert.Equal("Облегчённый", restored.Components[0].ActiveRegime!.Name);
+    Assert.Equal("150000", Assert.Single(restored.Components[0].ActiveRegime!.Values).Value);
+    Assert.False(restored.IsDirty);
+  }
+
+  [Fact]
   public async Task EditAfterOpenMarksProjectDirty()
   {
     var store = new ProjectStore();

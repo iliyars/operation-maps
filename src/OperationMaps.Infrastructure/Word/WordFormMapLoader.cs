@@ -119,6 +119,11 @@ namespace OperationMaps.Infrastructure.Word
 
       return new ComponentSlotMap
       {
+        Labels = obj["labels"] is JsonArray labels
+          ? labels.Select(label => new SlotLabel(
+              ParseCoord(label ?? throw new InvalidDataException($"Empty label in {mapPath}"), slotIndex, "labels", mapPath),
+              label!["text"]?.GetValue<string>() ?? throw new InvalidDataException($"Label text missing in {mapPath}"))).ToList()
+          : [],
         MetaCells = ParseCellDict(obj["metaCells"], slotIndex, mapPath),
         ParameterCells = ParseParameterCellDict(obj["parameterCells"], slotIndex, mapPath),
         NoteCell = ParseOptionalCoord(obj["noteCell"]),

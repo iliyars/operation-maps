@@ -48,7 +48,7 @@ public static class DatabaseSeeder
             ? db.Forms.Include(f => f.Parameters).First(f => f.Number == number)
             : add(db);
 
-    var form4 = EnsureForm("4", AddForm4);
+    EnsureForm("4", AddForm4);
     EnsureForm("6", AddForm6);
     EnsureForm("7", AddForm7);
     EnsureForm("8", AddForm8);
@@ -143,154 +143,9 @@ public static class DatabaseSeeder
     SetDefaultLoadFactorBase(form68, row: 13);
     await db.SaveChangesAsync();
 
-    // Test catalog data (families, notes, sample components, FamilyForm
-    // links) below is still seeded only once — guarded separately from the
-    // forms above precisely so it doesn't get re-inserted every time a new
-    // form is added and this method runs again on an existing database.
-    if (await db.Families.AnyAsync())
-      return;
-
-
-
-    // ── 3. Типы ───────────────────────────────────────────────────────────
-    var typeResistor = new ComponentType { Name = "Резистор" };
-    var typeCapacitor = new ComponentType { Name = "Конденсатор" };
-    var typeMicrocircuit = new ComponentType { Name = "Микросхема" };
-    var typeGenerator = new ComponentType { Name = "Генератор" };
-    var typeConnector = new ComponentType { Name = "Вилка" };
-    db.ComponentTypes.AddRange(typeResistor, typeCapacitor, typeMicrocircuit, typeGenerator, typeConnector);
-
-    // ── 4. Примечания ─────────────────────────────────────────────────────
-    var noteOblRezhim = new Note
-    {
-      Text = "Используется в облегчённом режиме, при U ≤ 0,6U_ном. " +
-               "Стойкость к условиям пониженного давления обеспечивается применением дополнительных средств защиты"
-    };
-    db.Notes.Add(noteOblRezhim);
-
-    // ── 5. Семейства + FamilyNtdValues (Форма 4) ─────────────────────────
-    FormParameter P4(int row) => form4.Parameters.First(p => p.RowNumber == row);
-    FamilyNtdValue FNtd(Family f, int row, string val) =>
-        new() { Family = f, FormParameter = P4(row), Value = val };
-
-    var famR18MP = new Family { Name = "ОСМ Р1-8МП", ComponentType = typeResistor };
-    famR18MP.NtdValues.AddRange(new[]
-    {
-            FNtd(famR18MP,  1, "Да"), FNtd(famR18MP,  2, "—"),
-            FNtd(famR18MP,  3, "100000"), FNtd(famR18MP,  4, "25"),
-            FNtd(famR18MP,  5, "25"),     FNtd(famR18MP,  6, "—"),
-            FNtd(famR18MP,  7, "—"),      FNtd(famR18MP,  8, "—"),
-            FNtd(famR18MP,  9, "10⁻⁶"),  FNtd(famR18MP,  10, "—"),
-            FNtd(famR18MP,  11, "−60 (−60)"), FNtd(famR18MP, 12, "+85 (+85)"),
-            FNtd(famR18MP, 13, "98"),     FNtd(famR18MP, 14, "+35"),
-            FNtd(famR18MP, 15, "—"),      FNtd(famR18MP, 16, "—"),
-        });
-
-    var famK1079 = new Family { Name = "К10-79", ComponentType = typeCapacitor };
-    famK1079.NtdValues.AddRange(new[]
-    {
-            FNtd(famK1079,  1, "Да"), FNtd(famK1079,  2, "—"),
-            FNtd(famK1079,  3, "1"), FNtd(famK1079,  4, "2"),
-            FNtd(famK1079,  5, "3"),     FNtd(famK1079,  6, "4"),
-            FNtd(famK1079,  7, "5"),    FNtd(famK1079,  8, "6"),
-            FNtd(famK1079,  9, "7"),  FNtd(famK1079,  10, "8"),
-            FNtd(famK1079,  11, "9"), FNtd(famK1079, 12, "10"),
-            FNtd(famK1079, 13, "11"),     FNtd(famK1079, 14, "12"),
-            FNtd(famK1079, 15, "13"),      FNtd(famK1079, 16, "14"),
-        });
-
-    var famK5367 = new Family { Name = "К53-67", ComponentType = typeCapacitor };
-    famK5367.NtdValues.AddRange(new[]
-    {
-            FNtd(famK5367,  1, "Да"), FNtd(famK5367,  2, "—"),
-            FNtd(famK5367,  3, "150000"), FNtd(famK5367,  4, "25"),
-            FNtd(famK5367,  5, "25"),     FNtd(famK5367,  6, "—"),
-            FNtd(famK5367,  7, "—"),      FNtd(famK5367,  8, "—"),
-            FNtd(famK5367,  9, "10⁻⁶"),  FNtd(famK5367,  10, "—"),
-            FNtd(famK5367,  11, "−60 (−60)"), FNtd(famK5367, 12, "+125 (+85)"),
-            FNtd(famK5367, 13, "98"),     FNtd(famK5367, 14, "+35"),
-            FNtd(famK5367, 15, "—"),      FNtd(famK5367, 16, "7К1=2К, 7К4=2К"),
-        });
-
-    // ── 6. Тестовый компонент К10-79 с NTD для Формы 67 ──────────────────
-    FormParameter P67(int row) => form67.Parameters.First(p => p.RowNumber == row);
-    ComponentNtdValue CNtd(Component c, int row, string val) =>
-        new() { Component = c, FormParameter = P67(row), Value = val };
-
-    var compK1079test = new Component
-    {
-      FullName = "К10-79-25 В-0,1 мкФ+80%-20%-Н90",
-      Family = famK1079,
-      OwnForm = form67,
-      NeedsAdminReview = false,
-    };
-
-    compK1079test.NtdValues.AddRange(new[]
-    {
-            CNtd(compK1079test,  1, "16"),  CNtd(compK1079test,  2, "—"),
-            CNtd(compK1079test,  3, "—"),   CNtd(compK1079test,  4, "16"),
-            CNtd(compK1079test,  5, "—"),   CNtd(compK1079test,  6, "—"),
-            CNtd(compK1079test,  7, "—"),   CNtd(compK1079test,  8, "—"),
-            CNtd(compK1079test,  9, "—"),   CNtd(compK1079test, 10, "—"),
-            CNtd(compK1079test, 11, "—"),   CNtd(compK1079test, 12, "60"),
-            CNtd(compK1079test, 13, "—"),   CNtd(compK1079test, 14, "0,7"),
-        });
-
-    famK1079.Components.Add(compK1079test);
-    db.Families.AddRange(famR18MP, famK1079, famK5367);
-
-    // Тестовый резистор для Формы 68
-    FormParameter P68(int row) => form68.Parameters.First(p => p.RowNumber == row);
-    ComponentNtdValue CNtd68(Component c, int row, string val) =>
-        new() { Component = c, FormParameter = P68(row), Value = val };
-
-    var compR18MPtest = new Component
-    {
-      FullName = "ОСМ Р1-8МП-0,1-10 кОм+-1 %-Л-А-М",
-      Family = famR18MP,
-      OwnForm = form68,
-      NeedsAdminReview = false,
-    };
-
-    compR18MPtest.NtdValues.AddRange(new[]
-    {
-    CNtd68(compR18MPtest,  1, "50"),
-    CNtd68(compR18MPtest,  2, "—"),
-    CNtd68(compR18MPtest,  3, "—"),
-    CNtd68(compR18MPtest,  4, "50"),
-    CNtd68(compR18MPtest,  5, "—"),
-    CNtd68(compR18MPtest,  6, "—"),
-    CNtd68(compR18MPtest,  7, "—"),
-    CNtd68(compR18MPtest,  8, "—"),
-    CNtd68(compR18MPtest,  9, "—"),
-    CNtd68(compR18MPtest, 10, "—"),
-    CNtd68(compR18MPtest, 11, "-"),
-    CNtd68(compR18MPtest, 12, "—"),
-    CNtd68(compR18MPtest, 13, "0,125"),
-    CNtd68(compR18MPtest, 14, "125"),
-    CNtd68(compR18MPtest, 15, "0,5"),
-});
-
-    famR18MP.Components.Add(compR18MPtest);
-
-    // ── SaveChanges 1 — получаем Id ───────────────────────────────────────
-    await db.SaveChangesAsync();
-
-    // ── 7. FamilyForm ─────────────────────────────────────────────────────
-    db.FamilyForms.AddRange(
-        new FamilyForm { FamilyId = famR18MP.Id, FormId = form4.Id },
-        new FamilyForm { FamilyId = famK1079.Id, FormId = form4.Id },
-        new FamilyForm { FamilyId = famK5367.Id, FormId = form4.Id }
-    );
-
-    // ── 8. FamilyNote ─────────────────────────────────────────────────────
-    db.FamilyNotes.AddRange(
-        new FamilyNote { FamilyId = famK1079.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id },
-        new FamilyNote { FamilyId = famK5367.Id, FormParameterId = P4(1).Id, NoteId = noteOblRezhim.Id }
-    );
-
-    await db.SaveChangesAsync();
+    // Catalog records belong to the user; an empty catalog must stay empty.
   }
+
   private static Form AddForm4(CatalogDbContext db)
   {
     var form4 = new Form

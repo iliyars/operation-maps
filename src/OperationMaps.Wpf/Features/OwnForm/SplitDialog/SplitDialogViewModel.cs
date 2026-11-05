@@ -36,6 +36,19 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
     [RelayCommand]
     private void AddGroup() => AddGroupInternal($"Группа {Groups.Count + 1}");
 
+    public IEnumerable<PositionItemVm> SelectedPositions => SourcePositions
+        .Concat(Groups.SelectMany(g => g.Positions)).Where(p => p.IsSelected);
+
+    public void SelectPosition(PositionItemVm item, bool toggle)
+    {
+      if (toggle) item.IsSelected = !item.IsSelected;
+      else if (!item.IsSelected)
+      {
+        foreach (var selected in SelectedPositions.ToArray()) selected.IsSelected = false;
+        item.IsSelected = true;
+      }
+    }
+
     public void MoveToGroup(PositionItemVm item, SplitGroupVm targetGroup)
     {
       if (SourcePositions.Remove(item))
@@ -50,6 +63,7 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
 
     public void MoveToSource(PositionItemVm item)
     {
+      if (SourcePositions.Contains(item)) return;
       foreach (var g in Groups)
         g.Positions.Remove(item);
 

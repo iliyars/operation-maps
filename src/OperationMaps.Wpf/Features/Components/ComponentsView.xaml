@@ -615,13 +615,35 @@
                                                        TextWrapping="Wrap"/>
                                             <TextBlock Grid.Column="1"
                                                        Text="{Binding Value}"
+                                                       Visibility="{Binding HasReliefValues, Converter={StaticResource InverseBoolToVis}}"
                                                        Style="{StaticResource ParamValue}"
                                                        FontSize="12"
                                                        HorizontalAlignment="Right"/>
-                                            <StackPanel Grid.Row="1" Grid.ColumnSpan="2"><ItemsControl ItemsSource="{Binding AvailableNotes}" Margin="0,6,0,4">
+                                            <StackPanel Grid.Row="1" Grid.ColumnSpan="2">
+                                              <ItemsControl ItemsSource="{Binding RegimeValues}" Margin="0,4,0,0"
+    Visibility="{Binding HasReliefValues, Converter={StaticResource BoolToVis}}">
   <ItemsControl.ItemTemplate>
     <DataTemplate>
-      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,3"
+      <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}">
+        <Run Text="{Binding Label}"/><Run Text="{Binding DisplayValue}" FontFamily="Consolas">
+          <Run.Style>
+            <Style TargetType="Run">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                  <Setter Property="Foreground" Value="{DynamicResource TextLinkBrush}"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Run.Style>
+        </Run><Run Text="{Binding Condition}"/>
+      </TextBlock>
+    </DataTemplate>
+  </ItemsControl.ItemTemplate>
+</ItemsControl>
+                                              <ItemsControl ItemsSource="{Binding AvailableNotes}" Margin="0,6,0,4">
+  <ItemsControl.ItemTemplate>
+    <DataTemplate>
+      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4,4,4,4" MinHeight="22"
                 Foreground="{DynamicResource TextPrimaryBrush}">
         <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
       </CheckBox>

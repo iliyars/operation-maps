@@ -271,11 +271,42 @@
                                                     <TextBlock Grid.Column="1" Text="{Binding DisplayName}" TextWrapping="Wrap"
                                                                Style="{StaticResource ParamLabel}" Margin="0"/>
                                                 </Grid>
-                                                <TextBlock Text="{Binding RegimeCondition}" Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap" Margin="30,2,0,0"
-                                                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding RegimeCondition}" TextWrapping="Wrap" Margin="30,2,0,0"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}">
+                                                  <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource OptionalParameterText}">
+                                                      <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding HasReliefValues}" Value="True">
+                                                          <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                      </Style.Triggers>
+                                                    </Style>
+                                                  </TextBlock.Style>
+                                                </TextBlock>
+                                                <ItemsControl ItemsSource="{Binding RegimeValues}" Margin="30,4,0,0"
+    Visibility="{Binding HasReliefValues, Converter={StaticResource BoolToVis}}">
+  <ItemsControl.ItemTemplate>
+    <DataTemplate>
+      <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextPrimaryBrush}">
+        <Run Text="{Binding Label}"/><Run Text="{Binding DisplayValue}" FontFamily="Consolas">
+          <Run.Style>
+            <Style TargetType="Run">
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                  <Setter Property="Foreground" Value="{DynamicResource TextLinkBrush}"/>
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Run.Style>
+        </Run><Run Text="{Binding Condition}"/>
+      </TextBlock>
+    </DataTemplate>
+  </ItemsControl.ItemTemplate>
+</ItemsControl>
                                                 <StackPanel Orientation="Horizontal"
                                                         Margin="30,2,0,0">
                                                     <TextBlock Text="{Binding Value}"
+                                                            Visibility="{Binding HasReliefValues, Converter={StaticResource InverseBoolToVis}}"
                                                             Style="{StaticResource ParamValue}"/>
                                                     <ItemsControl ItemsSource="{Binding Notes}">
                                                         <ItemsControl.ItemsPanel>
@@ -323,10 +354,10 @@
                                                     </ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                                 <TextBlock Text="{Binding ValueHint}" Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0,4,0,0"/>
-<ItemsControl ItemsSource="{Binding AvailableNotes}" Margin="0,6,0,4">
+<ItemsControl ItemsSource="{Binding AvailableNotes}" Margin="30,6,0,4">
   <ItemsControl.ItemTemplate>
     <DataTemplate>
-      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,3"
+      <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="4,4,4,4" MinHeight="22"
                 Foreground="{DynamicResource TextPrimaryBrush}">
         <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
       </CheckBox>

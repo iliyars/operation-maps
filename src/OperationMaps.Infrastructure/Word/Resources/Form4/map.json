@@ -407,7 +407,7 @@
     }
   ],
   "headerReplacements": {
-    "{{designation}}": "designation",
+    "{{designation}}": "designationD4",
     "{{sheet}}": "sheetNumber",
     "{{totalSheets}}": "totalSheets"
   }

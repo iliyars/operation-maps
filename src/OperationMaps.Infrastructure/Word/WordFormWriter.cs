@@ -22,21 +22,19 @@ namespace OperationMaps.Infrastructure.Word
         fs.CopyTo(ms);
       ms.Position = 0;
 
-      // Replace header/footer placeholders directly in the ZIP XML before opening
-      // via SDK — needed because TextBox content uses wne:txbxContent which SDK
-      // does not traverse via Descendants<Paragraph>().
-      if (!string.IsNullOrEmpty(data.DocumentDesignation) && map.HeaderReplacements.Count > 0)
+      // Replace header/footer placeholders in every ZIP XML part, including
+      // split text runs in legacy text boxes and alternative drawing branches.
+      if (map.HeaderReplacements.Count > 0)
       {
         var resolved = ResolveHeaderFields(map.HeaderReplacements, data, 1);
-        ms = ReplaceInZipXml(ms, resolved,
-            "word/header1.xml", "word/header2.xml", "word/header3.xml",
-            "word/footer1.xml", "word/footer2.xml", "word/footer3.xml");
+        ms = ReplaceInZipXml(ms, resolved);
       }
 
       // Use explicit using block so doc is fully closed (and file handles flushed)
       // before we read bytes from the stream.
       using (var doc = WordprocessingDocument.Open(ms, isEditable: true))
       {
+        WordDocumentCompatibility.Normalize(doc);
         WordTemplateValidator.ThrowIfInvalid(map, doc);
         int componentCount = data.Components.Count;
         int totalPages = componentCount == 0
@@ -362,11 +360,8 @@ namespace OperationMaps.Infrastructure.Word
     }
 
     /// <summary>
-    /// Opens the docx ZIP in memory, replaces all placeholder strings in the
-    /// specified XML entry files, and returns a new MemoryStream with the result.
-    /// This bypasses the OpenXml SDK object model and works on raw XML text,
-    /// so it reaches content inside TextBoxes (wne:txbxContent) that the SDK
-    /// does not traverse.
+    /// Replaces placeholders across XML text runs in all headers and footers
+    /// and any explicitly supplied entries, preserving surrounding formatting.
     /// </summary>
     private static MemoryStream ReplaceInZipXml(
         MemoryStream source,
@@ -388,14 +383,50 @@ namespace OperationMaps.Infrastructure.Word
           using var inStream = entry.Open();
           using var outStream = outEntry.Open();
 
-          if (entrySet.Contains(entry.FullName))
+          if (entrySet.Contains(entry.FullName) || ((entry.FullName.StartsWith("word/header", StringComparison.Ordinal)
+              || entry.FullName.StartsWith("word/footer", StringComparison.Ordinal)) && entry.FullName.EndsWith(".xml", StringComparison.Ordinal)))
           {
             // Read, replace, write as UTF-8
             using var reader = new StreamReader(inStream, System.Text.Encoding.UTF8);
             var xml = reader.ReadToEnd();
 
-            foreach (var (placeholder, value) in replacements)
-              xml = xml.Replace(placeholder, System.Security.SecurityElement.Escape(value));
+            // Word can split a placeholder across differently formatted runs,
+            // including inside legacy text boxes and AlternateContent branches.
+            var root = System.Xml.Linq.XDocument.Parse(xml, System.Xml.Linq.LoadOptions.PreserveWhitespace);
+            foreach (var paragraph in root.Descendants().Where(e => e.Name.LocalName == "p"))
+            {
+              var texts = paragraph.Descendants().Where(e => e.Name.LocalName == "t"
+                  && e.Ancestors().FirstOrDefault(a => a.Name.LocalName == "p") == paragraph).ToList();
+              foreach (var (placeholder, value) in replacements)
+              {
+                if (placeholder.Length == 0) continue;
+                var searchFrom = 0;
+                while (true)
+                {
+                  var full = string.Concat(texts.Select(t => t.Value));
+                  var index = full.IndexOf(placeholder, searchFrom, StringComparison.Ordinal);
+                  if (index < 0) break;
+                  var end = index + placeholder.Length;
+                  var offset = 0;
+                  var first = true;
+                  foreach (var text in texts)
+                  {
+                    var original = text.Value;
+                    var next = offset + original.Length;
+                    if (next > index && offset < end)
+                    {
+                      text.Value = (index > offset ? original[..(index - offset)] : "")
+                          + (first ? value : "") + (end < next ? original[(end - offset)..] : "");
+                      text.SetAttributeValue(System.Xml.Linq.XNamespace.Xml + "space", "preserve");
+                      first = false;
+                    }
+                    offset = next;
+                  }
+                  searchFrom = index + value.Length;
+                }
+              }
+            }
+            xml = root.ToString(System.Xml.Linq.SaveOptions.DisableFormatting);
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(xml);
             outStream.Write(bytes, 0, bytes.Length);
@@ -416,11 +447,15 @@ namespace OperationMaps.Infrastructure.Word
         WordFormData data,
         int totalPages)
     {
+      var designation = data.HeaderFields.GetValueOrDefault("designation", data.DocumentDesignation).Trim();
       var fields = new Dictionary<string, string>(data.HeaderFields)
       {
         ["sheetNumber"] = data.HeaderFields.GetValueOrDefault("sheetNumber", "1"),
         ["totalSheets"] = data.HeaderFields.GetValueOrDefault("totalSheets", totalPages.ToString()),
-        ["designation"] = data.HeaderFields.GetValueOrDefault("designation", data.DocumentDesignation),
+        ["designation"] = designation.Length == 0 || designation.EndsWith("Д4", StringComparison.Ordinal)
+            ? designation : designation + "Д4",
+        ["designationD4"] = designation.Length == 0 || designation.EndsWith("Д4", StringComparison.Ordinal)
+            ? designation : designation + "Д4",
       };
 
       var result = new Dictionary<string, string>();

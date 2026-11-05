@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,7 +21,9 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
 
     public IReadOnlyList<IReadOnlyList<string>>? Result { get; private set; }
 
-    private PositionItemVm? _draggedItem;
+    private PositionItemVm[]? _draggedItems;
+    private Point _dragStart;
+    private PositionItemVm? _dragCandidate;
 
     public SplitDialog(IReadOnlyList<string> positions)
     {
@@ -37,40 +40,57 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
       if (sender is not FrameworkElement fe) return;
       if (fe.DataContext is not PositionItemVm item) return;
 
-      _draggedItem = item;
+      Vm.SelectPosition(item, (Keyboard.Modifiers & ModifierKeys.Control) != 0);
+      _dragCandidate = item.IsSelected ? item : null;
+      _dragStart = e.GetPosition(this);
+      e.Handled = true;
+    }
 
-      DragDrop.DoDragDrop(fe, item, DragDropEffects.Move);
-
-      _draggedItem = null;
+    private void Pill_MouseMove(object sender, MouseEventArgs e)
+    {
+      if (e.LeftButton != MouseButtonState.Pressed)
+      {
+        _dragCandidate = null;
+        return;
+      }
+      if (_dragCandidate is null || sender is not FrameworkElement fe
+          || !ReferenceEquals(fe.DataContext, _dragCandidate)) return;
+      var point = e.GetPosition(this);
+      if (Math.Abs(point.X - _dragStart.X) < SystemParameters.MinimumHorizontalDragDistance
+          && Math.Abs(point.Y - _dragStart.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+      _draggedItems = Vm.SelectedPositions.ToArray();
+      _dragCandidate = null;
+      try { DragDrop.DoDragDrop(fe, _draggedItems, DragDropEffects.Move); }
+      finally { _draggedItems = null; }
       e.Handled = true;
     }
 
     private void SourceList_DragOver(object sender, DragEventArgs e)
     {
-      e.Effects = DragDropEffects.Move;
+      e.Effects = _draggedItems is null ? DragDropEffects.None : DragDropEffects.Move;
       e.Handled = true;
     }
 
     private void SourceList_Drop(object sender, DragEventArgs e)
     {
-      if (_draggedItem is null) return;
-      Vm.MoveToSource(_draggedItem);
+      if (_draggedItems is null) return;
+      foreach (var item in _draggedItems) Vm.MoveToSource(item);
       e.Handled = true;
     }
 
     private void GroupBorder_DragOver(object sender, DragEventArgs e)
     {
-      e.Effects = DragDropEffects.Move;
+      e.Effects = _draggedItems is null ? DragDropEffects.None : DragDropEffects.Move;
       e.Handled = true;
     }
 
     private void GroupBorder_Drop(object sender, DragEventArgs e)
     {
-      if (_draggedItem is null) return;
+      if (_draggedItems is null) return;
       if (sender is not FrameworkElement fe) return;
       if (fe.DataContext is not SplitGroupVm group) return;
 
-      Vm.MoveToGroup(_draggedItem, group);
+      foreach (var item in _draggedItems) Vm.MoveToGroup(item, group);
       e.Handled = true;
     }
 

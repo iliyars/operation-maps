@@ -15,6 +15,9 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
 
     public string Value { get; }
 
+    [ObservableProperty]
+    private bool _isSelected;
+
     public override string ToString() => Value;
 
 

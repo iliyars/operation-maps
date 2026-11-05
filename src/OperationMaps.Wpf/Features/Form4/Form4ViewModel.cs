@@ -95,6 +95,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
     ct = operation.Token;
     var generation = _store.Generation;
     var components = _store.Components.Where(c => !c.IsBoard).ToArray();
+    var removeRelief = components.Any(c => c.HasSelectedForm4Relief);
     var position = SelectedGroup?.SourceComponents.FirstOrDefault()?.Entry.Imported.Positions.FirstOrDefault();
     IsApplyingRelief = true;
     ReliefStatus = "";
@@ -109,7 +110,10 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
         await component.LoadNtdValuesAsync(db, ct);
         ct.ThrowIfCancellationRequested();
         if (_store.Generation != generation) return;
-        try { if (component.ApplyAllReliefNotes()) applied++; }
+        try
+        {
+          if (removeRelief ? component.RemoveForm4ReliefNotes() : component.ApplyAllReliefNotes()) applied++;
+        }
         catch (InvalidOperationException) { conflicts.Add($"{component.Name} ({component.Positions})"); }
       }
       await BuildGroupsAsync(ct);
@@ -117,7 +121,8 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
       if (_store.Generation != generation) return;
       var selection = Groups.FirstOrDefault(g => g.SourceComponents.Any(c => c.Entry.Imported.Positions.Contains(position ?? "")));
       if (selection is not null) SelectGroup(selection);
-      ReliefStatus = applied > 0 ? $"Облегчённый режим включён у компонентов: {applied}."
+      ReliefStatus = removeRelief ? $"Облегчённый режим снят у компонентов: {applied}."
+        : applied > 0 ? $"Облегчённый режим включён у компонентов: {applied}."
         : "Нет компонентов с доступным примечанием облегчённого режима.";
       if (conflicts.Count > 0)
         ReliefStatus += " Не изменены из-за разных значений облегчённого режима: " + string.Join("; ", conflicts) + ". Выберите нужное примечание вручную.";
@@ -306,10 +311,12 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
 
     var groups = new List<Form4Group>();
 
-    // RLC components — group by family name
+    // All catalog components share a Form 4 column by family name.
+    // Component type/nominal must not split a family into separate columns.
+    // Selected regimes do not split a family into separate groups.
     var rlcComponents = sources.Select(s => s.Component)
         .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && c.HasFamily && c.FamilyName is not null)
-        .GroupBy(c => (FamilyName: c.FamilyName!, TypeName: c.TypeName, Regime: c.ActiveRegime));
+        .GroupBy(c => c.FamilyName!.Trim(), StringComparer.OrdinalIgnoreCase);
 
     foreach (var group in rlcComponents)
     {
@@ -324,7 +331,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
 
       var form4Group = new Form4Group
       {
-        DisplayName = group.Key.FamilyName,
+        DisplayName = first.FamilyName!.Trim(),
         ComponentTypeName = first.ComponentTypeName,
         NtdValues = first.NtdValues,
         SourceComponents = components,
@@ -336,7 +343,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
     // Non-RLC components — group by full name
     var otherComponents = sources.Select(s => s.Component)
         .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && !c.HasFamily)
-        .GroupBy(c => (c.Name, c.ActiveRegime));
+        .GroupBy(c => c.Name.Trim(), StringComparer.OrdinalIgnoreCase);
 
     foreach (var group in otherComponents)
     {
@@ -345,7 +352,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
 
       var otherGroup = new Form4Group
       {
-        DisplayName = group.Key.Name,
+        DisplayName = group.Key,
         ComponentTypeName = components.First().ComponentTypeName,
         NtdValues = components[0].NtdValues,
         SourceComponents = components,
@@ -365,6 +372,31 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
       group.RecalculateNoteOrders();
     }
     _publishedGeneration = generation;
-    Groups = groups;
+    Groups = groups
+        .OrderBy(g => Form4TypeOrder(g.ComponentTypeName))
+        .ThenBy(g => g.SourceComponents.Min(c => c.Entry.Imported.ImportIndex))
+        .ToList();
+  }
+
+  // TODO: оптимизировать — вынести порядок в настройки после согласования правил.
+  // Временный порядок по образцу ВЕИР.468364.741. Диоды и стабилитроны
+  // образуют общий блок с сохранением исходной последовательности семейств.
+  private static readonly string[][] Form4TypeSortOrder =
+  [
+    ["Микросхема", "Микросборка"],
+    ["Стабилитрон", "Диодная матрица", "Диод", "Светодиод"],
+    ["Транзистор"],
+    ["Конденсатор"],
+    ["Резистор"],
+    ["Генератор"],
+    ["Дроссель", "Индуктивность"],
+    ["Вилка", "Розетка", "Соединитель", "Разъем", "Разъём"],
+  ];
+
+  private static int Form4TypeOrder(string type)
+  {
+    var index = Array.FindIndex(Form4TypeSortOrder,
+        types => types.Contains(type.Trim(), StringComparer.OrdinalIgnoreCase));
+    return index < 0 ? int.MaxValue : index;
   }
 }

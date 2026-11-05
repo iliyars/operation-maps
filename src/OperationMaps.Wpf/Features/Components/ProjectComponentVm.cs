@@ -58,6 +58,24 @@ namespace OperationMaps.Wpf.Features.Components
       }
     }
 
+    public bool HasSelectedForm4Relief => ActiveRegime is { } active
+        && (active.Conditions.Count > 0 ? active.Conditions : new[] { active })
+            .Any(c => ReliefNote.IsMatch(c.Condition) && c.Values.Any(v => v.FormNumber == "4"));
+
+    public bool RemoveForm4ReliefNotes()
+    {
+      if (!HasSelectedForm4Relief || ActiveRegime is not { } active) return false;
+      var remaining = (active.Conditions.Count > 0 ? active.Conditions : new[] { active })
+          .Where(c => !(ReliefNote.IsMatch(c.Condition) && c.Values.Any(v => v.FormNumber == "4"))).ToArray();
+      SelectRegime(ComponentRegimeSelection.Combine(remaining));
+      foreach (var row in NtdValues)
+      {
+        row.SelectionError = "";
+        foreach (var note in row.AvailableNotes) note.Refresh();
+      }
+      return true;
+    }
+
     public bool ApplyAllReliefNotes()
     {
       var available = _reliefVariants.Where(v => v.Values.Any(p => p.FormNumber == "4")).ToArray();
@@ -224,7 +242,7 @@ namespace OperationMaps.Wpf.Features.Components
                 foreach (var parameter in NtdValues)
                   foreach (var choice in parameter.AvailableNotes) choice.Refresh();
               });
-            row.AddReliefOption(option, variant.Condition);
+            row.AddReliefOption(option, variant.Condition, value.Value);
           }
         ct.ThrowIfCancellationRequested();
         if (!ReferenceEquals(entry, Entry)) return;

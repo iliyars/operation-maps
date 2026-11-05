@@ -38,6 +38,14 @@
               Value="3"/>
       <Setter Property="Cursor"
               Value="Hand"/>
+      <EventSetter Event="PreviewMouseMove" Handler="Pill_MouseMove"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+          <Setter Property="Background" Value="#2B579A"/>
+          <Setter Property="BorderBrush" Value="#163F7A"/>
+          <Setter Property="TextElement.Foreground" Value="White"/>
+        </DataTrigger>
+      </Style.Triggers>
     </Style>
 
     <!-- Drop target list style -->
@@ -94,6 +102,8 @@
                 <Run Text="{Binding UnassignedCount, Mode=OneWay}"
                      Foreground="#E53935"/>
       </TextBlock>
+      <TextBlock Text="Ctrl + щелчок — выбрать несколько позиций. Перетащите выбранные в нужную группу."
+                 Margin="0,4,0,0" FontSize="12" TextWrapping="Wrap"/>
     </StackPanel>
 
     <!-- Lists area -->
@@ -129,6 +139,9 @@
                           x:Name="SourceList"
                           ItemsSource="{Binding SourcePositions}"
                           AllowDrop="True"
+                          Background="Transparent"
+                          DragOver="SourceList_DragOver"
+                          Drop="SourceList_Drop"
                           Padding="4"
                           MinHeight="200">
               <ItemsControl.ItemsPanel>

@@ -16,9 +16,21 @@ public sealed partial class NtdParameterVm : ObservableObject
   public int FormParameterId { get; }
   public string Name { get; }
   public string? Unit { get; }
-  [ObservableProperty] private string _value = "";
-  [ObservableProperty] private string _regimeCondition = "";
+  [ObservableProperty, NotifyPropertyChangedFor(nameof(RegimeValues))] private string _value = "";
+  [ObservableProperty, NotifyPropertyChangedFor(nameof(RegimeValues))] private string _regimeCondition = "";
   public string DefaultValue { get; private set; } = "";
+  private readonly Dictionary<string, string> _reliefValues = new();
+  public sealed record RegimeValueDisplay(string Label, string DisplayValue, string Condition, bool IsCurrent);
+  public IEnumerable<RegimeValueDisplay> RegimeValues => new[]
+      { new RegimeValueDisplay("Нормальный режим: ",
+          string.IsNullOrWhiteSpace(DefaultValue) || DefaultValue is "—" or "-" ? "не задано — требуется редактирование" : DefaultValue,
+          "", !_reliefValues.ContainsKey(RegimeCondition)) }
+      .Concat(_reliefValues.Select(v => new RegimeValueDisplay("Облегчённый режим: ", v.Value,
+          $" ({v.Key})", RegimeCondition == v.Key)));
+  public bool HasReliefValues => _reliefValues.Count > 0;
+  public string RegimeValuesText => string.Join(Environment.NewLine,
+      new[] { $"Нормальный режим: {(string.IsNullOrWhiteSpace(DefaultValue) || DefaultValue is "—" or "-" ? "не задано — требуется редактирование" : DefaultValue)}" }
+      .Concat(_reliefValues.Select(v => $"Облегчённый режим: {v.Value} ({v.Key})")));
   public string DisplayName => Unit is not null ? $"{Name}, {Unit}" : Name;
   public ObservableCollection<Form4.Form4NoteVm> Notes { get; } = [];
   public ObservableCollection<CatalogNoteChoice> AvailableNotes { get; } = [];
@@ -26,8 +38,12 @@ public sealed partial class NtdParameterVm : ObservableObject
   public string ValueHint => (string.IsNullOrWhiteSpace(DefaultValue) || DefaultValue is "—" or "-")
     && AvailableNotes.Any(n => OperationMaps.Application.Models.ReliefNote.IsMatch(n.Text))
     ? "Обычное значение не задано. Значение облегчённого режима доступно в примечаниях ниже." : "";
-  public void AddReliefOption(CatalogNoteChoice option, string noteText)
+  public void AddReliefOption(CatalogNoteChoice option, string noteText, string value)
   {
+    _reliefValues[noteText] = value;
+    OnPropertyChanged(nameof(HasReliefValues));
+    OnPropertyChanged(nameof(RegimeValuesText));
+    OnPropertyChanged(nameof(RegimeValues));
     foreach (var choice in AvailableNotes.Where(n => n.Text == noteText).ToArray()) AvailableNotes.Remove(choice);
     foreach (var note in Notes.Where(n => n.NoteText == noteText).ToArray()) Notes.Remove(note);
     AvailableNotes.Add(option);
@@ -39,6 +55,8 @@ public sealed partial class NtdParameterVm : ObservableObject
     if (!string.IsNullOrWhiteSpace(DefaultValue) && DefaultValue is not "—" and not "-") return;
     DefaultValue = value;
     Value = value;
+    OnPropertyChanged(nameof(RegimeValuesText));
+    OnPropertyChanged(nameof(RegimeValues));
   }
 
   public void AddCatalogNote(string text)

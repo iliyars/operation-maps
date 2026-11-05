@@ -16,7 +16,7 @@ namespace OperationMaps.Wpf.Features.Project;
 /// </summary>
 public sealed class ProjectFile
 {
-  public const int CurrentVersion = 3;
+  public const int CurrentVersion = 4;
 
   [JsonRequired]
   public int Version { get; set; } = CurrentVersion;
@@ -75,6 +75,9 @@ public sealed class SavedOwnForm
 /// </summary>
 public sealed class SavedColumn
 {
+  // Explicit null means a deliberate choice of the base values, rather than inheritance.
+  public bool HasRegimeOverride { get; set; }
+  public ComponentRegimeSelection? Regime { get; set; }
   public List<string> Positions { get; set; } = [];
   public int? LoadFactorBaseRow { get; set; }
 

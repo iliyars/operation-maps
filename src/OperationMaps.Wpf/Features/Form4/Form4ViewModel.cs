@@ -20,17 +20,23 @@ namespace OperationMaps.Wpf.Features.Form4;
 /// loads NTD values from the catalog, and presents a read-only table.
 /// Supports export to Word via <see cref="ExportWordCommand"/>.
 /// </summary>
-public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
+public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
 {
   private readonly ProjectStore _store;
   private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IWordService _wordService;
   private readonly WordFormMapLoader _mapLoader;
   private readonly OperationMaps.Wpf.Shell.ShellViewModel _shell;
+  private CancellationTokenSource? _buildCts;
+  private CancellationTokenSource? _reliefCts;
+  private int _buildVersion;
+  private long _publishedGeneration = -1;
 
   [ObservableProperty] private IReadOnlyList<Form4Group> _groups = [];
   [ObservableProperty] private bool _isLoading;
   [ObservableProperty] private bool _isExporting;
+  [ObservableProperty] private bool _isApplyingRelief;
+  [ObservableProperty] private string _reliefStatus = "";
   [ObservableProperty] private Form4Group? _selectedGroup;
   [ObservableProperty] private IReadOnlyList<ParameterRowVm> _parameters = [];
 
@@ -58,20 +64,84 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
       object? parameter = null,
       CancellationToken cancellationToken = default)
   {
-    if (!_store.HasProject) return;
+    if (!_store.HasProject)
+    {
+      await OnNavigatedFromAsync();
+      Groups = []; Parameters = []; SelectedGroup = null;
+      return;
+    }
 
-    IsLoading = true;
-    try
-    {
-      await BuildGroupsAsync(cancellationToken);
-    }
-    finally
-    {
-      IsLoading = false;
-    }
+    await BuildGroupsAsync(cancellationToken);
+  }
+
+  public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+  {
+    ++_buildVersion;
+    _buildCts?.Cancel();
+    _reliefCts?.Cancel();
+    IsLoading = false;
+    return Task.CompletedTask;
   }
 
   // ── Commands ──────────────────────────────────────────────────────────────
+
+  [RelayCommand(CanExecute = nameof(CanApplyRelief))]
+  private async Task ApplyReliefToAllAsync(CancellationToken ct)
+  {
+    if (!CanApplyRelief) return;
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    _reliefCts = operation;
+    ct = operation.Token;
+    var generation = _store.Generation;
+    var components = _store.Components.Where(c => !c.IsBoard).ToArray();
+    var position = SelectedGroup?.SourceComponents.FirstOrDefault()?.Entry.Imported.Positions.FirstOrDefault();
+    IsApplyingRelief = true;
+    ReliefStatus = "";
+    try
+    {
+      await using var db = await _dbFactory.CreateDbContextAsync(ct);
+      var applied = 0;
+      var conflicts = new List<string>();
+      foreach (var component in components)
+      {
+        ct.ThrowIfCancellationRequested();
+        await component.LoadNtdValuesAsync(db, ct);
+        ct.ThrowIfCancellationRequested();
+        if (_store.Generation != generation) return;
+        try { if (component.ApplyAllReliefNotes()) applied++; }
+        catch (InvalidOperationException) { conflicts.Add($"{component.Name} ({component.Positions})"); }
+      }
+      await BuildGroupsAsync(ct);
+      ct.ThrowIfCancellationRequested();
+      if (_store.Generation != generation) return;
+      var selection = Groups.FirstOrDefault(g => g.SourceComponents.Any(c => c.Entry.Imported.Positions.Contains(position ?? "")));
+      if (selection is not null) SelectGroup(selection);
+      ReliefStatus = applied > 0 ? $"Облегчённый режим включён у компонентов: {applied}."
+        : "Нет компонентов с доступным примечанием облегчённого режима.";
+      if (conflicts.Count > 0)
+        ReliefStatus += " Не изменены из-за разных значений облегчённого режима: " + string.Join("; ", conflicts) + ". Выберите нужное примечание вручную.";
+    }
+    catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
+    catch (Exception) when (ct.IsCancellationRequested || generation != _store.Generation) { }
+    finally
+    {
+      if (ReferenceEquals(_reliefCts, operation)) _reliefCts = null;
+      IsApplyingRelief = false;
+    }
+  }
+
+  private bool CanApplyRelief => _store.HasProject && _publishedGeneration == _store.Generation
+      && Groups.Count > 0 && !IsLoading && !IsExporting && !IsApplyingRelief;
+  partial void OnIsLoadingChanged(bool value)
+  {
+    ApplyReliefToAllCommand.NotifyCanExecuteChanged();
+    ExportWordCommand.NotifyCanExecuteChanged();
+  }
+  partial void OnIsApplyingReliefChanged(bool value)
+  {
+    ApplyReliefToAllCommand.NotifyCanExecuteChanged();
+    ExportWordCommand.NotifyCanExecuteChanged();
+  }
 
   [RelayCommand]
   private void SelectGroup(Form4Group group)
@@ -118,14 +188,21 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     }
   }
 
-  private bool CanExport => Groups.Count > 0 && !IsExporting;
+  private bool CanExport => _publishedGeneration == _store.Generation
+      && Groups.Count > 0 && !IsLoading && !IsExporting && !IsApplyingRelief;
 
   // Notify CanExecute when these properties change
   partial void OnGroupsChanged(IReadOnlyList<Form4Group> value)
-      => ExportWordCommand.NotifyCanExecuteChanged();
+  {
+    ExportWordCommand.NotifyCanExecuteChanged();
+    ApplyReliefToAllCommand.NotifyCanExecuteChanged();
+  }
 
   partial void OnIsExportingChanged(bool value)
-      => ExportWordCommand.NotifyCanExecuteChanged();
+  {
+    ExportWordCommand.NotifyCanExecuteChanged();
+    ApplyReliefToAllCommand.NotifyCanExecuteChanged();
+  }
 
   // ── Word data builder ─────────────────────────────────────────────────────
 
@@ -135,6 +212,8 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
   /// </summary>
   public WordFormData BuildWordFormData()
   {
+    if (IsLoading || _publishedGeneration != _store.Generation)
+      throw new InvalidOperationException("Форма 4 ещё не загружена для текущего проекта. Откройте форму повторно.");
     var components = Groups.Select(BuildComponentData).ToList();
 
     return new WordFormData
@@ -185,14 +264,47 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
 
   private async Task BuildGroupsAsync(CancellationToken ct)
   {
+    _buildCts?.Cancel();
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    _buildCts = operation;
+    var version = ++_buildVersion;
+    var generation = _store.Generation;
+    var components = _store.Components.ToArray();
+    var sources = components.Select(c => (Component: c, Entry: c.Entry, Regime: c.ActiveRegime)).ToArray();
+    IsLoading = true;
+    _publishedGeneration = -1;
+    Groups = [];
+    Parameters = [];
+    SelectedGroup = null;
+    try { await BuildGroupsCoreAsync(operation.Token, version, generation, sources); }
+    catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+    catch (Exception) when (operation.IsCancellationRequested || version != _buildVersion || generation != _store.Generation) { }
+    finally
+    {
+      if (version == _buildVersion) IsLoading = false;
+      if (ReferenceEquals(_buildCts, operation)) _buildCts = null;
+    }
+  }
+
+  private async Task BuildGroupsCoreAsync(CancellationToken ct, int version, long generation,
+      (ProjectComponentVm Component, OperationMaps.Application.Importing.ComponentMatchEntry Entry,
+        OperationMaps.Application.Models.ComponentRegimeSelection? Regime)[] sources)
+  {
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var form4 = await db.Forms
         .Include(f => f.Parameters)
         .FirstOrDefaultAsync(f => f.Number == "4", ct);
 
-    if (form4 is null) return;
+    if (form4 is null)
+    {
+      ct.ThrowIfCancellationRequested();
+      // Empty catalogs still support planning an empty Form 4 (e.g. a board-only project).
+      if (version == _buildVersion && generation == _store.Generation)
+        _publishedGeneration = generation;
+      return;
+    }
 
-    Parameters = form4.Parameters
+    var parameters = form4.Parameters
         .OrderBy(p => p.RowNumber)
         .Select(p => new ParameterRowVm(p))
         .ToList();
@@ -200,7 +312,7 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
     var groups = new List<Form4Group>();
 
     // RLC components — group by family name
-    var rlcComponents = _store.Components
+    var rlcComponents = sources.Select(s => s.Component)
         .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && c.HasFamily && c.FamilyName is not null)
         .GroupBy(c => (FamilyName: c.FamilyName!, TypeName: c.TypeName, Regime: c.ActiveRegime));
 
@@ -223,18 +335,11 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
         SourceComponents = components,
       };
 
-      foreach (var ntdParam in form4Group.NtdValues)
-        ntdParam.RecalculateGroupOrders = form4Group.RecalculateNoteOrders;
-
-      // Notes restored from a saved project were added before this group
-      // existed, so their * / ** numbering is only per-row until now.
-      form4Group.RecalculateNoteOrders();
-
       groups.Add(form4Group);
     }
 
     // Non-RLC components — group by full name
-    var otherComponents = _store.Components
+    var otherComponents = sources.Select(s => s.Component)
         .Where(c => !Form3DataBuilder.IsBoard(c.Entry.Imported) && !c.HasFamily)
         .GroupBy(c => (c.Name, c.ActiveRegime));
 
@@ -251,13 +356,20 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo
         SourceComponents = components,
       };
 
-      foreach (var ntdParam in otherGroup.NtdValues)
-        ntdParam.RecalculateGroupOrders = otherGroup.RecalculateNoteOrders;
-      otherGroup.RecalculateNoteOrders();
-
       groups.Add(otherGroup);
     }
 
+    ct.ThrowIfCancellationRequested();
+    if (version != _buildVersion || generation != _store.Generation
+        || !sources.Select(s => s.Component).SequenceEqual(_store.Components)
+        || sources.Any(s => !ReferenceEquals(s.Entry, s.Component.Entry) || !Equals(s.Regime, s.Component.ActiveRegime))) return;
+    Parameters = parameters;
+    foreach (var group in groups)
+    {
+      foreach (var row in group.NtdValues) row.RecalculateGroupOrders = group.RecalculateNoteOrders;
+      group.RecalculateNoteOrders();
+    }
+    _publishedGeneration = generation;
     Groups = groups;
   }
 }

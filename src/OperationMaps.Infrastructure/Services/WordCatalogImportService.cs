@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
+using DocumentFormat.OpenXml.Packaging;
 using OperationMaps.Application.Models;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
@@ -24,7 +25,7 @@ namespace OperationMaps.Infrastructure.Services;
 /// there's no shared id between them in the source document.
 /// </para>
 /// </summary>
-public sealed class WordCatalogImportService : IWordCatalogImportService
+public sealed class WordCatalogImportService : IWordCatalogImportService, IWordCatalogImportProgress
 {
   private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly IComponentEntryService _entryService;
@@ -43,13 +44,23 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     _mapLoader = mapLoader ?? throw new ArgumentNullException(nameof(mapLoader));
   }
 
-  public async Task<WordImportScanResult> ScanAsync(string documentPath, CancellationToken ct = default)
+  public Task<WordImportScanResult> ScanAsync(string documentPath, CancellationToken ct = default)
+    => Task.Run(() => ScanCoreAsync(documentPath, null, ct), ct);
+
+  public Task<WordImportScanResult> ScanAsync(string documentPath, IProgress<WordImportProgress> progress, CancellationToken ct = default)
+    => Task.Run(() => ScanCoreAsync(documentPath, progress, ct), ct);
+
+  private async Task<WordImportScanResult> ScanCoreAsync(string documentPath, IProgress<WordImportProgress>? progress, CancellationToken ct)
   {
+    ct.ThrowIfCancellationRequested();
+    progress?.Report(new("Открытие документа…"));
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     if (!File.Exists(documentPath))
       throw new FileNotFoundException("Document not found.", documentPath);
 
-    var formNumbersInDoc = WordFormReader.DetectFormNumbers(documentPath);
+    using var document = WordprocessingDocument.Open(documentPath, false);
+    var formNumbersInDoc = WordFormReader.DetectFormNumbers(document, ct);
+    progress?.Report(new("Чтение формы 4 и загрузка каталога…", 0, formNumbersInDoc.Count));
 
     var allForms = await db.Forms.Include(f => f.Parameters).ToListAsync(ct);
     var formsByNumber = allForms.ToDictionary(f => f.Number, StringComparer.OrdinalIgnoreCase);
@@ -57,7 +68,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     // ── Form 4 (family-level) — read once if present ──────────────────────
     WordFormData? form4Data = null;
     if (formsByNumber.ContainsKey("4") && TryLoadMap("4", out var form4Map))
-      form4Data = WordFormReader.Read("4", documentPath, form4Map!);
+      form4Data = WordFormReader.Read("4", document, form4Map!, ct);
 
     // Older catalogs start at resource (row 1); current maps include the two
     // list-availability rows first. Keep catalog IDs and stored projects intact.
@@ -87,10 +98,13 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     // alternative regimes of that same component.
     var seenFullNames = new Dictionary<string, WordImportedComponent>(StringComparer.Ordinal);
 
+    var processedForms = 0;
     foreach (var formNumber in formNumbersInDoc)
     {
+      ct.ThrowIfCancellationRequested();
+      progress?.Report(new($"Чтение формы {formNumber}…", processedForms++, formNumbersInDoc.Count));
       // Form 4 itself and the cover/TOC/changelog pages aren't own-forms.
-      if (formNumber is "3" or "4") continue;
+      if (formNumber.ToUpperInvariant() is "2А" or "2A" or "3" or "4") continue;
 
       if (!formsByNumber.TryGetValue(formNumber, out var form) || !TryLoadMap(formNumber, out var map))
       {
@@ -98,12 +112,13 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
         continue;
       }
 
-      var formData = WordFormReader.Read(formNumber, documentPath, map!);
+      var formData = WordFormReader.Read(formNumber, document, map!, ct);
 
       foreach (var slot in formData.Components)
       {
+        ct.ThrowIfCancellationRequested();
         var item = await ResolveComponentAsync(slot, form, form4Data, typesByName, ct);
-        if (seenFullNames.TryGetValue(slot.Name, out var previous))
+        if (seenFullNames.TryGetValue(item.FullName, out var previous))
         {
           if (previous.OwnFormId == item.OwnFormId)
           {
@@ -116,11 +131,12 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
           }
           continue;
         }
-        seenFullNames.Add(slot.Name, item);
+        seenFullNames.Add(item.FullName, item);
         resolved.Add(item);
       }
     }
 
+    progress?.Report(new($"Прочитано компонентов: {resolved.Count}", formNumbersInDoc.Count, formNumbersInDoc.Count));
     return new WordImportScanResult
     {
       Components = resolved,
@@ -130,30 +146,34 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
 
   public async Task ResolveComponentTypeAsync(WordImportedComponent item, string componentTypeName, CancellationToken ct = default)
   {
-    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     ArgumentNullException.ThrowIfNull(item);
 
     var trimmedName = componentTypeName?.Trim() ?? "";
-    item.ComponentTypeName = trimmedName;
 
     if (trimmedName.Length == 0)
     {
+      ct.ThrowIfCancellationRequested();
+      item.ComponentTypeName = trimmedName;
       item.ComponentTypeId = null;
       item.FamilyName = null;
       item.ExistingFamilyId = null;
       return;
     }
 
+    await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var type = await db.ComponentTypes.FirstOrDefaultAsync(t => t.Name == trimmedName, ct);
-    item.ComponentTypeId = type?.Id;
 
     var parsed = _nameParser.Parse($"{trimmedName} {item.FullName}");
-    var familyName = !string.IsNullOrWhiteSpace(parsed.Family) ? parsed.Family : parsed.Name;
-    item.FamilyName = familyName;
-
-    item.ExistingFamilyId = type is null
+    var familyName = WordComponentName.PreserveFamilyPrefix(item.FullName,
+      !string.IsNullOrWhiteSpace(parsed.Family) ? parsed.Family : parsed.Name);
+    var familyId = type is null
         ? null
         : (await db.Families.FirstOrDefaultAsync(f => f.ComponentTypeId == type.Id && f.Name == familyName, ct))?.Id;
+    ct.ThrowIfCancellationRequested();
+    item.ComponentTypeName = trimmedName;
+    item.ComponentTypeId = type?.Id;
+    item.FamilyName = familyName;
+    item.ExistingFamilyId = familyId;
   }
 
   public async Task<Component> ImportAsync(WordImportedComponent item, CancellationToken ct = default)
@@ -249,8 +269,14 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     {
       foreach (var (id, value) in extraValues)
       {
-        if (values.TryGetValue(id, out var previous) && previous != value)
-          throw new InvalidOperationException($"В документе указаны разные значения одного параметра: «{previous}» и «{value}». Уточните данные перед импортом; режимы создаются вручную в карточке компонента.");
+        if (values.TryGetValue(id, out var previous))
+        {
+          // Repeated position groups often leave unused NTD cells as dashes.
+          // These placeholders must not replace a known catalog value.
+          if (IsMissing(value)) continue;
+          if (!IsMissing(previous) && previous != value)
+            throw new InvalidOperationException($"В документе указаны разные значения одного параметра: «{previous}» и «{value}». Уточните данные перед импортом.");
+        }
         values[id] = value;
       }
       foreach (var (id, texts) in extraNotes)
@@ -259,6 +285,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
         foreach (var text in texts)
           if (!existing.Contains(text)) existing.Add(text);
       }
+
+      static bool IsMissing(string text) => text.Trim() is "" or "—" or "–" or "-";
     }
     var input = new NewComponentInput
     {
@@ -290,6 +318,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
   {
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var warnings = new List<string>();
+    var fullName = ForeignComponentName.WithoutManufacturer(slot.Name);
 
     // Match this component's full designation against Form4's per-family
     // "Обозначение" slots by prefix — longest match wins in case more than
@@ -300,7 +329,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
     //  2. Form4 sometimes includes a leading "ОС "/"ОСМ " (особая приёмка)
     //     quality-grade prefix that the own-form's "Наименование изделия"
     //     omits — tried as a fallback so the base designation still matches.
-    var normalizedSlotName = NormalizeHomoglyphs(slot.Name);
+    var normalizedSlotName = NormalizeHomoglyphs(StripKnownDesignationPrefix(fullName));
     var form4Matches = form4Data?.Components
         .Where(f => !string.IsNullOrWhiteSpace(f.ComponentTypeName))
         .Select(f => new
@@ -334,8 +363,9 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       else
         warnings.Add($"Тип «{typeName}» отсутствует в справочнике — будет создан новый.");
 
-      var parsed = _nameParser.Parse($"{typeName} {slot.Name}");
-      familyName = !string.IsNullOrWhiteSpace(parsed.Family) ? parsed.Family : parsed.Name;
+      var parsed = _nameParser.Parse($"{typeName} {fullName}");
+      familyName = WordComponentName.PreserveFamilyPrefix(fullName,
+        !string.IsNullOrWhiteSpace(parsed.Family) ? parsed.Family : parsed.Name);
 
       if (componentTypeId is { } id)
       {
@@ -345,7 +375,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
       }
     }
 
-    var alreadyExists = await db.Components.AnyAsync(c => c.FullName == slot.Name, ct);
+    var alreadyExists = await db.Components.AnyAsync(c => c.FullName == fullName, ct);
     var form4Values = form4Match is null ? new Dictionary<int, string>() : new Dictionary<int, string>(form4Match.NtdValues);
     var ownValues = new Dictionary<int, string>(slot.NtdValues);
     var form4Notes = WordNoteParser.Extract(form4Match?.Note ?? "", form4Values);
@@ -364,14 +394,14 @@ public sealed class WordCatalogImportService : IWordCatalogImportService
         loadFactorBaseRow = row;
         if (ReferenceEquals(values, ownValues)) ownValues[parameter.RowNumber] = text.Remove(match.Index, match.Length).Trim();
       }
-    if (!string.IsNullOrWhiteSpace(slot.Note) && ownNotes.Count == 0)
+    if (WordNoteParser.HasContent(slot.Note) && ownNotes.Count == 0)
       warnings.Add("Примечания собственной формы прочитаны, но не привязаны к строкам НТД: проверьте маркеры в ячейках.");
-    if (!string.IsNullOrWhiteSpace(form4Match?.Note) && form4Notes.Count == 0)
+    if (WordNoteParser.HasContent(form4Match?.Note) && form4Notes.Count == 0)
       warnings.Add("Примечания формы 4 прочитаны, но не привязаны к строкам НТД: проверьте маркеры в ячейках.");
 
     var resolved = new WordImportedComponent
     {
-      FullName = slot.Name,
+      FullName = fullName,
       OwnFormNumber = ownForm.Number,
       OwnFormTitle = ownForm.Title,
       OwnFormId = ownForm.Id,

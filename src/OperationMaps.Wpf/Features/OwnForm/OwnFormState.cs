@@ -54,10 +54,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     }
 
     /// <summary>
-    /// Raised after a column's load-factor result was recomputed, so the
+    /// Raised after a column's formulas and load factor were recomputed, so the
     /// currently shown ViewModel (if any) can refresh what's on screen.
     /// </summary>
-    public event Action<FormColumnVm>? LoadFactorRecalculated;
+    public event Action<FormColumnVm>? CalculatedValuesChanged;
 
     /// <summary>
     /// Raised on any user edit of this form: a column's values/notes, or the
@@ -86,7 +86,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     }
 
     public void SetParameters(IReadOnlyList<FormParameterRowVm> parameters)
-        => Parameters = parameters;
+    {
+      Parameters = parameters;
+      foreach (var column in Columns) RecalculateCalculatedValues(column);
+    }
 
     /// <summary>
     /// Swaps the whole column set (used when restoring a saved project).
@@ -100,34 +103,49 @@ namespace OperationMaps.Wpf.Features.OwnForm
       foreach (var col in columns)
         Columns.Add(col);
       foreach (var col in Columns)
-        RecalculateLoadFactor(col);
+        RecalculateCalculatedValues(col);
       History.Clear();
     }
 
     /// <summary>
-    /// Recomputes the load-factor result for one column and writes it
-    /// into the IsLoadFactorResult row's CellValues, so it shows up in
-    /// the table exactly like any other "в схеме" value — the user just
-    /// never types into it directly.
+    /// Recomputes formula rows before the load factor, independently of screens.
+    /// Writes derived values directly so calculation does not trigger user edits.
     /// </summary>
-    public void RecalculateLoadFactor(FormColumnVm column)
+    public void RecalculateCalculatedValues(FormColumnVm column)
     {
-      if (LoadFactorResultParameterId is not { } resultParamId) return;
-      if (column.LoadFactorBaseParameterId is not { } baseParamId) return;
+      var rows = Parameters.Where(p => !p.IsOptional).ToDictionary(p => p.RowNumber);
+      var results = new Dictionary<int, string?>();
+      var visiting = new HashSet<int>();
+      var derived = rows.Values.Where(p => p.Formula is not null).ToArray();
+      foreach (var parameter in derived) Evaluate(parameter.RowNumber);
+      foreach (var parameter in derived)
+        column.CellValues[parameter.FormParameterId] = results[parameter.RowNumber] ?? "";
 
-      var baseParam = Parameters.FirstOrDefault(p => p.FormParameterId == baseParamId);
-      if (baseParam is null) return;
+      string? Evaluate(int rowNumber)
+      {
+        if (!rows.TryGetValue(rowNumber, out var row)) return null;
+        if (row.Formula is null) return column.GetCellValue(row.FormParameterId);
+        if (results.TryGetValue(rowNumber, out var cached)) return cached;
+        if (!visiting.Add(rowNumber))
+          throw new InvalidOperationException($"Циклическая формула в форме {FormNumber}, строка {rowNumber}.");
+        var value = ParameterFormulaCalculator.Calculate(row.Formula, Evaluate);
+        visiting.Remove(rowNumber);
+        results[rowNumber] = value;
+        return value;
+      }
 
-      var result = LoadFactorCalculator.Calculate(
-          column.GetCellValue(baseParamId),
-          column.GetNtdValue(baseParamId),
-          baseParam.RowNumber);
-
-      column.LoadFactorValue = result ?? "";
-      column.CellValues[resultParamId] = result ?? "";
+      if (LoadFactorResultParameterId is { } resultParamId)
+      {
+        var baseParam = Parameters.FirstOrDefault(p => p.FormParameterId == column.LoadFactorBaseParameterId);
+        var result = baseParam is null ? null : LoadFactorCalculator.Calculate(
+            column.GetCellValue(baseParam.FormParameterId),
+            column.GetNtdValue(baseParam.FormParameterId), baseParam.RowNumber);
+        column.LoadFactorValue = result ?? "";
+        column.CellValues[resultParamId] = result ?? "";
+      }
       column.NotifyCellValuesChanged();
 
-      LoadFactorRecalculated?.Invoke(column);
+      CalculatedValuesChanged?.Invoke(column);
     }
 
     private void OnColumnsChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -135,7 +153,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       if (e.OldItems is not null)
         foreach (FormColumnVm col in e.OldItems)
         {
-          col.LoadFactorInputsChanged -= RecalculateLoadFactor;
+          col.CalculationInputsChanged -= RecalculateCalculatedValues;
           col.Edited -= OnColumnEdited;
         }
 
@@ -143,10 +161,11 @@ namespace OperationMaps.Wpf.Features.OwnForm
         foreach (FormColumnVm col in e.NewItems)
         {
           // -= first: undo re-inserts the very same instance that was removed
-          col.LoadFactorInputsChanged -= RecalculateLoadFactor;
-          col.LoadFactorInputsChanged += RecalculateLoadFactor;
+          col.CalculationInputsChanged -= RecalculateCalculatedValues;
+          col.CalculationInputsChanged += RecalculateCalculatedValues;
           col.Edited -= OnColumnEdited;
           col.Edited += OnColumnEdited;
+          RecalculateCalculatedValues(col);
         }
 
       Edited?.Invoke();

@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Importing;
 using OperationMaps.Application.Word;
 using OperationMaps.Domain.Entities.Catalog;
@@ -22,73 +22,9 @@ public sealed class ComponentMatcher : IComponentMatcher
     ImportedComponent imported,
     CancellationToken ct = default)
   {
-    if (Form3DataBuilder.IsBoard(imported)) return new MatchResult { IsMatched = true };
-    await using var context = await _dbFactory.CreateDbContextAsync(ct);
-    var typeName = imported.DetectedCategory;
-
-    if (string.IsNullOrEmpty(typeName))
-      return Unmatched($"Не удалось распарсить тип компонента: {imported.RawName}");
-
-    // Full names are unique in the catalog. XML may describe the same part
-    // with another category (e.g. "Модуль фильтрации и защиты" vs "Фильтр").
-    var exact = await context.Components
-      .Include(c => c.OwnForm)
-      .Include(c => c.Family).ThenInclude(f => f.ComponentType)
-      .Include(c => c.Family).ThenInclude(f => f.FamilyForms).ThenInclude(ff => ff.Form)
-      .FirstOrDefaultAsync(c => c.FullName == imported.RawName, ct);
-    if (exact is not null)
-      return BuildResult(_nameParser.Parse($"{typeName} {imported.RawName}"),
-        exact.Family.ComponentType, exact.Family, exact);
-
-    // 1. Ищем тип компонента в БД
-    var type = await context.ComponentTypes
-        .FirstOrDefaultAsync(t => t.Name == typeName, ct);
-
-    if (type is null)
-      return Unmatched($"Неизвестный тип компонента: {typeName}");
-
-    Family? family = null;
-    var parsed = _nameParser.Parse($"{typeName} {imported.RawName}");
-
-    // NOTE: removed the "parsed.Family != parsed.Name" guard that used to be
-    // here. For non-RLC component types (microchips, connectors, etc.) the
-    // parser intentionally returns Family == Name — that's the convention,
-    // not a sign that "no family was detected". Skipping the lookup for those
-    // types meant a Family created via the "add component" wizard could never
-    // be found again on a later import, even though it existed in the DB.
-    if (!string.IsNullOrEmpty(parsed.Family))
-    {
-      family = await context.Families
-          .Include(f => f.FamilyForms)
-              .ThenInclude(ff => ff.Form)
-          .FirstOrDefaultAsync(
-              f => f.ComponentTypeId == type.Id
-                && f.Name == parsed.Family, ct);
-    }
-
-
-    // 4. Ищем компонент по полному имени
-    Component? component = null;
-
-    // 4. Определяем требуемые формы
-    var requiredForms = new List<Form>();
-
-    if (family is not null)
-      requiredForms.AddRange(family.FamilyForms.Select(ff => ff.Form));
-
-    if (component?.OwnForm is not null
-        && requiredForms.All(f => f.Id != component.OwnForm.Id))
-      requiredForms.Add(component.OwnForm);
-
-    return new MatchResult
-    {
-      IsMatched = component is not null,
-      MatchedType = type,
-      MatchedFamily = family,
-      MatchedComponent = component,
-      RequiredForms = requiredForms,
-      Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null
-    };
+    ArgumentNullException.ThrowIfNull(imported);
+    var result = await MatchAllAsync([imported], ct);
+    return result.Matched.Concat(result.Unresolved).Single().MatchResult;
   }
 
   // ── Batch match — 3 queries total regardless of input size ────────────────
@@ -122,39 +58,29 @@ public sealed class ComponentMatcher : IComponentMatcher
       .Where(t => typeNames.Contains(t.Name))
       .ToDictionaryAsync(t => t.Name, ct);
 
-    // NOTE: removed "p.Family != p.Name" filter — see comment in MatchAsync
-    // above. For non-RLC types Family legitimately equals Name; excluding
-    // those from the lookup made it impossible to ever re-match a
-    // manually-created Family for those component types.
-    var familyNames = parsed.Values
-      .Where(p => !string.IsNullOrEmpty(p.Family))
-      .Select(p => p.Family)
-      .Distinct()
-      .ToList();
-
-    // Query 2 — all referenced Families with their form associations
+    // Include full-name families too (non-RLC components). Load by type so
+    // formatting variations of a family name can be compared in memory.
     var familiesByTypeAndName = await context.Families
       .Include(f => f.FamilyForms)
         .ThenInclude(ff => ff.Form)
-      .Where(f => familyNames.Contains(f.Name))
+      .Where(f => typeNames.Contains(f.ComponentType.Name))
       .ToListAsync(ct);
 
     // Build a lookup keyed by (ComponentTypeId, FamilyName) for O(1) access
     var familyLookup = familiesByTypeAndName
         .ToDictionary(f => (f.ComponentTypeId, f.Name));
 
-    var rawNames = components
-    .Select(c => c.RawName)
-    .Distinct()
-    .ToList();
-
-    // Query 3 — all referenced Components
-    var componentsByName = await context.Components
+    // SQL cannot apply our Unicode comparison rules. Load catalog designations
+    // once, index exact and normalized keys, and retain ambiguity explicitly.
+    var catalogComponents = await context.Components
         .Include(c => c.OwnForm)
         .Include(c => c.Family).ThenInclude(f => f.ComponentType)
         .Include(c => c.Family).ThenInclude(f => f.FamilyForms).ThenInclude(ff => ff.Form)
-        .Where(c => rawNames.Contains(c.FullName))
-        .ToDictionaryAsync(c => c.FullName, ct);
+        .AsNoTracking()
+        .ToListAsync(ct);
+    var componentsByName = catalogComponents.ToDictionary(c => c.FullName);
+    var normalizedComponents = catalogComponents.ToLookup(c => ComponentNameKey.Create(c.FullName));
+    var normalizedFamilies = familiesByTypeAndName.ToLookup(f => (f.ComponentTypeId, ComponentNameKey.Create(f.Name)));
 
     // ── Step 3: match in-memory, zero additional DB calls ───────────────────
     var matched = new List<ComponentMatchEntry>(components.Count);
@@ -181,6 +107,25 @@ public sealed class ComponentMatcher : IComponentMatcher
           Imported = imported,
           MatchResult = BuildResult(p, exact.Family.ComponentType, exact.Family, exact)
         });
+        continue;
+      }
+
+      var candidates = normalizedComponents[ComponentNameKey.Create(imported.RawName)].ToArray();
+      if (candidates.Length == 1)
+      {
+        var candidate = candidates[0];
+        matched.Add(new ComponentMatchEntry
+        {
+          Imported = imported,
+          MatchResult = BuildResult(p, candidate.Family.ComponentType, candidate.Family, candidate)
+        });
+        continue;
+      }
+      if (candidates.Length > 1)
+      {
+        var warning = $"Неоднозначное соответствие для «{imported.RawName}»: {string.Join("; ", candidates.Select(c => c.FullName))}. Уточните запись каталога.";
+        unresolved.Add(new ComponentMatchEntry { Imported = imported, MatchResult = Unmatched(warning) });
+        warnings.Add(warning);
         continue;
       }
 
@@ -212,6 +157,11 @@ public sealed class ComponentMatcher : IComponentMatcher
       if (!string.IsNullOrEmpty(p.Family))
         familyLookup.TryGetValue((type.Id, p.Family), out family);
 
+      if (family is null && !string.IsNullOrEmpty(p.Family))
+      {
+        var candidateFamilies = normalizedFamilies[(type.Id, ComponentNameKey.Create(p.Family))].ToArray();
+        if (candidateFamilies.Length == 1) family = candidateFamilies[0];
+      }
       componentsByName.TryGetValue(imported.RawName, out var component);
 
       var result = BuildResult(p, type, family, component);

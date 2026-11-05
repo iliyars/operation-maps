@@ -95,7 +95,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       // Initial calculation in case values were already loaded (e.g. via
       // Word import) before the user touches anything.
       foreach (var col in state.Columns)
-        state.RecalculateLoadFactor(col);
+        state.RecalculateCalculatedValues(col);
 
       return state;
     }
@@ -117,7 +117,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
       {
         var source = relevant.FirstOrDefault(c => c == column.Component
           || c.Entry.Imported.Positions.Intersect(column.Component.Entry.Imported.Positions).Any());
-        if (source is not null && source != column.Component) column.Component.SelectRegime(source.ActiveRegime);
+        if (!column.HasRegimeOverride && source is not null && source != column.Component)
+          column.Component.SelectRegime(source.ActiveRegime);
       }
       var changedRegimes = state.Columns.Where(c => c.NeedsRegimeRefresh).ToList();
       if (changedRegimes.Count > 0)
@@ -126,7 +127,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         foreach (var column in changedRegimes)
         {
           column.RefreshRegime(state.FormNumber, regimeParameters);
-          state.RecalculateLoadFactor(column);
+          state.RecalculateCalculatedValues(column);
         }
       }
 
@@ -165,7 +166,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         foreach (var col in await BuildColumnsAsync(state, parameters, missing, ct))
         {
           state.Columns.Add(col);
-          state.RecalculateLoadFactor(col);
+          state.RecalculateCalculatedValues(col);
         }
       }
 

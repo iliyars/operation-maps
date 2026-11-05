@@ -184,7 +184,7 @@ namespace OperationMaps.Infrastructure.Word
     public static void RemoveTrailingParagraphsAfterTable(
         WordprocessingDocument doc, Table table)
     {
-      var body = doc.MainDocumentPart!.Document.Body!;
+      var body = WordDocumentStructure.RequireBody(doc);
 
       var toRemove = new List<Paragraph>();
       bool pastTable = false;
@@ -217,8 +217,7 @@ namespace OperationMaps.Infrastructure.Word
     /// <returns>The cloned (empty) table, ready to be filled.</returns>
     public static Table CloneTable(WordprocessingDocument doc, Table table)
     {
-      var body = doc.MainDocumentPart!.Document.Body
-          ?? throw new InvalidOperationException("Document has no body.");
+      var body = WordDocumentStructure.RequireBody(doc);
 
       var clone = (Table)table.CloneNode(deep: true);
 

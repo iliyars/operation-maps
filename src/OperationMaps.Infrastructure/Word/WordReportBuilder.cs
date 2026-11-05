@@ -73,7 +73,7 @@ namespace OperationMaps.Infrastructure.Word
       // read the bytes back out.
       using (var report = WordprocessingDocument.Open(ms, isEditable: true))
       {
-        var reportBody = report.MainDocumentPart!.Document.Body!;
+        var reportBody = WordDocumentStructure.RequireBody(report);
 
         // ── 2. Export each form and merge into report body ───────────────────
         foreach (var (data, templatePath) in appended)
@@ -88,7 +88,7 @@ namespace OperationMaps.Infrastructure.Word
         }
 
         // ── 3. Save ─────────────────────────────────────────────────────────
-        report.MainDocumentPart!.Document.Save();
+        WordDocumentStructure.RequireDocument(report).Save();
       }
 
       ms.Position = 0;

@@ -29,6 +29,7 @@ public static class LoadFactorCalculator
     if (ntd == 0) return null;
 
     var ratio = Math.Abs(scheme / ntd);
+    if (!double.IsFinite(ratio)) return null;
     if (ratio < MinimumValue) ratio = MinimumValue;
 
     var formatted = ratio.ToString("0.##", CultureInfo.InvariantCulture).Replace('.', ',');
@@ -41,6 +42,7 @@ public static class LoadFactorCalculator
     if (string.IsNullOrWhiteSpace(value)) return false;
 
     var normalized = value.Trim().Replace(',', '.');
-    return double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out result);
+    return double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out result)
+        && double.IsFinite(result);
   }
 }

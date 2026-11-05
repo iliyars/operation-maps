@@ -71,6 +71,70 @@ public class ComponentMatcherTests : IDisposable
   }
 
   [Fact]
+  public async Task Formatting_variations_match_and_keep_xml_name_for_display_and_word()
+  {
+    var xmlName = KnownDesignation.Replace("-", "–").Replace(" ", "\u00a0");
+    var imported = Imported(xmlName, Category);
+    var single = await _matcher.MatchAsync(imported);
+    var batch = await _matcher.MatchAllAsync([imported]);
+    Assert.True(single.IsMatched);
+    var entry = Assert.Single(batch.Matched);
+    Assert.Equal(single.MatchedComponent!.Id, entry.MatchResult.MatchedComponent!.Id);
+    Assert.Equal(xmlName, imported.RawName);
+    var vm = new OperationMaps.Wpf.Features.Components.ProjectComponentVm(entry);
+    Assert.Equal(xmlName, vm.Name);
+    var data = OperationMaps.Wpf.Features.OwnForm.OwnFormWordDataBuilder.Build("67", "", [],
+      [new OperationMaps.Wpf.Features.OwnForm.FormColumnVm(vm)]);
+    Assert.Equal(xmlName, Assert.Single(data.Components).Name);
+    Assert.Equal(KnownDesignation, await _db.Components.Select(c => c.FullName).SingleAsync());
+  }
+
+  [Fact]
+  public async Task Hyphen_or_space_before_tolerance_letter_suffix_matches()
+  {
+    var family = await _db.Families.SingleAsync();
+    _db.Components.Add(new Component { FamilyId = family.Id, FullName = "Р2-105-0,75-0,75 Ом+-1%-А" });
+    await _db.SaveChangesAsync();
+    Assert.True((await _matcher.MatchAsync(Imported("Р2-105-0,75-0,75 Ом+-1% А", "Резистор"))).IsMatched);
+  }
+
+  [Fact]
+  public async Task Quotes_spaces_and_visual_latin_cyrillic_letters_are_compared_without_rewriting_names()
+  {
+    var family = await _db.Families.SingleAsync();
+    _db.Components.Add(new Component { FamilyId = family.Id, FullName = "ОС К53-68 «А»-50 В-0,1 мкФ +-10%" });
+    await _db.SaveChangesAsync();
+    var xml = Imported("ОС К53-68\"A\"-50В-0,1мкФ+-10 %", Category);
+    Assert.True((await _matcher.MatchAsync(xml)).IsMatched);
+  }
+
+  [Fact]
+  public async Task Ambiguous_normalized_names_require_manual_choice_but_exact_match_wins()
+  {
+    var family = await _db.Families.SingleAsync();
+    _db.Components.Add(new Component { FamilyId = family.Id, FullName = KnownDesignation.Replace(" ", "") });
+    await _db.SaveChangesAsync();
+    Assert.True((await _matcher.MatchAsync(Imported(KnownDesignation, Category))).IsMatched);
+    var result = await _matcher.MatchAllAsync([Imported(KnownDesignation.Replace("-", "–"), Category)]);
+    Assert.Empty(result.Matched);
+    Assert.Contains("Неоднозначное", Assert.Single(result.Unresolved).MatchResult.Warning);
+  }
+
+  [Theory]
+  [InlineData("Деталь-0,125-1МОм", "Деталь-0,25-1МОм")]
+  [InlineData("Деталь-0,125-1МОм", "Деталь-0,125-1мОм")]
+  [InlineData("Деталь-12", "Деталь-1-2")]
+  [InlineData("ОСМ 1325ЕР1У", "1325ЕР1У")]
+  [InlineData("ОСМ 1325ЕР1У", "ОС 1325ЕР1У")]
+  public async Task Meaningful_differences_are_not_ignored(string catalog, string xml)
+  {
+    var family = await _db.Families.SingleAsync();
+    _db.Components.Add(new Component { FamilyId = family.Id, FullName = catalog });
+    await _db.SaveChangesAsync();
+    Assert.False((await _matcher.MatchAsync(Imported(xml, Category))).IsMatched);
+  }
+
+  [Fact]
   public async Task Boards_need_no_catalog_entries_in_single_or_batch_matching()
   {
     var board = new ImportedComponent

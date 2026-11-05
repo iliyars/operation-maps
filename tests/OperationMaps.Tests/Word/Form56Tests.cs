@@ -23,7 +23,7 @@ public class Form56Tests
     using (var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false))
     {
       var part = doc.MainDocumentPart!;
-      var tables = part.Document.Body!.Elements<Table>().ToArray();
+      var tables = WordDocumentAssertions.BodyOf(part).Elements<Table>().ToArray();
       Assert.Equal(2, tables.Length);
       Assert.Contains("полупроводниковых стабилитронов и стабисторов", tables[0].InnerText);
       Assert.DoesNotContain("варикапов", tables[0].InnerText);
@@ -45,8 +45,8 @@ public class Form56Tests
       Assert.Equal("4", WordTableHelper.GetCellText(tables[0], 7, 1));
       Assert.Equal("в схеме", WordTableHelper.GetCellText(tables[0], 3, 1));
       Assert.Equal("по НТД", WordTableHelper.GetCellText(tables[0], 3, 2));
-      Assert.Equal(9, part.Document.Body.Elements<SectionProperties>().Single().GetFirstChild<PageNumberType>()!.Start!.Value);
-      var header = string.Join("", part.HeaderParts.Select(h => h.Header.InnerText));
+      Assert.Equal(9, WordDocumentAssertions.BodyOf(part).Elements<SectionProperties>().Single().GetFirstChild<PageNumberType>()!.Start!.Value);
+      var header = string.Join("", part.HeaderParts.Select(h => Assert.IsType<Header>(h.Header).InnerText));
       Assert.Contains("ТЕСТ.123Д4", header);
       Assert.DoesNotContain("{{designation}}", header);
     }

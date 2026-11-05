@@ -118,6 +118,8 @@
         </Button>
         <Button Style="{StaticResource OutlineButton}"
                 Command="{Binding MergeCommand}"
+                ToolTip="Выберите с Ctrl два компонента с одинаковым полным наименованием"
+                ToolTipService.ShowOnDisabled="True"
                 Margin="0,0,12,0">
           <StackPanel Orientation="Horizontal">
             <TextBlock Text="&#xF546;"

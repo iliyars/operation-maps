@@ -20,29 +20,7 @@ internal static class ProjectFileValidator
       if (component is null || string.IsNullOrWhiteSpace(component.RawName)
           || component.DetectedCategory is null || component.Positions is null)
         Fail("Некорректные данные компонента.");
-      if (component.Regime is { } regime && (string.IsNullOrWhiteSpace(regime.Name)
-          || string.IsNullOrWhiteSpace(regime.Condition) || regime.Values is null
-          || regime.Values.Any(v => v is null || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1
-            || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))
-          || regime.Values.Select(v => (v.FormNumber, v.RowNumber)).Distinct().Count() != regime.Values.Count))
-        Fail("Некорректный режим компонента.");
-      if (component.Regime is { } selection)
-      {
-        if (selection.Conditions is null || selection.Conditions.Any(c => c is null || c.Conditions is null
-          || c.Conditions.Count > 0 || string.IsNullOrWhiteSpace(c.Name) || string.IsNullOrWhiteSpace(c.Condition)
-          || c.Values is null || c.Values.Count == 0 || c.Values.Any(v => v is null
-            || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1 || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))))
-          Fail("Некорректные условия компонента.");
-        if (selection.Conditions.Count > 0)
-        {
-          OperationMaps.Application.Models.ComponentRegimeSelection combined;
-          try { combined = OperationMaps.Application.Models.ComponentRegimeSelection.Combine(selection.Conditions)!; }
-          catch (InvalidOperationException) { Fail("Противоречащие условия компонента."); throw; }
-          if (!combined.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)
-            .SequenceEqual(selection.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)))
-            Fail("Значения компонента не соответствуют выбранным условиям.");
-        }
-      }
+      ValidateRegime(component.Regime);
       foreach (var position in component.Positions)
         if (string.IsNullOrWhiteSpace(position) || !positions.Add(position))
           Fail("Пустое или повторяющееся позиционное обозначение компонента.");
@@ -69,12 +47,42 @@ internal static class ProjectFileValidator
         if (column is null || column.Positions is null || column.Values is null
             || column.OptionalValues is null || column.Notes is null || column.LoadFactorBaseRow is < 1)
           Fail("Некорректные данные столбца формы.");
+        if (!column.HasRegimeOverride && column.Regime is not null)
+          Fail("Условия столбца заданы без явного выбора.");
+        ValidateRegime(column.Regime);
         foreach (var position in column.Positions)
           if (string.IsNullOrWhiteSpace(position) || !formPositions.Add(position))
             Fail("Пустое или повторяющееся позиционное обозначение в форме.");
         if (column.Values.Concat(column.OptionalValues).Any(v => v.Key < 1 || v.Value is null)
             || column.Notes.Any(n => n is null || n.Row < 1 || n.Text is null))
           Fail("Некорректные значения или примечания в форме.");
+      }
+    }
+  }
+
+  private static void ValidateRegime(OperationMaps.Application.Models.ComponentRegimeSelection? savedRegime)
+  {
+    if (savedRegime is { } regime && (string.IsNullOrWhiteSpace(regime.Name)
+        || string.IsNullOrWhiteSpace(regime.Condition) || regime.Values is null
+        || regime.Values.Any(v => v is null || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1
+          || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))
+        || regime.Values.Select(v => (v.FormNumber, v.RowNumber)).Distinct().Count() != regime.Values.Count))
+      Fail("Некорректный режим компонента.");
+    if (savedRegime is { } selection)
+    {
+      if (selection.Conditions is null || selection.Conditions.Any(c => c is null || c.Conditions is null
+        || c.Conditions.Count > 0 || string.IsNullOrWhiteSpace(c.Name) || string.IsNullOrWhiteSpace(c.Condition)
+        || c.Values is null || c.Values.Count == 0 || c.Values.Any(v => v is null
+          || string.IsNullOrWhiteSpace(v.FormNumber) || v.RowNumber < 1 || string.IsNullOrWhiteSpace(v.Value) || v.Value.Contains('*'))))
+        Fail("Некорректные условия компонента.");
+      if (selection.Conditions.Count > 0)
+      {
+        OperationMaps.Application.Models.ComponentRegimeSelection combined;
+        try { combined = OperationMaps.Application.Models.ComponentRegimeSelection.Combine(selection.Conditions)!; }
+        catch (InvalidOperationException) { Fail("Противоречащие условия компонента."); throw; }
+        if (!combined.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)
+          .SequenceEqual(selection.Values.OrderBy(v => v.FormNumber).ThenBy(v => v.RowNumber)))
+          Fail("Значения компонента не соответствуют выбранным условиям.");
       }
     }
   }

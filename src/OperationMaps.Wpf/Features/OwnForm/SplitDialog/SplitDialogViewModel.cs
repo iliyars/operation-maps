@@ -19,6 +19,7 @@ namespace OperationMaps.Wpf.Features.OwnForm.SplitDialog
     private int _unassignedCount;
 
     public bool CanConfirm => UnassignedCount == 0
+                           && Groups.Count >= 2
                            && Groups.All(g => g.Positions.Count > 0);
 
     public SplitDialogViewModel(IReadOnlyList<string> positions)

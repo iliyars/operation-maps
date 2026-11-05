@@ -5,6 +5,9 @@ namespace OperationMaps.Infrastructure.Word;
 /// <summary>Links note definitions to NTD values and removes star markers from stored values.</summary>
 public static partial class WordNoteParser
 {
+  public static bool HasContent(string? text) => !string.IsNullOrWhiteSpace(text)
+    && text.Trim() is not ("—" or "–" or "-");
+
   public static Dictionary<int, List<string>> Extract(string noteText, Dictionary<int, string> values)
   {
     var definitions = DefinitionRegex().Matches(noteText.Replace("\r\n", "\n"));

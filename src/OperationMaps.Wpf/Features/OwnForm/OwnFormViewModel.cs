@@ -144,10 +144,13 @@ namespace OperationMaps.Wpf.Features.OwnForm
     public ObservableCollection<FormColumnVm> SelectedColumns { get; } = [];
 
     public bool CanSplit => SelectedColumn?.Component.Entry.Imported.Positions.Count > 1;
-    public bool CanMerge => SelectedColumns.Count == 2;
+    public bool CanMerge => SelectedColumns.Count == 2
+      && !ReferenceEquals(SelectedColumns[0], SelectedColumns[1])
+      && string.Equals(SelectedColumns[0].Name, SelectedColumns[1].Name, StringComparison.Ordinal);
     private bool CanExport => Columns.Count > 0 && !IsExporting && !string.IsNullOrEmpty(FormNumber);
 
     public event Action<FormColumnVm>? SplitRequested;
+    public event Action<ColumnMergePlan>? MergeConflictsRequested;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -200,7 +203,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       // The state and the session outlive this ViewModel — don't let them keep us alive.
       if (_state is not null)
       {
-        _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+        _state.CalculatedValuesChanged -= OnCalculatedValuesChanged;
         _state.Edited -= RefreshAllItems;
       }
       _session.PropertyChanged -= OnSessionChanged;
@@ -325,9 +328,18 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand(CanExecute = nameof(CanMerge))]
     private void Merge()
     {
+      if (!CanMerge) return;
       var first = SelectedColumns[0];
       var second = SelectedColumns[1];
-      ExecuteCommand(new MergeColumnsCommand(Columns, first, second));
+      var plan = new ColumnMergePlan(first, second,
+        Parameters.ToDictionary(p => p.FormParameterId, p => $"{p.RowNumber}. {p.Name}"),
+        Parameters.Where(p => p.IsLoadFactorResult || p.Formula is not null).Select(p => p.FormParameterId));
+      if (plan.Conflicts.Count > 0)
+      {
+        MergeConflictsRequested?.Invoke(plan);
+        if (!plan.Confirmed || !plan.IsResolved) return;
+      }
+      ExecuteCommand(new MergeColumnsCommand(Columns, first, second, plan));
       RebuildColumnItems();
       ClearMultiSelection();
     }
@@ -375,34 +387,6 @@ namespace OperationMaps.Wpf.Features.OwnForm
           })
           .ToList();
 
-      var derivedRows = details.Where(d => d.IsDerived).ToList();
-      if (derivedRows.Count > 0)
-      {
-        foreach (var sourceRow in details.Where(d => !d.IsDerived))
-        {
-          sourceRow.PropertyChanged += (_, e) =>
-          {
-            if (e.PropertyName == nameof(ParameterDetailVm.SchemeValue))
-              foreach (var derived in derivedRows)
-                derived.Recalculate(details);
-
-            SelectedItem?.Refresh();
-          };
-        }
-
-        foreach (var derived in derivedRows)
-        {
-          derived.PropertyChanged += (_, e) =>
-          {
-            if (e.PropertyName == nameof(ParameterDetailVm.SchemeValue))
-              SelectedItem?.Refresh();
-          };
-        }
-
-        foreach (var derived in derivedRows)
-          derived.Recalculate(details);
-      }
-
       ParameterDetails = details;
     }
 
@@ -415,6 +399,8 @@ namespace OperationMaps.Wpf.Features.OwnForm
     [RelayCommand]
     private void ToggleColumnSelection(FormColumnVm column)
     {
+      if (!SelectedColumns.Contains(column) && SelectedColumns.Count > 0
+        && !string.Equals(SelectedColumns[0].Name, column.Name, StringComparison.Ordinal)) return;
       var item = ColumnItems.FirstOrDefault(i => i.Column == column);
 
       if (SelectedColumns.Contains(column))
@@ -556,7 +542,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
     {
       if (_state is not null)
       {
-        _state.LoadFactorRecalculated -= OnLoadFactorRecalculated;
+        _state.CalculatedValuesChanged -= OnCalculatedValuesChanged;
         _state.Edited -= RefreshAllItems;
       }
 
@@ -586,7 +572,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         return;
       }
 
-      _state.LoadFactorRecalculated += OnLoadFactorRecalculated;
+      _state.CalculatedValuesChanged += OnCalculatedValuesChanged;
       _state.Edited += RefreshAllItems;
 
       foreach (var option in _state.LoadFactorOptions)
@@ -605,25 +591,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
     // ── Private: helpers ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// <see cref="OwnFormState"/> already wrote the new load-factor result
-    /// into the column; refresh what's on screen for it.
+    /// <see cref="OwnFormState"/> already wrote the calculated values
+    /// into the column; refresh them on screen without writing them back.
     /// </summary>
-    private void OnLoadFactorRecalculated(FormColumnVm column)
+    private void OnCalculatedValuesChanged(FormColumnVm column)
     {
-      var resultParamId = _state?.LoadFactorResultParameterId;
-      if (resultParamId is null) return;
-
-      // Each ParameterDetailVm snapshots SchemeValue at construction time
-      // rather than binding live to the column, so push the value into the
-      // visible detail row of the selected column explicitly.
       if (SelectedColumn == column)
-      {
-        var resultDetail = ParameterDetails.FirstOrDefault(
-            d => d.FormParameterId == resultParamId.Value);
-        if (resultDetail is not null)
-          resultDetail.SchemeValue = column.LoadFactorValue;
-      }
-
+        foreach (var detail in ParameterDetails.Where(d => d.IsReadOnlyValue))
+          detail.RefreshCalculatedValue();
       // Fill status changed without going through the normal SchemeValue setter.
       ColumnItems.FirstOrDefault(i => i.Column == column)?.Refresh();
     }

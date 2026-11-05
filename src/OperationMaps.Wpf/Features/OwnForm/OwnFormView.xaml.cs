@@ -42,9 +42,37 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     private void AttachNavigation(OwnFormViewModel? vm)
     {
-      if (_navigationVm is not null) _navigationVm.MissingParameterRequested -= FocusMissingParameter;
+      if (_navigationVm is not null)
+      {
+        _navigationVm.MissingParameterRequested -= FocusMissingParameter;
+        _navigationVm.SplitRequested -= OpenSplitDialog;
+        _navigationVm.MergeConflictsRequested -= OpenMergeConflictDialog;
+      }
       _navigationVm = vm;
-      if (vm is not null) vm.MissingParameterRequested += FocusMissingParameter;
+      if (vm is not null)
+      {
+        vm.MissingParameterRequested += FocusMissingParameter;
+        vm.SplitRequested += OpenSplitDialog;
+        vm.MergeConflictsRequested += OpenMergeConflictDialog;
+      }
+    }
+
+    private void OpenMergeConflictDialog(Commands.ColumnMergePlan plan)
+    {
+      var dialog = new MergeDialog.MergeConflictDialog(plan) { Owner = Window.GetWindow(this) };
+      plan.Confirmed = dialog.ShowDialog() == true;
+    }
+
+    private void OpenSplitDialog(FormColumnVm column)
+    {
+      var vm = _navigationVm;
+      if (vm is null || column.Component.Entry.Imported.Positions.Count < 2) return;
+      var dialog = new SplitDialog.SplitDialog(column.Component.Entry.Imported.Positions)
+      {
+        Owner = Window.GetWindow(this)
+      };
+      if (dialog.ShowDialog() == true && dialog.Result is { Count: >= 2 } groups && _navigationVm == vm)
+        vm.ExecuteMultiSplit(column, groups);
     }
 
     private void FocusMissingParameter(FormParameterRowVm parameter)

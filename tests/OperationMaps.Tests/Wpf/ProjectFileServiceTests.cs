@@ -200,6 +200,38 @@ public sealed class ProjectFileServiceTests : IDisposable
   private ProjectFileService CreateService(ProjectStore store)
       => new(store, TestCatalogDbContextFactory.From(_db), new CatalogNameMatcher(_db), new ProjectFileWriter());
 
+  [Fact]
+  public async Task Reopened_project_recalculates_formula_and_load_factor_without_opening_form_screen()
+  {
+    var sum = new FormParameter { Form = _form, RowNumber = 4, Name = "Сумма", Formula = "row1+row3", CanBeLoadFactorBase = true };
+    _db.FormParameters.Add(sum);
+    await _db.SaveChangesAsync();
+    var component = await _db.Components.SingleAsync();
+    _db.ComponentNtdValues.Add(new ComponentNtdValue { ComponentId = component.Id, FormParameterId = sum.Id, Value = "20" });
+    await _db.SaveChangesAsync();
+    var store = await LoadedStoreAsync();
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    var column = Assert.Single(state.Columns);
+    column.LoadFactorBaseParameterId = sum.Id;
+    column.SetCellValue(_baseParamId, "3");
+    column.SetCellValue(_plainParamId, "5");
+    Assert.Equal("8", column.GetCellValue(sum.Id));
+    await CreateService(store).SaveAsync(_path);
+    var saved = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(_path))!;
+    var values = saved["ownForms"]![0]!["columns"]![0]!["values"]!;
+    Assert.Null(values["4"]);
+    // Older versions persisted derived values; stale values must not win on restore.
+    values["4"] = "999";
+    await File.WriteAllTextAsync(_path, saved.ToJsonString());
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    var restored = reopened.OwnForms[_form.Id];
+    var data = OwnFormWordDataBuilder.Build(restored.FormNumber, "Плата", restored.Parameters, restored.Columns);
+    Assert.Equal("8", data.Components[0].SchemeValues[4]);
+    Assert.Equal("0,4 (4)", data.Components[0].SchemeValues[2]);
+    Assert.False(reopened.IsDirty);
+  }
+
   private async Task<ProjectStore> LoadedStoreAsync(string name = "Плата")
   {
     var store = new ProjectStore();
@@ -410,6 +442,195 @@ public sealed class ProjectFileServiceTests : IDisposable
     Assert.True(restored.HasProject);
     Assert.Empty(restored.Components);
     Assert.False(restored.IsDirty);
+  }
+
+  [Fact]
+  public async Task Merged_values_and_union_of_notes_survive_save_and_open()
+  {
+    var store = await LoadedStoreAsync();
+    store.Components[0].SetPositions(["R1", "R2"]);
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    state.History.Execute(new SplitColumnCommand(state.Columns, state.Columns[0], ["R1"], ["R2"]));
+    var first = state.Columns[0];
+    var second = state.Columns[1];
+    first.SetCellValue(_plainParamId, "0,1");
+    second.SetCellValue(_baseParamId, "5");
+    first.AddNote(_plainParamId, "Общее примечание");
+    second.AddNote(_plainParamId, "Общее примечание");
+    second.AddNote(_plainParamId, "Второе примечание");
+    var plan = new ColumnMergePlan(first, second, calculated: [_resultParamId]);
+    Assert.Empty(plan.Conflicts);
+    state.History.Execute(new MergeColumnsCommand(state.Columns, first, second, plan));
+    var merged = Assert.Single(state.Columns);
+    Assert.Equal("0,5 (1)", merged.GetCellValue(_resultParamId));
+    await CreateService(store).SaveAsync(_path);
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    var actual = Assert.Single(reopened.OwnForms[_form.Id].Columns);
+    Assert.Equal("R1, R2", actual.Positions);
+    Assert.Equal("0,1", actual.GetCellValue(_plainParamId));
+    Assert.Equal("5", actual.GetCellValue(_baseParamId));
+    Assert.Equal("0,5 (1)", actual.GetCellValue(_resultParamId));
+    Assert.Equal(["Общее примечание", "Второе примечание"], actual.GetNotes(_plainParamId).Select(n => n.NoteText));
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Explicit_merged_condition_or_base_choice_survives_sync_undo_redo_and_reopening(bool chooseBase)
+  {
+    var store = await LoadedStoreAsync();
+    var component = store.Components[0];
+    component.SetPositions(["R1", "R2"]);
+    var alternative = new OperationMaps.Application.Models.ComponentRegimeSelection(
+      "Облегчённый", "Облегчённый режим", [new("99", 1, "20")]);
+    // Make the choice opposite to the inherited project value.
+    component.SelectRegime(chooseBase ? alternative : null);
+    var service = new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db));
+    var state = (await service.GetAsync(_form.Id))!;
+    var original = state.Columns[0];
+    original.SetCellValue(_baseParamId, "5");
+    state.History.Execute(new SplitColumnCommand(state.Columns, original, ["R1"], ["R2"]));
+    var first = state.Columns[0];
+    var second = state.Columns[1];
+    second.SelectRegimeOverride(chooseBase ? null : alternative);
+    second.RefreshRegime("99", _form.Parameters);
+    second.SetCellValue(_baseParamId, "7");
+    first.AddNote(_plainParamId, "Первое пояснение");
+    second.AddNote(_baseParamId, "Второе пояснение");
+    var plan = new ColumnMergePlan(first, second, calculated: [_resultParamId]);
+    foreach (var conflict in plan.Conflicts) conflict.SelectedSide = MergeSide.Second;
+    state.History.Execute(new MergeColumnsCommand(state.Columns, first, second, plan));
+    var expectedNtd = chooseBase ? "10" : "20";
+    var expectedFactor = chooseBase ? "0,7 (1)" : "0,35 (1)";
+    var merged = Assert.Single(state.Columns);
+    Assert.True(merged.HasRegimeOverride);
+    Assert.Equal(expectedNtd, merged.GetNtdValue(_baseParamId));
+    Assert.True(state.History.Undo());
+    Assert.Same(first, state.Columns[0]);
+    Assert.Same(second, state.Columns[1]);
+    Assert.True(state.History.Redo());
+    await service.GetAsync(_form.Id);
+    merged = Assert.Single(state.Columns);
+    Assert.Equal(expectedNtd, merged.GetNtdValue(_baseParamId));
+    var before = OwnFormWordDataBuilder.Build("99", "Плата", state.Parameters, state.Columns);
+    await CreateService(store).SaveAsync(_path);
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    var restored = (await new OwnFormStateService(reopened, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    var actual = Assert.Single(restored.Columns);
+    Assert.True(actual.HasRegimeOverride);
+    Assert.Equal(expectedNtd, actual.GetNtdValue(_baseParamId));
+    Assert.Equal("7", actual.GetCellValue(_baseParamId));
+    Assert.Equal(expectedFactor, actual.LoadFactorValue);
+    Assert.Equal(chooseBase, actual.Component.ActiveRegime is null);
+    var after = OwnFormWordDataBuilder.Build("99", "Плата", restored.Parameters, restored.Columns);
+    Assert.Equal(before.Components[0].Note, after.Components[0].Note);
+    Assert.Equal(before.Components[0].NtdValues.OrderBy(p => p.Key), after.Components[0].NtdValues.OrderBy(p => p.Key));
+    Assert.Equal(["R1", "R2"], actual.Component.Entry.Imported.Positions);
+    Assert.False(reopened.IsDirty);
+  }
+
+  [Fact]
+  public async Task Explicitly_cleared_load_factor_base_remains_empty_after_reopening()
+  {
+    var store = await LoadedStoreAsync();
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    state.Columns[0].SetCellValue(_baseParamId, "5");
+    state.Columns[0].LoadFactorBaseParameterId = null;
+    await CreateService(store).SaveAsync(_path);
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    var column = Assert.Single(reopened.OwnForms[_form.Id].Columns);
+    Assert.Null(column.LoadFactorBaseParameterId);
+    Assert.Equal("", column.LoadFactorValue);
+  }
+
+  [Fact]
+  public async Task Split_optional_values_pins_and_note_markers_survive_reopening_without_aliasing()
+  {
+    var optional = new FormParameter
+    {
+      Form = _form, RowNumber = 4, Name = "Дополнительное напряжение", IsOptional = true, OptionalForRowNumber = 1,
+    };
+    _db.FormParameters.Add(optional);
+    await _db.SaveChangesAsync();
+    var catalogComponent = await _db.Components.SingleAsync();
+    _db.ComponentNtdValues.Add(new ComponentNtdValue { ComponentId = catalogComponent.Id, FormParameterId = optional.Id, Value = "20" });
+    _db.ComponentPinValues.Add(new ComponentPinValue { ComponentId = catalogComponent.Id, FormParameterId = optional.Id, Pins = "7, 8" });
+    await _db.SaveChangesAsync();
+    var store = await LoadedStoreAsync();
+    store.Components[0].SetPositions(["R1", "R2", "R3"]);
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    var original = state.Columns[0];
+    original.SetCellValue(_baseParamId, "5");
+    original.SetOptionalCellValue(optional.Id, "7");
+    original.AddNote(optional.Id, "Дополнительное питание");
+    original.AddNote(_baseParamId, "Основное питание");
+    state.History.Execute(new SplitColumnCommand(state.Columns, original, ["R1"], ["R2", "R3"]));
+    state.Columns[0].SetOptionalCellValue(optional.Id, "8");
+    state.Columns[0].AddNote(_plainParamId, "Только R1");
+    Assert.Equal("7", state.Columns[1].GetOptionalCellValue(optional.Id));
+    Assert.Empty(state.Columns[1].GetNotes(_plainParamId));
+    Assert.Equal("7", original.GetOptionalCellValue(optional.Id));
+    Assert.Empty(original.GetNotes(_plainParamId));
+    var before = OwnFormWordDataBuilder.Build("99", "Плата", state.Parameters, state.Columns);
+    await CreateService(store).SaveAsync(_path);
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    var restored = reopened.OwnForms[_form.Id];
+    Assert.Equal(["R1", "R2, R3"], restored.Columns.Select(c => c.Positions));
+    Assert.Equal(["R1", "R2", "R3"], restored.Columns.SelectMany(c => c.Component.Entry.Imported.Positions));
+    var after = OwnFormWordDataBuilder.Build("99", "Плата", restored.Parameters, restored.Columns);
+    for (var i = 0; i < 2; i++)
+    {
+      Assert.Equal(before.Components[i].Note, after.Components[i].Note);
+      var expected = before.Components[i].OptionalRowValuesByParameter[1];
+      var actual = after.Components[i].OptionalRowValuesByParameter[1];
+      Assert.Equal(expected.NtdValue, actual.NtdValue);
+      Assert.Equal(expected.SchemeValue, actual.SchemeValue);
+      Assert.Equal("7, 8", actual.PinsValue);
+    }
+    Assert.False(reopened.IsDirty);
+  }
+
+  [Fact]
+  public async Task Malformed_saved_column_condition_is_rejected_without_replacing_current_project()
+  {
+    var store = await LoadedStoreAsync();
+    await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id);
+    await CreateService(store).SaveAsync(_path);
+    var json = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(_path))!;
+    var column = json["ownForms"]![0]!["columns"]![0]!;
+    column["hasRegimeOverride"] = true;
+    column["regime"] = System.Text.Json.Nodes.JsonNode.Parse("{\"name\":\"Режим\",\"condition\":\"Условие\",\"values\":null}");
+    await File.WriteAllTextAsync(_path, json.ToJsonString());
+    var current = await LoadedStoreAsync("Текущий проект");
+    var original = current.Components[0];
+    await Assert.ThrowsAsync<InvalidDataException>(() => CreateService(current).OpenAsync(_path));
+    Assert.Same(original, current.Components[0]);
+    Assert.Equal("Текущий проект", current.ProjectName);
+  }
+
+  [Theory]
+  [InlineData(1)]
+  [InlineData(2)]
+  [InlineData(3)]
+  public async Task Previous_project_versions_still_restore_input_values(int version)
+  {
+    var store = await LoadedStoreAsync();
+    var state = (await new OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form.Id))!;
+    state.Columns[0].SetCellValue(_baseParamId, "5");
+    await CreateService(store).SaveAsync(_path);
+    var json = System.Text.Json.Nodes.JsonNode.Parse(await File.ReadAllTextAsync(_path))!;
+    json["version"] = version;
+    var column = json["ownForms"]![0]!["columns"]![0]!.AsObject();
+    column.Remove("hasRegimeOverride");
+    column.Remove("regime");
+    await File.WriteAllTextAsync(_path, json.ToJsonString());
+    var reopened = new ProjectStore();
+    await CreateService(reopened).OpenAsync(_path);
+    Assert.Equal("5", Assert.Single(reopened.OwnForms[_form.Id].Columns).GetCellValue(_baseParamId));
   }
 
   [Fact]

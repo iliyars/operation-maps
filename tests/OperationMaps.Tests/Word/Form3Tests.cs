@@ -31,7 +31,7 @@ public class Form3Tests
     var loader = new WordFormMapLoader(Resources);
     var bytes = await new WordService(loader).ExportAsync(data, loader.GetTemplatePath("3"));
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
-    var table = Assert.Single(doc.MainDocumentPart!.Document.Body!.Elements<Table>());
+    var table = Assert.Single(WordDocumentAssertions.BodyOf(doc).Elements<Table>());
     for (int i = 0; i < 4; i++)
     {
       Assert.Equal(data.Components[i].Name, WordTableHelper.GetCellText(table, i + 2, 0));
@@ -39,12 +39,13 @@ public class Form3Tests
       Assert.Equal("1", WordTableHelper.GetCellText(table, i + 2, 2));
     }
     Assert.Empty(WordTableHelper.GetCellText(table, 6, 0));
-    Assert.DoesNotContain("Лист регистрации изменений", doc.MainDocumentPart.Document.InnerText);
-    var section = Assert.Single(doc.MainDocumentPart.Document.Body.Descendants<SectionProperties>());
+    Assert.DoesNotContain("Лист регистрации изменений", WordDocumentAssertions.DocumentOf(doc).InnerText);
+    var section = Assert.Single(WordDocumentAssertions.BodyOf(doc).Descendants<SectionProperties>());
     Assert.Equal(PageOrientationValues.Landscape, section.GetFirstChild<PageSize>()!.Orient!.Value);
     Assert.NotEmpty(section.Elements<HeaderReference>());
     Assert.NotEmpty(section.Elements<FooterReference>());
-    Assert.Contains("ПРОЕКТ.123Д4", string.Join("", doc.MainDocumentPart.HeaderParts.Select(h => h.Header.InnerText)));
+    Assert.Contains("ПРОЕКТ.123Д4", string.Join("", Assert.IsType<MainDocumentPart>(doc.MainDocumentPart)
+        .HeaderParts.Select(h => Assert.IsType<Header>(h.Header).InnerText)));
   }
 
   [Fact]
@@ -59,13 +60,13 @@ public class Form3Tests
     };
     var bytes = await new WordService(loader).ExportAsync(data, loader.GetTemplatePath("3"));
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
-    var tables = doc.MainDocumentPart!.Document.Body!.Elements<Table>().ToArray();
+    var tables = WordDocumentAssertions.BodyOf(doc).Elements<Table>().ToArray();
     Assert.Equal(2, tables.Length);
     Assert.Equal("Плата 21", WordTableHelper.GetCellText(tables[0], 22, 0));
     Assert.Equal("Плата 22", WordTableHelper.GetCellText(tables[0], 2, 4));
     Assert.Equal("Плата 42", WordTableHelper.GetCellText(tables[0], 22, 4));
     Assert.Equal("Плата 43", WordTableHelper.GetCellText(tables[1], 2, 0));
     Assert.Empty(WordTableHelper.GetCellText(tables[1], 3, 0));
-    Assert.Equal(3, doc.MainDocumentPart.Document.Body.Elements<SectionProperties>().Single().GetFirstChild<PageNumberType>()!.Start!.Value);
+    Assert.Equal(3, WordDocumentAssertions.BodyOf(doc).Elements<SectionProperties>().Single().GetFirstChild<PageNumberType>()!.Start!.Value);
   }
 }

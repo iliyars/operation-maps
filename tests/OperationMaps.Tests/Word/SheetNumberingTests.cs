@@ -14,7 +14,7 @@ public class SheetNumberingTests
   private static readonly string ResourcesDir = Path.Combine(AppContext.BaseDirectory, "Word", "Resources");
 
   private static int?[] StartsOf(WordprocessingDocument doc)
-      => doc.MainDocumentPart!.Document.Body!.Descendants<SectionProperties>()
+      => WordDocumentAssertions.BodyOf(doc).Descendants<SectionProperties>()
           .Select(s => s.GetFirstChild<PageNumberType>()?.Start?.Value)
           .ToArray();
 
@@ -80,11 +80,11 @@ public class SheetNumberingTests
 
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
     var main = doc.MainDocumentPart!;
-    Assert.Single(main.Document.Body!.Descendants<SectionProperties>()); // the first page is gone
+    Assert.Single(WordDocumentAssertions.BodyOf(main).Descendants<SectionProperties>()); // the first page is gone
     Assert.Equal([12], StartsOf(doc));
     AssertValid(doc);
 
-    var footers = string.Concat(main.FooterParts.Select(f => f.Footer.InnerText));
+    var footers = string.Concat(main.FooterParts.Select(f => Assert.IsType<Footer>(f.Footer).InnerText));
     Assert.Contains("АБВГ.123456.001Д4", footers);
     Assert.DoesNotContain("<DecimalNumber>", footers);
   }

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using OperationMaps.Application.Services;
+using OperationMaps.Infrastructure.Word;
 
 namespace OperationMaps.Wpf.Features.Components.WordImport;
 
@@ -22,21 +23,27 @@ public sealed record ComponentTypeOption(int Id, string Name)
 public sealed partial class WordImportRowVm : ObservableObject
 {
   private readonly IWordCatalogImportService _importService;
+  private CancellationTokenSource? _typeResolutionCts;
+  private int _typeResolutionVersion;
+  private bool _typeResolutionFailed;
+  public Task TypeResolutionTask { get; private set; } = Task.CompletedTask;
 
   public WordImportedComponent Model { get; }
 
   public string FullName => Model.FullName;
+  public int Number { get; init; }
   public string OwnFormLabel => $"Форма {Model.OwnFormNumber} — {Model.OwnFormTitle}";
 
   /// <summary>Show the editable type field instead of plain text — whenever there's no existing ComponentType id yet (no type at all, or a new one to be created).</summary>
   public bool ShowTypeEditor => Model.ComponentTypeId is null;
   public bool IsTypeResolved => !ShowTypeEditor;
-  public bool CanToggleSelection => !string.IsNullOrWhiteSpace(Model.ComponentTypeName);
+  public bool CanToggleSelection => !IsResolvingType && !_typeResolutionFailed
+      && !string.IsNullOrWhiteSpace(Model.ComponentTypeName);
   public IReadOnlyList<string> Warnings => Model.Warnings;
   public string NotesDisplay => string.Join("\n\n", new[]
   {
-    string.IsNullOrWhiteSpace(Model.Form4NoteText) || Model.Form4NoteText.Trim() == "—" || Model.Form4NotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы 4:\n{Model.Form4NoteText}",
-    string.IsNullOrWhiteSpace(Model.OwnFormNoteText) || Model.OwnFormNoteText.Trim() == "—" || Model.OwnFormNotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы {Model.OwnFormNumber}:\n{Model.OwnFormNoteText}"
+    !WordNoteParser.HasContent(Model.Form4NoteText) || Model.Form4NotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы 4:\n{Model.Form4NoteText}",
+    !WordNoteParser.HasContent(Model.OwnFormNoteText) || Model.OwnFormNotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы {Model.OwnFormNumber}:\n{Model.OwnFormNoteText}"
   }.Where(t => t.Length > 0));
   public bool HasNotes => NotesDisplay.Length > 0;
   public bool HasConditionalValues => Model.Form4NotesByRow.Count > 0 || Model.OwnFormNotesByRow.Count > 0
@@ -51,6 +58,9 @@ public sealed partial class WordImportRowVm : ObservableObject
   [ObservableProperty] private string _statusText = "";
   [ObservableProperty] private bool _isImported;
   [ObservableProperty] private string? _importError;
+  [ObservableProperty]
+  [NotifyPropertyChangedFor(nameof(CanToggleSelection))]
+  private bool _isResolvingType;
 
   public WordImportRowVm(
       WordImportedComponent model,
@@ -67,23 +77,64 @@ public sealed partial class WordImportRowVm : ObservableObject
 
   partial void OnTypeTextChanged(string value)
   {
-    if (value == Model.ComponentTypeName) return;
-    _ = ResolveTypeAsync(value);
+    TypeResolutionTask = ResolveTypeAsync(value);
   }
 
   private async Task ResolveTypeAsync(string typeName)
   {
-    await _importService.ResolveComponentTypeAsync(Model, typeName);
+    _typeResolutionCts?.Cancel();
+    using var operation = new CancellationTokenSource();
+    _typeResolutionCts = operation;
+    var version = ++_typeResolutionVersion;
+    IsResolvingType = true;
+    _typeResolutionFailed = false;
+    IsSelected = false;
+    ImportError = null;
+    StatusText = "Определение типа и семейства…";
+    // The service mutates its input; each request must have its own draft.
+    var draft = new WordImportedComponent
+    {
+      FullName = Model.FullName, OwnFormNumber = Model.OwnFormNumber,
+      OwnFormTitle = Model.OwnFormTitle, OwnFormId = Model.OwnFormId,
+    };
+    try
+    {
+      await _importService.ResolveComponentTypeAsync(draft, typeName, operation.Token);
+      if (version != _typeResolutionVersion || operation.IsCancellationRequested) return;
+      Model.ComponentTypeName = draft.ComponentTypeName;
+      Model.ComponentTypeId = draft.ComponentTypeId;
+      Model.FamilyName = draft.FamilyName;
+      Model.ExistingFamilyId = draft.ExistingFamilyId;
+      RefreshDisplay();
+    }
+    catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+    catch (Exception ex)
+    {
+      if (version != _typeResolutionVersion) return;
+      _typeResolutionFailed = true;
+      ImportError = $"Не удалось определить тип компонента: {ex.Message}";
+      StatusText = "Ошибка определения типа";
+    }
+    finally
+    {
+      if (version == _typeResolutionVersion)
+      {
+        _typeResolutionCts = null;
+        IsResolvingType = false;
+        OnPropertyChanged(nameof(ShowTypeEditor));
+        OnPropertyChanged(nameof(IsTypeResolved));
+        OnPropertyChanged(nameof(CanToggleSelection));
+        IsSelected = !Model.AlreadyInCatalog && CanToggleSelection;
+      }
+    }
+  }
 
-    // A later keystroke may have started its own resolve while this one was
-    // in flight — only apply the result that matches the current text.
-    if (TypeText != typeName) return;
-
-    IsSelected = !Model.AlreadyInCatalog && CanToggleSelection;
-    OnPropertyChanged(nameof(ShowTypeEditor));
-    OnPropertyChanged(nameof(IsTypeResolved));
-    OnPropertyChanged(nameof(CanToggleSelection));
-    RefreshDisplay();
+  public void CancelTypeResolution()
+  {
+    ++_typeResolutionVersion;
+    _typeResolutionCts?.Cancel();
+    _typeResolutionCts = null;
+    IsSelected = false;
   }
 
   public void MarkImported()

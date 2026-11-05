@@ -116,3 +116,10 @@ public interface IWordCatalogImportService
   /// </summary>
   Task<Component> ImportAsync(WordImportedComponent item, CancellationToken ct = default);
 }
+
+public sealed record WordImportProgress(string Message, int Completed = 0, int Total = 0);
+
+public interface IWordCatalogImportProgress
+{
+  Task<WordImportScanResult> ScanAsync(string documentPath, IProgress<WordImportProgress> progress, CancellationToken ct = default);
+}

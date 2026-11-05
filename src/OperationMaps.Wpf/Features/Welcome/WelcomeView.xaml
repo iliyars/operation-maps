@@ -1,8 +1,19 @@
 <UserControl x:Class="OperationMaps.Wpf.Features.Welcome.WelcomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:OperationMaps.Wpf.Shared.Controls"
              Background="{DynamicResource BgAppBrush}">
+    <Grid>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer.Style>
+            <Style TargetType="ScrollViewer">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                        <Setter Property="IsEnabled" Value="False"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </ScrollViewer.Style>
         <Grid Margin="28" MaxWidth="1120" HorizontalAlignment="Stretch">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
             <StackPanel Margin="0,0,0,28">
@@ -86,4 +97,9 @@
             </Grid>
         </Grid>
     </ScrollViewer>
+    <Grid Background="{DynamicResource BgAppBrush}"
+          Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}">
+        <controls:ImportLoadingCard MaxWidth="720" Margin="24" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+    </Grid>
+    </Grid>
 </UserControl>

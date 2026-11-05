@@ -54,17 +54,17 @@ public class TitlePageTests
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
     var main = doc.MainDocumentPart!;
     var allText = string.Join("\n",
-        new[] { main.Document.InnerText }
-            .Concat(main.HeaderParts.Select(h => h.Header.InnerText))
-            .Concat(main.FooterParts.Select(f => f.Footer.InnerText)));
+        new[] { WordDocumentAssertions.DocumentOf(main).InnerText }
+            .Concat(main.HeaderParts.Select(h => Assert.IsType<Header>(h.Header).InnerText))
+            .Concat(main.FooterParts.Select(f => Assert.IsType<Footer>(f.Footer).InnerText)));
 
     foreach (var tag in new[] { "<DocumentNumber>", "<Name>", "<HeadName>", "<Occupation>" })
       Assert.DoesNotContain(tag, allText);
 
-    Assert.Contains("АБВГ.123456.001Д4", main.Document.InnerText);
-    Assert.Contains("Блок питания БП-12", main.Document.InnerText);
-    Assert.Contains("Иванов И.И.", main.Document.InnerText);
-    Assert.Contains("Генеральный директор", main.Document.InnerText);
-    Assert.Contains(main.HeaderParts, h => h.Header.InnerText.Contains("АБВГ.123456.001"));
+    Assert.Contains("АБВГ.123456.001Д4", WordDocumentAssertions.DocumentOf(main).InnerText);
+    Assert.Contains("Блок питания БП-12", WordDocumentAssertions.DocumentOf(main).InnerText);
+    Assert.Contains("Иванов И.И.", WordDocumentAssertions.DocumentOf(main).InnerText);
+    Assert.Contains("Генеральный директор", WordDocumentAssertions.DocumentOf(main).InnerText);
+    Assert.Contains(main.HeaderParts, h => Assert.IsType<Header>(h.Header).InnerText.Contains("АБВГ.123456.001"));
   }
 }

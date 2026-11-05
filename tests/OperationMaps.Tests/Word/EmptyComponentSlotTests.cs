@@ -44,7 +44,7 @@ public class EmptyComponentSlotTests
       }).ToArray();
       var bytes = await new WordService(loader).ExportAsync(new WordFormData { FormNumber = number, Components = components }, template);
       using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
-      var tables = doc.MainDocumentPart!.Document.Body!.Elements<Table>().ToArray();
+      var tables = WordDocumentAssertions.BodyOf(doc).Elements<Table>().ToArray();
       Assert.Equal(Math.Max(1, (count + map.ComponentsPerPage - 1) / map.ComponentsPerPage), tables.Length);
       for (int page = 0; page < tables.Length; page++)
         for (int index = 0; index < map.ComponentSlots.Count; index++)

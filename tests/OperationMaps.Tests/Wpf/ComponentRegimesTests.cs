@@ -1,5 +1,8 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using OperationMaps.Infrastructure;
+using OperationMaps.Wpf;
 using OperationMaps.Application.Importing;
 using OperationMaps.Application.Services;
 using OperationMaps.Domain.Entities.Catalog;
@@ -46,6 +49,73 @@ public sealed class ComponentRegimesTests : IDisposable
       new ImportedComponent { RawName = _component.FullName, DetectedCategory = "Конденсатор", Positions = ["C1", "C2"] }
     ]);
     var store = new ProjectStore(); store.Load("Режимы", Path.GetTempPath(), result); return store;
+  }
+
+  [Fact]
+  public async Task Form4_bulk_relief_applies_to_unopened_components_preserves_others_and_exports_notes()
+  {
+    var ordinary = new Component { FullName = "К10-84в 20мкФ", FamilyId = _component.FamilyId, OwnFormId = _voltage.FormId };
+    var another = new Component { FullName = "К10-84в 30мкФ", FamilyId = _component.FamilyId, OwnFormId = _voltage.FormId };
+    _db.Components.AddRange(ordinary, another);
+    await _db.SaveChangesAsync();
+    foreach (var component in new[] { _component, another })
+      _db.ComponentRegimes.Add(new ComponentRegime
+      {
+        ComponentId = component.Id, Name = "Облегчённый режим", Condition = "Используется в облегчённом режиме при U ≤ 0,6 Uном",
+        Values = [new ComponentRegimeValue { FormParameterId = _resource.Id, Value = "150000" }]
+      });
+    await _db.SaveChangesAsync();
+    var services = new ServiceCollection();
+    services.AddLogging();
+    services.AddInfrastructure("Data Source=:memory:", new CatalogDatabaseOptions());
+    services.AddPresentation();
+    services.AddSingleton(OperationMaps.Wpf.Services.UserPreferences.CreateInMemory());
+    services.AddSingleton(_factory);
+    await using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+    var store = provider.GetRequiredService<ProjectStore>();
+    var result = await new ComponentMatcher(_factory, new ComponentNameParser()).MatchAllAsync(
+      new[] { _component, ordinary, another }.Select((c, i) => new ImportedComponent
+      { RawName = c.FullName, DetectedCategory = "Конденсатор", Positions = [$"C{i + 1}"] }).ToList());
+    store.Load("Применить ко всем", Path.GetTempPath(), result);
+    var vm = provider.GetRequiredService<OperationMaps.Wpf.Features.Form4.Form4ViewModel>();
+    await vm.OnNavigatedToAsync();
+    Assert.False(store.Components[2].NtdLoaded);
+    vm.SelectGroupCommand.Execute(vm.Groups[0]);
+    await vm.ApplyReliefToAllCommand.ExecuteAsync(null);
+    Assert.Equal("150000", Assert.Single(store.Components[0].NtdValues).Value);
+    Assert.Equal("100000", Assert.Single(store.Components[1].NtdValues).Value);
+    Assert.Equal("150000", Assert.Single(store.Components[2].NtdValues).Value);
+    Assert.Null(store.Components[1].ActiveRegime);
+    Assert.True(store.Components[0].NtdValues[0].AvailableNotes.Single().IsSelected);
+    Assert.True(store.Components[2].NtdValues[0].AvailableNotes.Single().IsSelected);
+    Assert.NotNull(vm.SelectedGroup);
+    Assert.True(store.IsDirty);
+    var exported = vm.BuildWordFormData();
+    Assert.Equal(2, exported.Components.Count(c => c.Note.Contains("облегчённом режиме")
+      && c.NtdValues.Values.Any(v => v.Contains("150000") && v.Contains('*'))));
+    var edits = 0;
+    foreach (var component in store.Components) component.Edited += () => edits++;
+    await vm.ApplyReliefToAllCommand.ExecuteAsync(null);
+    Assert.Equal(0, edits);
+    Assert.Equal("100000", await _db.FamilyNtdValues.Select(v => v.Value).SingleAsync());
+  }
+
+  [Fact]
+  public async Task Bulk_relief_does_not_partially_apply_conflicting_alternatives()
+  {
+    foreach (var value in new[] { "150000", "180000" })
+      _db.ComponentRegimes.Add(new ComponentRegime
+      {
+        ComponentId = _component.Id, Name = $"Облегчённый {value}", Condition = $"Облегчённый режим {value}",
+        Values = [new ComponentRegimeValue { FormParameterId = _resource.Id, Value = value }]
+      });
+    await _db.SaveChangesAsync();
+    var component = (await StoreAsync()).Components[0];
+    await component.LoadNtdValuesAsync(_db);
+    Assert.Throws<InvalidOperationException>(() => component.ApplyAllReliefNotes());
+    Assert.Null(component.ActiveRegime);
+    Assert.Equal("100000", Assert.Single(component.NtdValues).Value);
+    Assert.All(component.NtdValues[0].AvailableNotes, n => Assert.False(n.IsSelected));
   }
 
   [Fact]
@@ -176,6 +246,7 @@ public sealed class ComponentRegimesTests : IDisposable
     Assert.False(choice.IsSelected);
 
     var state = await new OwnFormStateService(store, _factory).GetAsync(_voltage.FormId);
+    Assert.NotNull(state);
     var column = Assert.Single(state.Columns);
     var ownChoice = Assert.Single(column.GetAvailableNotes(_voltage.Id));
     ownChoice.IsSelected = false;

@@ -53,34 +53,47 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
     NewRegimeCommand.NotifyCanExecuteChanged();
   }
 
-  public async Task LoadAsync(ProjectComponentVm? component)
+  private CancellationTokenSource? _loadCts;
+  public void CancelLoad()
   {
+    ++_generation;
+    _loadCts?.Cancel();
+    _loading = false;
+  }
+  public async Task LoadAsync(ProjectComponentVm? component, CancellationToken cancellationToken = default)
+  {
+    _loadCts?.Cancel();
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+    _loadCts = operation;
+    var ct = operation.Token;
     var generation = ++_generation;
     _component = component;
     IsAvailable = false;
     Choices.Clear(); ConditionChoices.Clear(); Values.Clear(); FormSections.Clear(); OwnFormNotes.Clear(); Error = "";
-    if (component is null || component.IsBoard || component.Entry.MatchResult.MatchedComponent is not { } catalogComponent) return;
+    if (component is null || component.IsBoard || component.Entry.MatchResult.MatchedComponent is not { } catalogComponent)
+    { _loadCts = null; return; }
     try
     {
-      await using var db = await factory.CreateDbContextAsync();
+      await using var db = await factory.CreateDbContextAsync(ct);
       var regimes = await db.ComponentRegimes.Include(r => r.Values).ThenInclude(v => v.FormParameter).ThenInclude(p => p.Form)
-        .Where(r => r.ComponentId == catalogComponent.Id).OrderBy(r => r.Name).ToListAsync();
+        .Where(r => r.ComponentId == catalogComponent.Id).OrderBy(r => r.Name).ToListAsync(ct);
       var parameters = await db.FormParameters.Include(p => p.Form)
-        .Where(p => p.Form.Number == "4" || p.FormId == catalogComponent.OwnFormId).OrderBy(p => p.Form.Number).ThenBy(p => p.RowNumber).ToListAsync();
-      var familyValues = await db.FamilyNtdValues.Where(v => v.FamilyId == catalogComponent.FamilyId).ToDictionaryAsync(v => v.FormParameterId, v => v.Value);
-      var ownValues = await db.ComponentNtdValues.Where(v => v.ComponentId == catalogComponent.Id).ToDictionaryAsync(v => v.FormParameterId, v => v.Value);
+        .Where(p => p.Form.Number == "4" || p.FormId == catalogComponent.OwnFormId).OrderBy(p => p.Form.Number).ThenBy(p => p.RowNumber).ToListAsync(ct);
+      var familyValues = await db.FamilyNtdValues.Where(v => v.FamilyId == catalogComponent.FamilyId).ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
+      var ownValues = await db.ComponentNtdValues.Where(v => v.ComponentId == catalogComponent.Id).ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
       foreach (var ordinary in regimes.Where(r => !ReliefNote.IsMatch(r.Condition)))
         foreach (var value in ordinary.Values)
           if (value.FormParameter.Form.Number == "4") familyValues.TryAdd(value.FormParameterId, value.Value);
           else ownValues.TryAdd(value.FormParameterId, value.Value);
-      var pins = await db.ComponentPinValues.Where(v => v.ComponentId == catalogComponent.Id).ToDictionaryAsync(v => v.FormParameterId, v => v.Pins);
+      var pins = await db.ComponentPinValues.Where(v => v.ComponentId == catalogComponent.Id).ToDictionaryAsync(v => v.FormParameterId, v => v.Pins, ct);
       var familyNotes = await db.FamilyNotes.Where(n => n.FamilyId == catalogComponent.FamilyId)
-        .Select(n => new { n.FormParameterId, n.Note.Text }).ToListAsync();
+        .Select(n => new { n.FormParameterId, n.Note.Text }).ToListAsync(ct);
       var componentNotes = await db.ComponentNotes.Where(n => n.ComponentId == catalogComponent.Id)
-        .Select(n => new { n.FormParameterId, n.Note.Text }).ToListAsync();
+        .Select(n => new { n.FormParameterId, n.Note.Text }).ToListAsync(ct);
       var notes = familyNotes.Concat(componentNotes).Concat(regimes.Where(r => !ReliefNote.IsMatch(r.Condition))
         .SelectMany(r => r.Values.Select(v => new { v.FormParameterId, Text = r.Condition }))).GroupBy(n => n.FormParameterId)
         .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(n => n.Text).Distinct().ToArray());
+      ct.ThrowIfCancellationRequested();
       if (generation != _generation) return;
       _loading = true;
       Choices.Add(new RegimeChoice(0, "Основной", null));
@@ -129,8 +142,13 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
       Populate(component.ActiveRegime);
       IsAvailable = true;
     }
+    catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
     catch (Exception ex) { if (generation == _generation) Error = $"Не удалось загрузить режимы: {ex.Message}"; }
-    finally { if (generation == _generation) _loading = false; }
+    finally
+    {
+      if (generation == _generation) _loading = false;
+      if (ReferenceEquals(_loadCts, operation)) _loadCts = null;
+    }
   }
 
   private IReadOnlyList<ComponentRegimeSelection> SelectedConditions() => _component?.ActiveRegime is { } active

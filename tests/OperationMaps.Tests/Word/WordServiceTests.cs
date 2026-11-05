@@ -206,7 +206,7 @@ public class WordServiceTests
     var map = mapLoader.Load(formNumber);
 
     using var doc = DocumentFormat.OpenXml.Packaging.WordprocessingDocument.Open(mapLoader.GetTemplatePath(formNumber), false);
-    var rows = doc.MainDocumentPart!.Document.Body!
+    var rows = WordDocumentAssertions.BodyOf(doc)
         .Elements<DocumentFormat.OpenXml.Wordprocessing.Table>().ElementAt(map.TableIndex)
         .Elements<DocumentFormat.OpenXml.Wordprocessing.TableRow>().ToList();
 

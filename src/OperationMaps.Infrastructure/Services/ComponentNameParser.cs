@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using OperationMaps.Application.Importing;
 
 namespace OperationMaps.Infrastructure.Services;
@@ -52,9 +52,9 @@ public class ComponentNameParser : IComponentNameParser
     if (string.IsNullOrWhiteSpace(rawName))
       throw new ArgumentException("Component name is empty.", nameof(rawName));
 
-    var working = rawName
+    var working = ForeignComponentName.WithoutManufacturer(rawName
         .Replace("?", string.Empty)
-        .Trim();
+        .Trim());
 
     // 1. Split into Type + Rest
     var match = TypeAndRestRegex.Match(working);
@@ -135,23 +135,9 @@ public class ComponentNameParser : IComponentNameParser
 
   private static string BuildNameFromRest(string rest)
   {
-    if (string.IsNullOrWhiteSpace(rest))
-      return string.Empty;
-
-    var tokens = rest.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-    if (tokens.Length == 0)
-      return string.Empty;
-
-    int iDigit = FindDesignationIndex(tokens);
-
-    if (iDigit < 0)
-      return rest.Trim().TrimEnd(',', ';');
-
-    if (iDigit == 0)
-      return tokens[0].Trim().TrimEnd(',', ';');
-
-    var nameTokens = new[] { tokens[iDigit - 1], tokens[iDigit] };
-    return string.Join(' ', nameTokens).Trim().TrimEnd(',', ';');
+    // The type and normative tail have already been removed. Retain the
+    // entire XML designation, including trailing qualification marks (ОС/ОСМ).
+    return rest.Trim().TrimEnd(',', ';');
   }
 
   private static int FindDesignationIndex(string[] tokens)

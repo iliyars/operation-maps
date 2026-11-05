@@ -124,15 +124,16 @@ public sealed class ProjectFileService
       FormNumber = state.FormNumber,
       Columns = state.Columns.Select(col => new SavedColumn
       {
+        HasRegimeOverride = col.HasRegimeOverride,
+        Regime = col.HasRegimeOverride ? col.Component.ActiveRegime : null,
         Positions = col.Component.Entry.Imported.Positions.ToList(),
         LoadFactorBaseRow = col.LoadFactorBaseParameterId is { } baseId && rowById.TryGetValue(baseId, out var b)
             ? b.RowNumber
             : null,
-        // The load-factor result row is calculated, not entered — it is
-        // recomputed on open, so there's no point in storing it.
+        // Formulas and load factor are recomputed on open from the input rows.
         Values = col.CellValues
             .Where(kv => !string.IsNullOrEmpty(kv.Value)
-                      && rowById.TryGetValue(kv.Key, out var p) && !p.IsOptional && !p.IsLoadFactorResult)
+                      && rowById.TryGetValue(kv.Key, out var p) && !p.IsOptional && !p.IsLoadFactorResult && p.Formula is null)
             .ToDictionary(kv => rowById[kv.Key].RowNumber, kv => kv.Value),
         OptionalValues = col.OptionalCellValues
             .Where(kv => !string.IsNullOrEmpty(kv.Value) && rowById.ContainsKey(kv.Key))
@@ -265,7 +266,7 @@ public sealed class ProjectFileService
 
     await RestoreForm4NotesAsync(prepared, file.Form4Notes, ct);
     foreach (var saved in file.OwnForms)
-      await RestoreOwnFormAsync(ownForms, saved, ct);
+      await RestoreOwnFormAsync(ownForms, saved, file.Version, ct);
 
     prepared.ProjectFilePath = sourcePath;
     prepared.IsDirty = false;
@@ -306,7 +307,7 @@ public sealed class ProjectFileService
   /// positions not covered by any saved column (components added to the
   /// project since) keep their default column.
   /// </summary>
-  private async Task RestoreOwnFormAsync(OwnFormStateService ownForms, SavedOwnForm saved, CancellationToken ct)
+  private async Task RestoreOwnFormAsync(OwnFormStateService ownForms, SavedOwnForm saved, int version, CancellationToken ct)
   {
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var formId = await db.Forms
@@ -328,6 +329,8 @@ public sealed class ProjectFileService
         .ToDictionary(g => g.Key, g => g.First());
 
     var defaults = state.Columns.ToList();
+    var regimeParameters = saved.Columns.Any(c => c.HasRegimeOverride)
+        ? await db.FormParameters.Where(p => p.FormId == formId.Value).ToListAsync(ct) : [];
     var columnByPosition = new Dictionary<string, FormColumnVm>();
     foreach (var col in defaults)
       foreach (var pos in col.Component.Entry.Imported.Positions)
@@ -344,10 +347,17 @@ public sealed class ProjectFileService
       if (positions.Count == 0) continue;
 
       var column = columnByPosition[positions[0]].CloneWithPositions(positions);
+      if (savedCol.HasRegimeOverride)
+      {
+        column.SelectRegimeOverride(savedCol.Regime);
+        column.RefreshRegime(state.FormNumber, regimeParameters);
+      }
       foreach (var notes in column.Notes.Values) notes.Clear();
 
       if (savedCol.LoadFactorBaseRow is { } baseRow && primaryByRow.TryGetValue(baseRow, out var baseParam))
         column.LoadFactorBaseParameterId = baseParam.FormParameterId;
+      else if (version >= 4 && savedCol.LoadFactorBaseRow is null)
+        column.LoadFactorBaseParameterId = null;
 
       foreach (var (row, value) in savedCol.Values)
         if (primaryByRow.TryGetValue(row, out var p))
@@ -369,6 +379,8 @@ public sealed class ProjectFileService
         if (byRow.TryGetValue(note.Row, out var p))
           column.AddNote(p.FormParameterId, note.Text);
       }
+      column.OrderNoteParameters(savedCol.Notes.Select(note =>
+          (note.Optional ? optionalByRow : primaryByRow).GetValueOrDefault(note.Row)?.FormParameterId ?? -1));
 
       result.Add(column);
     }

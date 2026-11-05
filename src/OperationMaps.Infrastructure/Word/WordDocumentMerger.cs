@@ -39,17 +39,22 @@ public static class WordDocumentMerger
     // The package writes its changes into the stream only on Dispose.
     using (var target = WordprocessingDocument.Open(ms, isEditable: true))
     {
-      var targetMain = target.MainDocumentPart!;
-      var targetBody = targetMain.Document.Body!;
+      var targetDocument = WordDocumentStructure.RequireDocument(target);
+      var targetBody = WordDocumentStructure.RequireBody(target);
+      var targetMain = target.MainDocumentPart
+          ?? throw new InvalidDataException("Документ Word не содержит основной части документа.");
 
       foreach (var bytes in documents.Skip(1))
       {
         using var sourceStream = new MemoryStream(bytes);
         using var source = WordprocessingDocument.Open(sourceStream, isEditable: false);
-        Append(targetMain, targetBody, source.MainDocumentPart!);
+        WordDocumentStructure.RequireBody(source);
+        var sourceMain = source.MainDocumentPart
+            ?? throw new InvalidDataException("Документ Word не содержит основной части документа.");
+        Append(targetMain, targetBody, sourceMain);
       }
 
-      targetMain.Document.Save();
+      targetDocument.Save();
     }
 
     return ms.ToArray();
@@ -64,7 +69,7 @@ public static class WordDocumentMerger
     var idMap = new Dictionary<string, string>();
 
     // Everything, the final sectPr included — it becomes the target's new last section.
-    foreach (var element in sourceMain.Document.Body!.ChildElements)
+    foreach (var element in WordDocumentStructure.RequireBody(sourceMain).ChildElements)
     {
       var clone = element.CloneNode(deep: true);
       RemapRelationships(clone, sourceMain, targetMain, copiedParts, idMap);

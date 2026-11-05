@@ -188,7 +188,7 @@ namespace OperationMaps.Infrastructure.Word
         if (data.FirstSheetNumber is { } firstSheet)
           WordPageNumbering.StartAt(doc, firstSheet);
 
-        doc.MainDocumentPart!.Document.Save();
+        WordDocumentStructure.RequireDocument(doc).Save();
         doc.Save(); // flush entire package to MemoryStream
       } // doc.Dispose()
 

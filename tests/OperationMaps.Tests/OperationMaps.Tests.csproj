@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <None Include="../../xml/*.XML" Link="TestData/Xml/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../xml/Модуль драйвера привода OY ВЕИР.468364.741 .docx" Link="TestData/Word/driver741.docx" CopyToOutputDirectory="PreserveNewest" />
   <None Update="TestData/sample_pe3.xml">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>

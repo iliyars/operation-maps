@@ -44,7 +44,7 @@ public class DocumentMergerTests
 
     using var doc = WordprocessingDocument.Open(new MemoryStream(merged), false);
     var main = doc.MainDocumentPart!;
-    var sections = main.Document.Body!.Descendants<SectionProperties>().ToList();
+    var sections = WordDocumentAssertions.BodyOf(main).Descendants<SectionProperties>().ToList();
 
     // One section per part (a form may add its own inside, but never fewer).
     Assert.True(sections.Count >= 4, $"sections={sections.Count}");
@@ -67,7 +67,7 @@ public class DocumentMergerTests
         p => p.RootElement!.InnerText.Contains("АБВГ.123456.001Д4"));
 
     // Text of every part is there.
-    var text = main.Document.Body!.InnerText;
+    var text = WordDocumentAssertions.BodyOf(main).InnerText;
     Assert.Contains("Иванов И.И.", text);
     Assert.Contains("Карта рабочих режимов конденсаторов", text);
     Assert.Contains("К10-79-3", text);

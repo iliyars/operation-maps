@@ -1,4 +1,4 @@
-﻿using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -239,6 +239,73 @@ public sealed class WordCatalogImportServiceTests : IDisposable
   }
 
   [Fact]
+  public async Task Cancelled_scan_reports_progress_and_releases_document_handle()
+  {
+    var path = CreateBlankDocument();
+    using var cancellation = new CancellationTokenSource();
+    var stages = new List<string>();
+    var progress = new CallbackProgress(value =>
+    {
+      stages.Add(value.Message);
+      if (value.Message.Contains("загрузка каталога")) cancellation.Cancel();
+    });
+    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _service.ScanAsync(path, progress, cancellation.Token));
+    Assert.Contains(stages, message => message.Contains("Открытие документа"));
+    using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+    Assert.True(exclusive.Length > 0);
+  }
+
+  private sealed class CallbackProgress(Action<WordImportProgress> callback) : IProgress<WordImportProgress>
+  {
+    public void Report(WordImportProgress value) => callback(value);
+  }
+
+  [Fact]
+  public async Task Scan_preserves_quality_prefixes_as_distinct_names_and_keeps_trailing_marks()
+  {
+    var bytes = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [
+        new WordComponentData { Name = "ОСМ " + OwnFormFullName },
+        new WordComponentData { Name = "ОС " + OwnFormFullName },
+        new WordComponentData { Name = "2ДС627А/ББ ОСМ" }
+      ]
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"prefixes-{Guid.NewGuid()}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, bytes);
+    var result = await _service.ScanAsync(path);
+    Assert.Equal(3, result.Components.Count);
+    Assert.Contains(result.Components, c => c.FullName == "2ДС627А/ББ ОСМ");
+    var item = result.Components.Single(c => c.FullName == "ОСМ " + OwnFormFullName);
+    Assert.Contains(result.Components, c => c.FullName == "ОС " + OwnFormFullName);
+    Assert.Empty(item.AdditionalVariants);
+    item.ComponentTypeName = CapacitorType;
+    var created = await _service.ImportAsync(item);
+    Assert.Equal("ОСМ " + OwnFormFullName, created.FullName);
+    Assert.StartsWith("ОСМ ", created.Family.Name);
+    var xml = new ImportedComponent { RawName = "ОСМ " + OwnFormFullName, DetectedCategory = CapacitorType, Positions = ["C1"] };
+    var match = await new ComponentMatcher(TestCatalogDbContextFactory.From(_db), new ComponentNameParser()).MatchAsync(xml);
+    Assert.True(match.IsMatched);
+    Assert.Equal("ОСМ " + OwnFormFullName, xml.RawName);
+  }
+
+  [Theory]
+  [InlineData("ОС ")]
+  [InlineData("ОСМ ")]
+  [InlineData("ОСМ–")]
+  public async Task Import_preserves_leading_quality_prefix(string prefix)
+  {
+    var created = await _service.ImportAsync(new WordImportedComponent
+    {
+      FullName = prefix + OwnFormFullName, OwnFormId = _form67Id, OwnFormNumber = "67", OwnFormTitle = "Форма 67",
+      ComponentTypeName = CapacitorType
+    });
+    Assert.Equal(prefix + OwnFormFullName, created.FullName);
+    Assert.Equal((prefix.StartsWith("ОСМ") ? "ОСМ " : "ОС ") + KnownFamilyDesignation, created.Family.Name);
+  }
+
+  [Fact]
   public async Task Repeated_word_slots_with_conflicting_values_require_explicit_resolution()
   {
     var form4 = await new WordService(_mapLoader).ExportAsync(new WordFormData
@@ -325,6 +392,7 @@ public sealed class WordCatalogImportServiceTests : IDisposable
     var store = new OperationMaps.Wpf.Stores.ProjectStore();
     store.Load("Базовый параметр", Path.GetTempPath(), matches);
     var state = await new OperationMaps.Wpf.Features.OwnForm.OwnFormStateService(store, TestCatalogDbContextFactory.From(_db)).GetAsync(_form67Id);
+    Assert.NotNull(state);
     Assert.Equal(basis.Id, Assert.Single(state.Columns).LoadFactorBaseParameterId);
   }
 

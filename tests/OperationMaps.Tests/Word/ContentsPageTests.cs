@@ -46,7 +46,7 @@ public class ContentsPageTests
 
     using var doc = WordprocessingDocument.Open(new MemoryStream(bytes), false);
     var main = doc.MainDocumentPart!;
-    var rows = main.Document.Body!.Elements<Table>().First().Elements<TableRow>().ToList();
+    var rows = WordDocumentAssertions.BodyOf(main).Elements<Table>().First().Elements<TableRow>().ToList();
     string[] Cells(TableRow r) => r.Elements<TableCell>().Select(c => c.InnerText.Trim()).ToArray();
 
     var header = rows.FindIndex(r => r.InnerText.Contains("Наименование документа"));
@@ -56,16 +56,16 @@ public class ContentsPageTests
     Assert.Equal(3, entryRows.Count); // the template's sample rows are gone
     Assert.Equal(["Карта рабочих режимов конденсаторов", "4–5"], entryRows[1]);
 
-    var allText = main.Document.InnerText
-        + string.Concat(main.HeaderParts.Select(h => h.Header.InnerText))
-        + string.Concat(main.FooterParts.Select(f => f.Footer.InnerText));
+    var allText = WordDocumentAssertions.DocumentOf(main).InnerText
+        + string.Concat(main.HeaderParts.Select(h => Assert.IsType<Header>(h.Header).InnerText))
+        + string.Concat(main.FooterParts.Select(f => Assert.IsType<Footer>(f.Footer).InnerText));
     foreach (var tag in new[] { "<DocumentNumber>", "<Name>", "<Creator>", "<Checker>", "<NControl>", "<SCount>" })
       Assert.DoesNotContain(tag, allText);
     foreach (var value in new[] { "Блок питания БП-12", "Иванов", "Петров", "Сидоров" })
       Assert.Contains(value, allText);
     Assert.DoesNotContain("электрических соединителей", allText);
     Assert.DoesNotContain("ВЕИР.687282.846", allText);
-    Assert.Contains(main.HeaderParts, h => h.Header.InnerText.Contains("АБВГ.123456.001"));
+    Assert.Contains(main.HeaderParts, h => Assert.IsType<Header>(h.Header).InnerText.Contains("АБВГ.123456.001"));
   }
 
   [Fact]
@@ -90,7 +90,7 @@ public class ContentsPageTests
       var bytes = await service.BuildAsync(new RegistrationSheetData("АБВГ.123456.001", "Блок питания", 10, 10));
 
       using var result = WordprocessingDocument.Open(new MemoryStream(bytes), false);
-      var text = string.Join("|", result.MainDocumentPart!.Document.Body!.Elements<Paragraph>().Select(p => p.InnerText));
+      var text = string.Join("|", WordDocumentAssertions.BodyOf(result).Elements<Paragraph>().Select(p => p.InnerText));
       Assert.Equal("АБВГ.123456.001Д4 — Блок питания|Лист 10 из 10", text);
     }
     finally

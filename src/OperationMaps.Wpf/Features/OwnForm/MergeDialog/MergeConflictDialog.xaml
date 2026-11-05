@@ -1,0 +1,49 @@
+<Window x:Class="OperationMaps.Wpf.Features.OwnForm.MergeDialog.MergeConflictDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Объединение компонентов — выбор значений" Width="800" Height="560"
+        MinWidth="600" MinHeight="360" WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        Background="{DynamicResource BgAppBrush}" Foreground="{DynamicResource TextPrimaryBrush}">
+  <DockPanel Margin="20">
+    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,12">
+      <TextBlock Text="Выберите значения для объединённого компонента" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+      <TextBlock Text="Одинаковые и единственные заполненные значения сохранятся автоматически. Примечания объединятся без дублей."
+                 TextWrapping="Wrap" Margin="0,6,0,0" Foreground="{DynamicResource TextSecondaryBrush}"/>
+      <TextBlock Margin="0,6,0,0"><Run Text="Первый: "/><Run Text="{Binding FirstPositions, Mode=OneWay}"/><Run Text=" · Второй: "/><Run Text="{Binding SecondPositions, Mode=OneWay}"/></TextBlock>
+    </StackPanel>
+    <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+      <TextBlock x:Name="ValidationMessage" Text="Нужно выбрать значение для каждого конфликта." Visibility="Collapsed"
+                 Foreground="{DynamicResource StatusErrorBrush}" Margin="0,0,0,8"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="Отмена" IsCancel="True" Style="{StaticResource OutlineButton}" Margin="0,0,8,0"/>
+        <Button Content="Объединить" Click="Confirm_Click" Style="{StaticResource PrimaryButton}"/>
+      </StackPanel>
+    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <ItemsControl ItemsSource="{Binding Conflicts}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1" Padding="0,10">
+              <StackPanel>
+                <TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                <Grid Margin="0,6">
+                  <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                  <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Первый столбец" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <TextBlock Text="{Binding FirstValue}" TextWrapping="Wrap"/>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1">
+                    <TextBlock Text="Второй столбец" Foreground="{DynamicResource TextMutedBrush}"/>
+                    <TextBlock Text="{Binding SecondValue}" TextWrapping="Wrap"/>
+                  </StackPanel>
+                </Grid>
+                <ComboBox ItemsSource="{Binding Options}" DisplayMemberPath="Label" SelectedValuePath="Side"
+                          SelectedValue="{Binding SelectedSide, Mode=TwoWay}" Style="{StaticResource ThemedComboBox}"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</Window>

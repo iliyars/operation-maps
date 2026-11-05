@@ -332,8 +332,16 @@
             <!-- ── Card ── -->
             <Grid Grid.Column="4"
                   Background="{DynamicResource BgSidebarBrush}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <StackPanel VerticalAlignment="Center"
+                <TextBlock Text="{Binding SelectionError}" Margin="16" VerticalAlignment="Top"
+                           Visibility="{Binding SelectionError, Converter={StaticResource NullToVis}}"
+                           TextWrapping="Wrap" Foreground="{DynamicResource StatusErrorBrush}"/>
+
+                <StackPanel Grid.Row="1" VerticalAlignment="Center"
                             HorizontalAlignment="Center"
                             Visibility="{Binding Card, Converter={StaticResource NotNullToVis}}">
                     <TextBlock Text="&#xE9CE;"
@@ -346,7 +354,7 @@
                                Margin="0,8,0,0"/>
                 </StackPanel>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                               Visibility="{Binding Card, Converter={StaticResource NullToVis}}">
                     <StackPanel Margin="16"
                                 DataContext="{Binding Card}">

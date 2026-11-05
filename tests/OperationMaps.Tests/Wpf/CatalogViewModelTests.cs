@@ -51,6 +51,28 @@ public sealed class CatalogViewModelTests : IDisposable
   private CatalogFamilyNode Family(string name) => _vm.Types.SelectMany(t => t.AllFamilies).Single(f => f.Name == name);
 
   [Fact]
+  public async Task Session_subscription_is_removed_on_leave_and_not_duplicated_on_return()
+  {
+    var session = new SessionStore();
+    var factory = TestCatalogDbContextFactory.From(_db);
+    var vm = new CatalogViewModel(factory, session, new ComponentEntryService(factory),
+      new ComponentNameParser(), new CatalogEditService(factory), new Moq.Mock<IDialogService>().Object);
+    var notifications = 0;
+    vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(CatalogViewModel.IsAdmin)) notifications++; };
+    await vm.OnNavigatedFromAsync();
+    session.SignIn(new AdminAccount(1, "admin", "Администратор"));
+    Assert.Equal(0, notifications);
+    await vm.OnNavigatedToAsync();
+    Assert.True(vm.Regimes.CanEdit);
+    await vm.OnNavigatedToAsync();
+    notifications = 0;
+    session.SignOut();
+    Assert.Equal(1, notifications);
+    Assert.False(vm.Regimes.CanEdit);
+    await vm.OnNavigatedFromAsync();
+  }
+
+  [Fact]
   public async Task Family_and_component_cards_show_family_and_component_notes()
   {
     var component = await _db.Components.SingleAsync(c => c.FullName == "К10-79-50В-0,1мкФ");

@@ -30,6 +30,7 @@
         <!-- Header -->
         <Border Grid.Row="0" Style="{StaticResource PageHeader}">
             <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -40,7 +41,11 @@
                     <TextBlock Text="Карта оценки номенклатуры ЭРИ"
                             Style="{StaticResource SubtitleText}"/>
                 </StackPanel>
-                <Button Grid.Column="1"
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="Облегчённый режим для всех" Command="{Binding ApplyReliefToAllCommand}"
+                            Style="{StaticResource OutlineButton}" Margin="0,0,10,0" Padding="14,8"
+                            ToolTip="Применить сохранённые примечания облегчённого режима и соответствующие значения ко всем компонентам формы 4"/>
+                <Button
                         Command="{Binding ExportWordCommand}"
                         Style="{StaticResource PrimaryButton}"
                         VerticalAlignment="Center"
@@ -68,6 +73,11 @@
                         </TextBlock>
                     </StackPanel>
                 </Button>
+                </StackPanel>
+                <TextBlock Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding ReliefStatus}" Margin="0,8,0,0"
+                           Style="{StaticResource OptionalParameterText}" TextWrapping="Wrap"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+
             </Grid>
         </Border>
 

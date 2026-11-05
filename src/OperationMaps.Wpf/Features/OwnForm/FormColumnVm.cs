@@ -24,6 +24,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private Dictionary<int, string>? _defaultOptionalNtd;
     private OperationMaps.Application.Models.ComponentRegimeSelection? _appliedRegime;
     public bool NeedsRegimeRefresh => !Equals(_appliedRegime, Component.ActiveRegime);
+    public bool HasRegimeOverride { get; private set; }
+
+    public void SelectRegimeOverride(OperationMaps.Application.Models.ComponentRegimeSelection? selection)
+    {
+      HasRegimeOverride = true;
+      Component.SelectRegime(selection);
+      Edited?.Invoke();
+    }
 
     public void RefreshRegime(string formNumber, IEnumerable<OperationMaps.Domain.Entities.Forms.FormParameter> parameters)
     {
@@ -78,15 +86,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     /// <summary>
     /// Raised whenever this column's SchemeValue or
-    /// LoadFactorBaseParameterId changes — OwnFormViewModel subscribes
-    /// to recompute <see cref="LoadFactorValue"/> and write it into the
-    /// IsLoadFactorResult row's CellValues.
+    /// LoadFactorBaseParameterId changes — OwnFormState subscribes
+    /// to recompute formula rows and the load factor.
     /// </summary>
-    public event Action<FormColumnVm>? LoadFactorInputsChanged;
+    public event Action<FormColumnVm>? CalculationInputsChanged;
 
     partial void OnLoadFactorBaseParameterIdChanged(int? value)
     {
-      LoadFactorInputsChanged?.Invoke(this);
+      CalculationInputsChanged?.Invoke(this);
       Edited?.Invoke();
     }
 
@@ -111,18 +118,17 @@ namespace OperationMaps.Wpf.Features.OwnForm
       CellValues[formParameterId] = value;
       OnPropertyChanged(nameof(CellValues));
 
-      if (formParameterId == LoadFactorBaseParameterId)
-        LoadFactorInputsChanged?.Invoke(this);
+      CalculationInputsChanged?.Invoke(this);
 
       Edited?.Invoke();
     }
 
     /// <summary>
     /// Notifies that CellValues changed without going through
-    /// <see cref="SetCellValue"/> — used by OwnFormViewModel when it
-    /// writes the calculated load-factor result directly into the
+    /// <see cref="SetCellValue"/> — used by OwnFormState when it
+    /// writes calculated results directly into the
     /// dictionary (writing through SetCellValue there would re-trigger
-    /// LoadFactorInputsChanged and recurse).
+    /// CalculationInputsChanged and recurse).
     /// </summary>
     public void NotifyCellValuesChanged() => OnPropertyChanged(nameof(CellValues));
 
@@ -251,6 +257,41 @@ namespace OperationMaps.Wpf.Features.OwnForm
           note.Order = order++;
     }
 
+    public void OrderNoteParameters(IEnumerable<int> parameterIds)
+    {
+      var ordered = parameterIds.Concat(Notes.Keys).Distinct()
+          .Where(Notes.ContainsKey).Select(id => (Id: id, Items: Notes[id])).ToArray();
+      Notes.Clear();
+      foreach (var entry in ordered) Notes.Add(entry.Id, entry.Items);
+      RecalculateNoteOrders();
+    }
+
+    public void MergeNotesFrom(FormColumnVm first, FormColumnVm second)
+    {
+      var selected = first.Notes.Concat(second.Notes).SelectMany(pair => pair.Value.Select(n => (Id: pair.Key, Text: n.NoteText.Trim())))
+        .Where(n => n.Text.Length > 0).Distinct().ToArray();
+      foreach (var source in new[] { first, second })
+        foreach (var (id, choices) in source._availableNotes)
+          foreach (var choice in choices.Where(c => !string.IsNullOrWhiteSpace(c.Text))) AddCatalogNote(id, choice.Text.Trim());
+      foreach (var notes in Notes.Values) notes.Clear();
+      foreach (var note in selected) AddNote(note.Id, note.Text);
+      OrderNoteParameters(selected.Select(n => n.Id));
+    }
+
+    public void FillMissingCatalogValuesFrom(FormColumnVm other)
+    {
+      Fill(NtdValues, other.NtdValues);
+      Fill(OptionalNtdValues, other.OptionalNtdValues);
+      Fill(PinValues, other.PinValues);
+      if (_defaultNtd is not null) Fill(_defaultNtd, other._defaultNtd ?? other.NtdValues);
+      if (_defaultOptionalNtd is not null) Fill(_defaultOptionalNtd, other._defaultOptionalNtd ?? other.OptionalNtdValues);
+      static void Fill(Dictionary<int, string> target, Dictionary<int, string> source)
+      {
+        foreach (var (id, value) in source)
+          if (!target.TryGetValue(id, out var existing) || string.IsNullOrWhiteSpace(existing) || existing.Trim() is "-" or "—") target[id] = value;
+      }
+    }
+
 
     /// <summary>
     /// Counts applicable input and calculated rows; hidden optional rows are excluded.
@@ -308,6 +349,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
         cloned.OptionalCellValues[key] = value;
 
       cloned.LoadFactorBaseParameterId = LoadFactorBaseParameterId;
+      cloned.HasRegimeOverride = HasRegimeOverride;
       cloned._defaultNtd = _defaultNtd is null ? null : new(_defaultNtd);
       cloned._defaultOptionalNtd = _defaultOptionalNtd is null ? null : new(_defaultOptionalNtd);
       cloned._appliedRegime = _appliedRegime;
@@ -317,6 +359,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       foreach (var notes in cloned.Notes.Values) notes.Clear();
       foreach (var (id, notes) in Notes)
         foreach (var note in notes) cloned.AddNote(id, note.NoteText);
+      cloned.OrderNoteParameters(Notes.Keys);
 
       return cloned;
     }

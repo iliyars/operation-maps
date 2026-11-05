@@ -18,7 +18,7 @@ public static class WordPageNumbering
 {
   public static void StartAt(WordprocessingDocument doc, int firstSheet)
   {
-    var body = doc.MainDocumentPart?.Document.Body;
+    var body = doc.MainDocumentPart?.Document?.Body;
     if (body is null || firstSheet < 1) return;
 
     foreach (var section in body.Descendants<SectionProperties>())

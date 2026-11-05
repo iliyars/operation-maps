@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,7 +19,7 @@ using OperationMaps.Wpf.Features.Overview;
 
 namespace OperationMaps.Wpf.Features.Welcome
 {
-  public sealed partial class WelcomeViewModel : ScreenViewModelBase, INavigatedTo
+  public sealed partial class WelcomeViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
   {
     private readonly IFilePicker _filePicker;
     private readonly IComponentListImporter _importer;
@@ -31,6 +31,22 @@ namespace OperationMaps.Wpf.Features.Welcome
     private readonly UserPreferences _preferences;
     public ObservableCollection<RecentProjectItem> RecentProjects { get; } = [];
     public bool HasRecentProjects => RecentProjects.Count > 0;
+    private CancellationTokenSource? _importCts;
+    [ObservableProperty] private bool _isBusy;
+    [ObservableProperty] private string _busyText = "";
+    public string BusyTitle => "Импорт перечня элементов";
+    public bool IsProgressIndeterminate => true;
+    public double ProgressPercent => 0;
+
+    [RelayCommand]
+    private void CancelOperation() => _importCts?.Cancel();
+
+    public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+    {
+      _importCts?.Cancel();
+      return Task.CompletedTask;
+    }
+
 
     public Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
     {
@@ -91,46 +107,51 @@ namespace OperationMaps.Wpf.Features.Welcome
 
       if (!await _shell.ConfirmCloseProjectAsync()) return;
 
-      if (!_importer.CanImport(path))
-      {
-        _dialogService.ShowError($"Файл не является поддерживаемым перечнем элементов:\n{path}");
-        return;
-      }
-
-      ImportResult importResult;
+      if (IsBusy) return;
+      using var operation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+      _importCts = operation;
+      var token = operation.Token;
+      IsBusy = true;
+      BusyText = "Чтение XML…";
+      var matching = false;
       try
       {
-        await using var stream = File.OpenRead(path);
-        importResult = await _importer.ImportAsync(stream, cancellationToken);
+        var importResult = await Task.Run(async () =>
+        {
+          token.ThrowIfCancellationRequested();
+          if (!_importer.CanImport(path))
+            throw new InvalidDataException("Файл не является поддерживаемым перечнем элементов.");
+          await using var stream = File.OpenRead(path);
+          return await _importer.ImportAsync(stream, token);
+        }, token);
+        token.ThrowIfCancellationRequested();
+        matching = true;
+        BusyText = $"Сопоставление с каталогом: компонентов — {importResult.Components.Count}…";
+        var matchResult = await Task.Run(() => _matcher.MatchAllAsync(importResult.Components, token), token);
+        token.ThrowIfCancellationRequested();
+
+        var projectName = Path.GetFileNameWithoutExtension(path);
+        var projectFolderPath = Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
+        _store.Load(projectName, projectFolderPath, matchResult, importResult);
+        _shell.OnProjectLoaded(projectName, matchResult);
+        IsBusy = false;
+        await _navigation.NavigateAsync<ProjectOverviewViewModel>(addToHistory: false);
       }
-      catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
-                                or InvalidDataException or OperationCanceledException)
+      catch (OperationCanceledException) when (token.IsCancellationRequested)
       {
-        _dialogService.ShowError($"Не удалось открыть файл: {ex.Message}");
-        return;
+        // Keep the current project intact when reading or matching is cancelled.
       }
-
-      ProjectMatchResult matchResult;
-      try
+      catch (Exception ex)
       {
-        matchResult = await _matcher.MatchAllAsync(importResult.Components, cancellationToken);
+        _dialogService.ShowError(matching
+          ? $"Ошибка при сопоставлении компонентов: {ex.Message}"
+          : $"Не удалось открыть файл: {ex.Message}");
       }
-      catch (Exception ex) when (ex is not OperationCanceledException)
+      finally
       {
-        _dialogService.ShowError($"Ошибка при сопоставлении компонентов: {ex.Message}");
-        return;
+        if (ReferenceEquals(_importCts, operation)) _importCts = null;
+        IsBusy = false;
       }
-
-      var projectName = Path.GetFileNameWithoutExtension(path);
-      var projectFolderPath = Path.GetDirectoryName(path) ?? AppContext.BaseDirectory;
-
-      _store.Load(projectName, projectFolderPath, matchResult, importResult);
-
-      _shell.OnProjectLoaded(projectName, matchResult);
-
-      await _navigation.NavigateAsync<ProjectOverviewViewModel>(
-            addToHistory: false,
-            cancellationToken: cancellationToken);
     }
 
     [RelayCommand]

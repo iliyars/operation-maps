@@ -23,7 +23,7 @@ namespace OperationMaps.Wpf.Features.Catalog;
 /// name typed in and the result counted as verified. Admins can also edit
 /// the selected record in place (name + values) and delete it.
 /// </summary>
-public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
+public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
 {
   private const string NoValue = "—";
 
@@ -33,6 +33,13 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   private readonly IComponentNameParser _nameParser;
   private readonly ICatalogEditService _editService;
   private readonly IDialogService _dialogs;
+  private CancellationTokenSource _lifetime = new();
+  private CancellationTokenSource? _selectionCts;
+  private int _selectionVersion;
+  private int _treeVersion;
+  private int _treeLoadVersion;
+  private bool _active = true;
+  [ObservableProperty] private string? _selectionError;
 
   public IReadOnlyList<CatalogTypeNode> Types { get; private set; } = [];
 
@@ -125,21 +132,49 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   public async Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
   {
+    _lifetime.Cancel();
+    _lifetime.Dispose();
+    _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+    _active = true;
+    CancelSelection();
+    var version = ++_treeVersion;
+    _session.PropertyChanged -= OnSessionChanged;
+    _session.PropertyChanged += OnSessionChanged;
+    OnSessionChanged(_session, new(nameof(SessionStore.IsAdmin)));
     IsLoading = true;
     try
     {
-      await LoadTreeAsync(cancellationToken);
+      await LoadTreeAsync(_lifetime.Token);
     }
+    catch (OperationCanceledException) when (!_active || version != _treeVersion || _lifetime.IsCancellationRequested) { }
+    catch (Exception) when (!_active || version != _treeVersion) { }
     finally
     {
-      IsLoading = false;
+      if (version == _treeVersion) IsLoading = false;
     }
   }
+
+  public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+  {
+    _active = false;
+    ++_treeVersion;
+    _lifetime.Cancel();
+    CancelSelection();
+    IsLoading = false;
+    _session.PropertyChanged -= OnSessionChanged;
+    Regimes.CancelLoad();
+    return Task.CompletedTask;
+  }
+
 
   // ── Tree ──────────────────────────────────────────────────────────────────
 
   private async Task LoadTreeAsync(CancellationToken ct)
   {
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct, _lifetime.Token);
+    ct = operation.Token;
+    var version = _treeVersion;
+    var loadVersion = ++_treeLoadVersion;
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     // Fresh read on every visit — the catalog changes while the app runs
     // (the "add component" wizard, Word import).
@@ -149,6 +184,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         .OrderBy(t => t.Name)
         .ToListAsync(ct);
 
+    ct.ThrowIfCancellationRequested();
+    if (!_active || version != _treeVersion || loadVersion != _treeLoadVersion) return;
     Types = types
         .Where(t => t.Families.Count > 0)
         .Select(t => new CatalogTypeNode
@@ -221,51 +258,77 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
 
   // ── Selection ─────────────────────────────────────────────────────────────
 
-  [RelayCommand]
-  private async Task SelectFamilyAsync(CatalogFamilyNode family, CancellationToken ct)
+  private void CancelSelection()
   {
-    CancelEdit();
-    if (SelectedFamily is not null) SelectedFamily.IsSelected = false;
-    SelectComponentItem(null);
-
-    SelectedFamily = family;
-    family.IsSelected = true;
-    UpdateVisibleComponents();
-
-    Card = await BuildFamilyCardAsync(family, ct);
-    if (SelectedFamily != family || SelectedComponent is not null) return;
-    // Regimes belong to a component; a single-component family needs no extra selection.
-    if (family.Components.Count == 1)
-      await LoadRegimePreviewAsync(family.Components[0], ct);
+    ++_selectionVersion;
+    _selectionCts?.Cancel();
+    Regimes.CancelLoad();
   }
 
-  [RelayCommand]
-  private async Task SelectComponentAsync(CatalogComponentItem component, CancellationToken ct)
+  private bool IsCurrentSelection(int version, CancellationToken ct)
+    => _active && version == _selectionVersion && !ct.IsCancellationRequested;
+
+  private async Task RunSelectionAsync(Func<int, CancellationToken, Task> select, CancellationToken ct)
   {
-    CancelEdit();
-    SelectComponentItem(component);
-    var card = await BuildComponentCardAsync(component, ct);
-    if (SelectedComponent?.Id != component.Id) return;
-    Card = card;
-    await LoadRegimePreviewAsync(component, ct);
+    CancelSelection();
+    if (!_active) return;
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct, _lifetime.Token);
+    _selectionCts = operation;
+    var version = _selectionVersion;
+    Card = null;
+    SelectionError = null;
+    try { await select(version, operation.Token); }
+    catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+    catch (Exception ex)
+    {
+      if (IsCurrentSelection(version, operation.Token))
+        SelectionError = $"Не удалось загрузить карточку: {ex.Message}";
+    }
+    finally { if (ReferenceEquals(_selectionCts, operation)) _selectionCts = null; }
   }
 
-  private async Task LoadRegimePreviewAsync(CatalogComponentItem component, CancellationToken ct)
+  [RelayCommand(AllowConcurrentExecutions = true)]
+  private Task SelectFamilyAsync(CatalogFamilyNode family, CancellationToken ct)
+    => RunSelectionAsync(async (version, token) =>
+    {
+      CancelEdit();
+      if (SelectedFamily is not null) SelectedFamily.IsSelected = false;
+      SelectComponentItem(null);
+      SelectedFamily = family;
+      family.IsSelected = true;
+      UpdateVisibleComponents();
+      var card = await BuildFamilyCardAsync(family, token);
+      if (!IsCurrentSelection(version, token)) return;
+      Card = card;
+      if (family.Components.Count == 1)
+        await LoadRegimePreviewAsync(family.Components[0], version, token);
+    }, ct);
+
+  [RelayCommand(AllowConcurrentExecutions = true)]
+  private Task SelectComponentAsync(CatalogComponentItem component, CancellationToken ct)
+    => RunSelectionAsync(async (version, token) =>
+    {
+      CancelEdit();
+      SelectComponentItem(component);
+      var card = await BuildComponentCardAsync(component, token);
+      if (!IsCurrentSelection(version, token)) return;
+      Card = card;
+      await LoadRegimePreviewAsync(component, version, token);
+    }, ct);
+
+  private async Task LoadRegimePreviewAsync(CatalogComponentItem component, int version, CancellationToken ct)
   {
-    var family = SelectedFamily;
-    var selected = SelectedComponent;
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
     var entity = await db.Components.AsNoTracking().Include(c => c.Family).ThenInclude(f => f.ComponentType)
       .Include(c => c.OwnForm).FirstOrDefaultAsync(c => c.Id == component.Id, ct);
-    if (SelectedFamily != family || SelectedComponent != selected || entity is null) return;
-    // A detached preview object: browsing the catalog cannot switch a project's active regime.
+    if (!IsCurrentSelection(version, ct) || entity is null) return;
+    // Preview is detached from the project, and belongs to this selection only.
     await Regimes.LoadAsync(new ProjectComponentVm(new ComponentMatchEntry
     {
       Imported = new ImportedComponent { RawName = entity.FullName, DetectedCategory = entity.Family.ComponentType.Name, Positions = [] },
       MatchResult = new MatchResult { IsMatched = true, MatchedComponent = entity, MatchedFamily = entity.Family, MatchedType = entity.Family.ComponentType }
-    }));
+    }), ct);
   }
-
   private void SelectComponentItem(CatalogComponentItem? component)
   {
     _ = Regimes.LoadAsync(null);
@@ -433,6 +496,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
   private async Task VerifyAsync()
   {
     if (SelectedComponent is not { } item) return;
+    var version = _selectionVersion;
 
     await _entryService.MarkVerifiedAsync(item.Id);
 
@@ -440,7 +504,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     SelectedFamily?.NotifyReviewChanged();
     OnPropertyChanged(nameof(UnverifiedCount));
     VerifyCommand.NotifyCanExecuteChanged();
-    Card = await BuildComponentCardAsync(item, CancellationToken.None);
+    if (_active && version == _selectionVersion && SelectedComponent == item)
+      await SelectComponentAsync(item, CancellationToken.None);
   }
 
   private bool CanVerify => IsAdmin && !IsEditing && SelectedComponent is { NeedsReview: true };

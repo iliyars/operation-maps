@@ -495,6 +495,10 @@
                         <StackPanel Margin="16"
                                 DataContext="{Binding SelectedComponent}">
 
+                            <TextBlock Text="{Binding DataContext.SelectionError, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                       TextWrapping="Wrap" Foreground="{DynamicResource StatusErrorBrush}"
+                                       Margin="0,0,0,8"/>
+
                             <TextBlock Text="{Binding Name}"
                                        FontSize="13"
                                        FontWeight="SemiBold"

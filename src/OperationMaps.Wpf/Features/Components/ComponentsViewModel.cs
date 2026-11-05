@@ -11,10 +11,12 @@ using OperationMaps.Wpf.Infrastructure.Commands;
 using OperationMaps.Wpf.Infrastructure.ViewModels;
 using OperationMaps.Wpf.Stores;
 using OperationMaps.Wpf.Services;
+using OperationMaps.Wpf.Infrastructure.Navigation;
+using System.Collections.Specialized;
 
 namespace OperationMaps.Wpf.Features.Components
 {
-  public sealed partial class ComponentsViewModel : ScreenViewModelBase
+  public sealed partial class ComponentsViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
   {
     private readonly ProjectStore _store;
     private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
@@ -23,6 +25,11 @@ namespace OperationMaps.Wpf.Features.Components
     private readonly UserPreferences _preferences;
     internal UserPreferences WorkspacePreferences => _preferences;
     public ComponentRegimesViewModel Regimes { get; }
+    private CancellationTokenSource? _selectionCts;
+    private int _selectionVersion;
+    private bool _active = true;
+    public Task SelectionLoadTask { get; private set; } = Task.CompletedTask;
+    [ObservableProperty] private string? _selectionError;
 
     public ComponentsViewModel(
         ProjectStore store,
@@ -39,7 +46,7 @@ namespace OperationMaps.Wpf.Features.Components
       _preferences = preferences ?? throw new ArgumentNullException(nameof(preferences));
       _activeFilter = Enum.IsDefined(preferences.ComponentsFilter) ? preferences.ComponentsFilter : ComponentFilter.All;
 
-      _store.Components.CollectionChanged += (_, _) => RefreshCounts();
+      _store.Components.CollectionChanged += OnComponentsChanged;
     }
 
     public ObservableCollection<ProjectComponentVm> Components => _store.Components;
@@ -88,16 +95,59 @@ namespace OperationMaps.Wpf.Features.Components
 
     partial void OnSelectedComponentChanged(ProjectComponentVm? value)
     {
-      _ = Regimes.LoadAsync(value);
-      if (value is not null)
-        _ = LoadSelectedComponentAsync(value);
+      SelectionLoadTask = LoadSelectionAsync(value);
     }
 
-    private async Task LoadSelectedComponentAsync(ProjectComponentVm component)
+    private async Task LoadSelectionAsync(ProjectComponentVm? component, CancellationToken ct = default)
     {
-      if (component.IsBoard) return;
-      await using var db = await _dbFactory.CreateDbContextAsync(default);
-      await component.LoadNtdValuesAsync(db);
+      _selectionCts?.Cancel();
+      var version = ++_selectionVersion;
+      SelectionError = null;
+      if (!_active) return;
+      using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+      _selectionCts = operation;
+      try
+      {
+        var regimes = Regimes.LoadAsync(component, operation.Token);
+        await Task.WhenAll(regimes, LoadSelectedNtdAsync(component, operation.Token));
+        if (version == _selectionVersion && _active && !operation.IsCancellationRequested
+            && !string.IsNullOrEmpty(Regimes.Error)) SelectionError = Regimes.Error;
+      }
+      catch (OperationCanceledException) when (operation.IsCancellationRequested) { }
+      catch (Exception ex)
+      {
+        if (version == _selectionVersion && _active)
+          SelectionError = $"Не удалось загрузить параметры: {ex.Message}";
+      }
+      finally { if (ReferenceEquals(_selectionCts, operation)) _selectionCts = null; }
+    }
+
+    private async Task LoadSelectedNtdAsync(ProjectComponentVm? component, CancellationToken ct)
+    {
+      if (component is null || component.IsBoard) return;
+      await using var db = await _dbFactory.CreateDbContextAsync(ct);
+      await component.LoadNtdValuesAsync(db, ct);
+    }
+
+    private void OnComponentsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RefreshCounts();
+
+    public Task OnNavigatedToAsync(object? parameter = null, CancellationToken cancellationToken = default)
+    {
+      _active = true;
+      _store.Components.CollectionChanged -= OnComponentsChanged;
+      _store.Components.CollectionChanged += OnComponentsChanged;
+      RefreshCounts();
+      return SelectionLoadTask = LoadSelectionAsync(SelectedComponent, cancellationToken);
+    }
+
+    public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+    {
+      _active = false;
+      ++_selectionVersion;
+      _selectionCts?.Cancel();
+      Regimes.CancelLoad();
+      _store.Components.CollectionChanged -= OnComponentsChanged;
+      return Task.CompletedTask;
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────

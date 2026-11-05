@@ -28,12 +28,18 @@ namespace OperationMaps.Infrastructure.Word
     public static IReadOnlyList<string> DetectFormNumbers(string documentPath)
     {
       using var doc = WordprocessingDocument.Open(documentPath, isEditable: false);
+      return DetectFormNumbers(doc);
+    }
+
+    internal static IReadOnlyList<string> DetectFormNumbers(WordprocessingDocument doc, CancellationToken ct = default)
+    {
 
       var result = new List<string>();
       var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-      foreach (var table in doc.MainDocumentPart!.Document.Body!.Elements<Table>())
+      foreach (var table in WordDocumentStructure.RequireBody(doc).Elements<Table>())
       {
+        ct.ThrowIfCancellationRequested();
         var headerCell = WordTableHelper.TryGetCell(table, 0, 0);
         if (headerCell is null) continue;
 
@@ -55,6 +61,12 @@ namespace OperationMaps.Infrastructure.Word
         WordFormMap map)
     {
       using var doc = WordprocessingDocument.Open(documentPath, isEditable: false);
+      return Read(formNumber, doc, map);
+    }
+
+    internal static WordFormData Read(string formNumber, WordprocessingDocument doc, WordFormMap map, CancellationToken ct = default)
+    {
+      ct.ThrowIfCancellationRequested();
 
       // A single document may contain many forms (a combined work-order
       // export has one table — or a run of tables, when a form spills onto
@@ -63,7 +75,7 @@ namespace OperationMaps.Infrastructure.Word
       // otherwise, reading e.g. Form 67 against a document that also has
       // Form 4/64/68/... tables would risk misinterpreting unrelated cells
       // that happen to land on the same coordinates as real Form 67 data.
-      var allTables = doc.MainDocumentPart!.Document.Body!
+      var allTables = WordDocumentStructure.RequireBody(doc)
           .Elements<Table>()
           .Where(t => TableBelongsToForm(t, formNumber))
           .ToList();
@@ -72,10 +84,12 @@ namespace OperationMaps.Infrastructure.Word
 
       foreach (var table in allTables)
       {
+        ct.ThrowIfCancellationRequested();
         bool anyOnThisTable = false;
 
         for (int slotIndex = 0; slotIndex < map.ComponentsPerPage; slotIndex++)
         {
+          ct.ThrowIfCancellationRequested();
           var slot = map.ComponentSlots[slotIndex];
 
           string name = ReadCoord(table, slot.MetaCells, MetaCellKey.ComponentName);

@@ -31,7 +31,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     /// <summary>
     /// True for the load-factor result row (коэффициент нагрузки) —
-    /// its SchemeValue is written automatically by OwnFormViewModel
+    /// its SchemeValue is written automatically by OwnFormState
     /// whenever the chosen base parameter changes, so the UI shows it
     /// read-only instead of an editable TextBox, same treatment as
     /// IsDerived rows.
@@ -132,43 +132,14 @@ namespace OperationMaps.Wpf.Features.OwnForm
 
     partial void OnSchemeValueChanged(string value)
     {
-      _column.SetCellValue(FormParameterId, value);
+      if (!IsReadOnlyValue) _column.SetCellValue(FormParameterId, value);
     }
 
-    //TODO: Парсер жёстко связан со строкой. Парсит только один тип "row1+row2+row3"
-    public void Recalculate(IReadOnlyList<ParameterDetailVm> AllRows)
+    internal void RefreshCalculatedValue()
     {
-      if (Formula is null) return;
-      var rowNumbers = Formula
-            .Split('+', StringSplitOptions.RemoveEmptyEntries)
-            .Select(t => t.Trim())
-            .Where(t => t.StartsWith("row", StringComparison.OrdinalIgnoreCase))
-            .Select(t => int.TryParse(t["row".Length..], out var n) ? n : -1)
-            .Where(n => n > 0)
-            .ToList();
-      double sum = 0;
-      bool hasAnyValue = false;
-      foreach (var rowNum in rowNumbers)
-      {
-        var sourceRow = AllRows.FirstOrDefault(r => r.RowNumber == rowNum);
-        if (sourceRow is null) continue;
-        var raw = sourceRow.SchemeValue?.Trim() ?? "";
-        if (string.IsNullOrEmpty(raw) || raw == "-") continue;
-        raw = raw.Replace(',', '.');
-        if (double.TryParse(raw,
-            System.Globalization.NumberStyles.Any,
-            System.Globalization.CultureInfo.InvariantCulture,
-            out var val))
-        {
-          sum += val;
-          hasAnyValue = true;
-        }
-      }
-      SchemeValue = hasAnyValue
-            ? sum.ToString("G", System.Globalization.CultureInfo.CurrentCulture)
-            : "";
+      if (!IsReadOnlyValue) return;
+      SchemeValue = _column.GetCellValue(FormParameterId);
     }
-
     [RelayCommand]
     private void StartAddNote()
     {

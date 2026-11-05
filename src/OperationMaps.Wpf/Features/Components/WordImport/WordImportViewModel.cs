@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -20,11 +20,30 @@ namespace OperationMaps.Wpf.Features.Components.WordImport;
 /// not a dialog — reviewing what a document actually contains benefits from
 /// the same amount of room as any other page in the app.
 /// </summary>
-public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigatedTo
+public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigatedTo, INavigatedFrom
 {
   private readonly IWordCatalogImportService _importService;
   private readonly IDbContextFactory<CatalogDbContext> _dbFactory;
   private readonly INavigationService _navigation;
+
+  private CancellationTokenSource? _operationCts;
+  private CancellationTokenSource? _detailCts;
+  private int _operationVersion;
+  private int _detailVersion;
+  private bool _leaving;
+  [ObservableProperty] private string _busyText = "Открытие документа…";
+  [ObservableProperty] private int _progressCompleted;
+  [ObservableProperty] private int _progressTotal;
+  public bool IsBusy => IsLoading || IsImporting;
+  public string BusyTitle => IsImporting ? "Сохранение компонентов" : "Чтение документа Word";
+  public bool IsProgressIndeterminate => ProgressTotal == 0;
+  public double ProgressPercent => ProgressTotal == 0 ? 0 : 100.0 * ProgressCompleted / ProgressTotal;
+  partial void OnProgressCompletedChanged(int value) => OnPropertyChanged(nameof(ProgressPercent));
+  partial void OnProgressTotalChanged(int value)
+  {
+    OnPropertyChanged(nameof(ProgressPercent));
+    OnPropertyChanged(nameof(IsProgressIndeterminate));
+  }
 
   public string? DocumentPath { get; private set; }
   public string DocumentFileName => DocumentPath is null ? "" : System.IO.Path.GetFileName(DocumentPath);
@@ -70,29 +89,66 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
   {
     if (parameter is not string path) return;
 
+    _leaving = false;
     DocumentPath = path;
+    OnPropertyChanged(nameof(DocumentPath));
+    OnPropertyChanged(nameof(DocumentFileName));
     await InitializeAsync(cancellationToken);
+  }
+
+  public Task OnNavigatedFromAsync(CancellationToken cancellationToken = default)
+  {
+    _leaving = true;
+    _operationCts?.Cancel();
+    _detailCts?.Cancel();
+    foreach (var row in Rows) row.CancelTypeResolution();
+    return Task.CompletedTask;
   }
 
   private async Task InitializeAsync(CancellationToken ct)
   {
-    await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    _operationCts?.Cancel();
+    foreach (var row in Rows) row.CancelTypeResolution();
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    _operationCts = operation;
+    var token = operation.Token;
+    var version = ++_operationVersion;
+    var path = DocumentPath!;
     IsLoading = true;
     ErrorMessage = null;
+    ResultSummary = null;
+    BusyText = "Открытие документа…";
+    ProgressCompleted = 0;
+    ProgressTotal = 0;
+    var progress = new Progress<WordImportProgress>(value =>
+    {
+      if (version != _operationVersion || _leaving || token.IsCancellationRequested || !IsLoading) return;
+      BusyText = value.Message;
+      ProgressCompleted = value.Completed;
+      ProgressTotal = value.Total;
+    });
     try
     {
-      var types = await db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct);
-      ComponentTypeOptions.Clear();
-      foreach (var t in types)
-        ComponentTypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
-
-      var result = await _importService.ScanAsync(DocumentPath!, ct);
-      UnsupportedFormNumbers = result.UnsupportedFormNumbers;
-
-      Rows.Clear();
-      foreach (var component in result.Components)
+      // SQLite async APIs can complete synchronously; create and use each context in the worker.
+      var payload = await Task.Run(async () =>
       {
-        var row = new WordImportRowVm(component, _importService);
+        await using var db = await _dbFactory.CreateDbContextAsync(token);
+        var types = await db.ComponentTypes.AsNoTracking().OrderBy(t => t.Name).ToListAsync(token);
+        var scan = _importService is IWordCatalogImportProgress reporting
+          ? await reporting.ScanAsync(path, progress, token)
+          : await _importService.ScanAsync(path, token);
+        return (Types: types, Scan: scan);
+      }, token);
+      if (version != _operationVersion || _leaving) return;
+      token.ThrowIfCancellationRequested();
+      ComponentTypeOptions.Clear();
+      foreach (var t in payload.Types) ComponentTypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
+      UnsupportedFormNumbers = payload.Scan.UnsupportedFormNumbers;
+      SelectedRow = null;
+      Rows.Clear();
+      foreach (var component in payload.Scan.Components)
+      {
+        var row = new WordImportRowVm(component, _importService) { Number = Rows.Count + 1 };
         row.PropertyChanged += (_, e) =>
         {
           if (e.PropertyName is nameof(WordImportRowVm.IsSelected) or nameof(WordImportRowVm.IsImported))
@@ -100,17 +156,24 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
         };
         Rows.Add(row);
       }
-
-      ImportSelectedCommand.NotifyCanExecuteChanged();
       SelectedRow = Rows.FirstOrDefault();
+    }
+    catch (OperationCanceledException) when (token.IsCancellationRequested)
+    {
+      if (version == _operationVersion && !_leaving) ResultSummary = "Чтение документа отменено.";
     }
     catch (Exception ex)
     {
-      ErrorMessage = $"Не удалось прочитать документ: {ex.Message}";
+      if (version == _operationVersion && !_leaving) ErrorMessage = $"Не удалось прочитать документ: {ex.Message}";
     }
     finally
     {
-      IsLoading = false;
+      if (version == _operationVersion)
+      {
+        _operationCts = null;
+        IsLoading = false;
+        ImportSelectedCommand.NotifyCanExecuteChanged();
+      }
     }
   }
 
@@ -120,34 +183,33 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
 
   private async Task LoadDetailAsync(WordImportRowVm? row)
   {
-    await using var db = await _dbFactory.CreateDbContextAsync(default);
+    _detailCts?.Cancel();
+    var version = ++_detailVersion;
     SelectedParameters.Clear();
     SelectedForm4Summary.Clear();
     OnPropertyChanged(nameof(HasForm4Summary));
-    if (row is null) return;
-
-    var ownForm = await db.Forms
-        .Include(f => f.Parameters)
-        .FirstOrDefaultAsync(f => f.Id == row.Model.OwnFormId);
-
-    if (ownForm is null) return;
-    if (row != SelectedRow) return; // selection moved on while this was loading
-
-    // Pin numbers are currently unique to Form 64.
-    SelectedShowsPins = ownForm.Number == "64";
-
-    foreach (var param in ownForm.Parameters.Where(p => !p.IsOptional).OrderBy(p => p.RowNumber))
-      SelectedParameters.Add(new WordImportParameterRowVm(param, row.Model, SelectedShowsPins));
-
-    if (row.Model.Form4NtdValuesByRow.Count > 0)
+    if (row is null || _leaving) return;
+    using var operation = new CancellationTokenSource();
+    _detailCts = operation;
+    var token = operation.Token;
+    try
     {
-      var form4 = await db.Forms
-          .Include(f => f.Parameters)
-          .FirstOrDefaultAsync(f => f.Number == "4");
-
-      if (form4 is not null && row == SelectedRow)
+      var data = await Task.Run(async () =>
       {
-        var paramsByRow = form4.Parameters.ToDictionary(p => p.RowNumber);
+        await using var db = await _dbFactory.CreateDbContextAsync(token);
+        var own = await db.Forms.AsNoTracking().Include(f => f.Parameters)
+          .FirstOrDefaultAsync(f => f.Id == row.Model.OwnFormId, token);
+        var form4 = row.Model.Form4NtdValuesByRow.Count > 0
+          ? await db.Forms.AsNoTracking().Include(f => f.Parameters).FirstOrDefaultAsync(f => f.Number == "4", token) : null;
+        return (Own: own, Form4: form4);
+      }, token);
+      if (version != _detailVersion || row != SelectedRow || _leaving || data.Own is null) return;
+      SelectedShowsPins = data.Own.Number == "64";
+      foreach (var param in data.Own.Parameters.Where(p => !p.IsOptional).OrderBy(p => p.RowNumber))
+        SelectedParameters.Add(new WordImportParameterRowVm(param, row.Model, SelectedShowsPins));
+      if (data.Form4 is not null)
+      {
+        var paramsByRow = data.Form4.Parameters.ToDictionary(p => p.RowNumber);
         foreach (var (rowNumber, value) in row.Model.Form4NtdValuesByRow.OrderBy(kv => kv.Key))
         {
           if (!paramsByRow.TryGetValue(rowNumber, out var param)) continue;
@@ -156,56 +218,96 @@ public sealed partial class WordImportViewModel : ScreenViewModelBase, INavigate
             ? string.Join("\n", texts.Select(t => $"* {t}")) : "";
           SelectedForm4Summary.Add(new Form4SummaryRowVm(name, value, notes));
         }
-
         OnPropertyChanged(nameof(HasForm4Summary));
       }
     }
+    catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+    catch (Exception ex)
+    {
+      if (version == _detailVersion && !_leaving) ErrorMessage = $"Не удалось загрузить параметры: {ex.Message}";
+    }
+    finally { if (version == _detailVersion) _detailCts = null; }
   }
 
   // ── Commands ─────────────────────────────────────────────────────────────
 
   public bool CanImportSelected => !IsImporting
       && !IsLoading
-      && Rows.Any(r => r.IsSelected && !r.IsImported);
+      && Rows.Any(r => r.IsSelected && !r.IsImported && r.CanToggleSelection);
 
   [RelayCommand(CanExecute = nameof(CanImportSelected))]
   private async Task ImportSelectedAsync(CancellationToken ct = default)
   {
+    if (!CanImportSelected) return;
+    using var operation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    _operationCts = operation;
+    var token = operation.Token;
+    var version = ++_operationVersion;
+    var selected = Rows.Where(r => r.IsSelected && !r.IsImported && r.CanToggleSelection).ToList();
     IsImporting = true;
     ResultSummary = null;
+    ErrorMessage = null;
+    ProgressTotal = selected.Count;
+    ProgressCompleted = 0;
+    int created = 0, failed = 0;
     try
     {
-      int created = 0, failed = 0;
-
-      foreach (var row in Rows.Where(r => r.IsSelected && !r.IsImported).ToList())
+      for (var index = 0; index < selected.Count; index++)
       {
+        token.ThrowIfCancellationRequested();
+        var row = selected[index];
+        BusyText = $"Компонент {index + 1} из {selected.Count}: {row.FullName}";
         try
         {
-          await _importService.ImportAsync(row.Model, ct);
-          row.MarkImported();
+          // Keep writes sequential for SQLite; the UI remains free throughout each transaction.
+          await Task.Run(() => _importService.ImportAsync(row.Model, token), token);
           created++;
+          if (!_leaving && version == _operationVersion) row.MarkImported();
         }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
-          row.MarkFailed(ex.Message);
           failed++;
+          if (!_leaving && version == _operationVersion) row.MarkFailed(ex.Message);
         }
+        if (version != _operationVersion || _leaving) return;
+        ProgressCompleted = index + 1;
       }
-
-      ResultSummary = failed == 0
-          ? $"Импортировано компонентов: {created}."
-          : $"Импортировано: {created}. Не удалось: {failed} — см. ошибки в списке.";
+      ResultSummary = failed == 0 ? $"Импортировано компонентов: {created}."
+        : $"Импортировано: {created}. Не удалось: {failed} — см. ошибки в списке.";
+    }
+    catch (OperationCanceledException) when (token.IsCancellationRequested)
+    {
+      if (version == _operationVersion && !_leaving)
+        ResultSummary = $"Импорт остановлен. Сохранено компонентов: {created}. Ошибок: {failed}.";
     }
     finally
     {
-      IsImporting = false;
-      ImportSelectedCommand.NotifyCanExecuteChanged();
+      if (version == _operationVersion)
+      {
+        _operationCts = null;
+        IsImporting = false;
+      }
     }
+  }
+
+  [RelayCommand(CanExecute = nameof(IsBusy))]
+  private void CancelOperation()
+  {
+    BusyText = "Отмена операции…";
+    _operationCts?.Cancel();
   }
 
   [RelayCommand]
   private async Task GoBackAsync() => await _navigation.GoBackAsync();
 
-  partial void OnIsImportingChanged(bool value) => ImportSelectedCommand.NotifyCanExecuteChanged();
-  partial void OnIsLoadingChanged(bool value) => ImportSelectedCommand.NotifyCanExecuteChanged();
+  partial void OnIsImportingChanged(bool value) => RefreshBusyState();
+  partial void OnIsLoadingChanged(bool value) => RefreshBusyState();
+  private void RefreshBusyState()
+  {
+    OnPropertyChanged(nameof(IsBusy));
+    OnPropertyChanged(nameof(BusyTitle));
+    CancelOperationCommand.NotifyCanExecuteChanged();
+    ImportSelectedCommand.NotifyCanExecuteChanged();
+  }
 }

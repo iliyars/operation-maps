@@ -21,8 +21,7 @@ namespace OperationMaps.Wpf.Features.Components
     // ── Display properties ────────────────────────────────────────────────────
 
     public string Positions => string.Join(", ", Entry.Imported.Positions);
-    public string Name => Entry.MatchResult.MatchedComponent?.FullName
-                              ?? Entry.Imported.RawName;
+    public string Name => Entry.Imported.RawName;
     public string? TypeName => Entry.Imported.DetectedCategory;
     public string? FamilyName => Entry.MatchResult.MatchedFamily?.Name;
     public string Classification => IsBoard ? "Плата · Форма 3 · без каталога"
@@ -36,6 +35,7 @@ namespace OperationMaps.Wpf.Features.Components
 
     public bool IsBoard => Form3DataBuilder.IsBoard(Entry.Imported);
     public ComponentRegimeSelection? ActiveRegime { get; private set; }
+    private IReadOnlyList<ComponentRegimeSelection> _reliefVariants = [];
     public string RegimeName => ActiveRegime?.Name ?? "Основной";
 
     public void SelectRegime(ComponentRegimeSelection? regime)
@@ -58,6 +58,26 @@ namespace OperationMaps.Wpf.Features.Components
       }
     }
 
+    public bool ApplyAllReliefNotes()
+    {
+      var available = _reliefVariants.Where(v => v.Values.Any(p => p.FormNumber == "4")).ToArray();
+      if (available.Length == 0) return false;
+      if (available.All(ReliefSelected)) return true;
+      var selected = ActiveRegime is { } active
+        ? (active.Conditions.Count > 0 ? active.Conditions : new[] { active }).ToList() : [];
+      foreach (var variant in available)
+        if (!selected.Any(c => c.Name == variant.Name && c.Condition == variant.Condition)) selected.Add(variant);
+      // Compose first: conflicting alternatives must not partially change the component.
+      var combined = ComponentRegimeSelection.Combine(selected);
+      SelectRegime(combined);
+      foreach (var row in NtdValues)
+      {
+        row.SelectionError = "";
+        foreach (var note in row.AvailableNotes) note.Refresh();
+      }
+      return true;
+    }
+
     public ComponentMatchStatus MatchStatus => IsBoard ? ComponentMatchStatus.Automatic : Entry.MatchResult switch
     {
       { MatchedComponent: not null } => ComponentMatchStatus.Matched,
@@ -78,6 +98,7 @@ namespace OperationMaps.Wpf.Features.Components
     [ObservableProperty] private IReadOnlyList<NtdParameterVm> _ntdValues = [];
     [ObservableProperty] private bool _isLoadingNtd;
     [ObservableProperty] private bool _ntdLoaded;
+    private readonly SemaphoreSlim _ntdLoading = new(1, 1);
 
     /// <summary>
     /// Raised when the user adds/removes a Form 4 note on one of this
@@ -111,9 +132,18 @@ namespace OperationMaps.Wpf.Features.Components
         CatalogDbContext db,
         CancellationToken ct = default)
     {
-      if (NtdLoaded || IsLoadingNtd || IsBoard) return;
+      await _ntdLoading.WaitAsync(ct);
+      try { await LoadNtdCoreAsync(db, ct); }
+      finally { _ntdLoading.Release(); }
+    }
 
-      var familyId = Entry.MatchResult.MatchedFamily?.Id;
+    private async Task LoadNtdCoreAsync(CatalogDbContext db, CancellationToken ct)
+    {
+      ct.ThrowIfCancellationRequested();
+      if (NtdLoaded || IsBoard) return;
+      var entry = Entry;
+
+      var familyId = entry.MatchResult.MatchedFamily?.Id;
 
       IsLoadingNtd = true;
 
@@ -143,7 +173,7 @@ namespace OperationMaps.Wpf.Features.Components
           .OrderBy(n => n.NoteId).ToListAsync(ct);
         foreach (var note in catalogNotes)
           rows.FirstOrDefault(r => r.FormParameterId == note.FormParameterId)?.AddCatalogNote(note.Note.Text);
-        var componentId = Entry.MatchResult.MatchedComponent?.Id;
+        var componentId = entry.MatchResult.MatchedComponent?.Id;
         var storedVariants = await db.ComponentRegimes.AsNoTracking()
           .Include(r => r.Values).ThenInclude(v => v.FormParameter).ThenInclude(p => p.Form)
           .Where(r => r.ComponentId == componentId).ToListAsync(ct);
@@ -189,6 +219,9 @@ namespace OperationMaps.Wpf.Features.Components
               });
             row.AddReliefOption(option, variant.Condition);
           }
+        ct.ThrowIfCancellationRequested();
+        if (!ReferenceEquals(entry, Entry)) return;
+        _reliefVariants = variants;
         NtdValues = rows;
         ApplyRegimeValues();
 

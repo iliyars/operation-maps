@@ -136,6 +136,10 @@ namespace OperationMaps.Wpf.Features.Welcome
         _shell.OnProjectLoaded(projectName, matchResult);
         IsBusy = false;
         await _navigation.NavigateAsync<ProjectOverviewViewModel>(addToHistory: false);
+        if (importResult.Warnings.Count > 0)
+          _dialogService.ShowWarning(
+            $"Импортировано компонентов: {importResult.ComponentCount}. Предупреждений: {importResult.Warnings.Count}.\n\n"
+            + string.Join("\n", importResult.Warnings), "Результат импорта XML");
       }
       catch (OperationCanceledException) when (token.IsCancellationRequested)
       {

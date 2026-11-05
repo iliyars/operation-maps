@@ -5,6 +5,7 @@ using OperationMaps.Application.Importing;
 using OperationMaps.Application.Services;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Infrastructure.Services;
 using OperationMaps.Wpf.Features.Components.AddComponent;
 using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Stores;
@@ -104,6 +105,16 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
     _editService = editService ?? throw new ArgumentNullException(nameof(editService));
     _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
     Regimes = new ComponentRegimesViewModel(_dbFactory) { IsCatalogPreview = true, CanEdit = _session.IsAdmin };
+    Regimes.Saved += async () =>
+    {
+      if (!_active) return;
+      var componentId = SelectedComponent?.Id;
+      var selectedRegime = Regimes.Selected?.Selection;
+      await ReloadAndSelectAsync(SelectedFamily?.Id, componentId);
+      if (_active && SelectedComponent?.Id == componentId && selectedRegime is not null)
+        Regimes.Selected = Regimes.Choices.FirstOrDefault(c => c.Selection?.Name == selectedRegime.Name
+            && c.Selection.Condition == selectedRegime.Condition) ?? Regimes.Selected;
+    };
     Regimes.PropertyChanged += (_, args) =>
     {
       if (args.PropertyName == nameof(ComponentRegimesViewModel.IsAvailable)) OnPropertyChanged(nameof(ShowBaseParameters));
@@ -184,6 +195,8 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         .OrderBy(t => t.Name)
         .ToListAsync(ct);
 
+    var requiredEdits = await NormalRegimeDataCheck.FindAsync(db,
+        types.SelectMany(t => t.Families).SelectMany(f => f.Components).Select(c => c.Id).ToArray(), ct);
     ct.ThrowIfCancellationRequested();
     if (!_active || version != _treeVersion || loadVersion != _treeLoadVersion) return;
     Types = types
@@ -205,6 +218,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
                       Id = c.Id,
                       FullName = c.FullName,
                       NeedsReview = c.NeedsAdminReview,
+                      RequiredEditReasons = requiredEdits.GetValueOrDefault(c.Id) ?? [],
                       OwnFormNumber = c.OwnForm?.Number,
                     })
                     .ToList(),
@@ -508,7 +522,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
       await SelectComponentAsync(item, CancellationToken.None);
   }
 
-  private bool CanVerify => IsAdmin && !IsEditing && SelectedComponent is { NeedsReview: true };
+  private bool CanVerify => IsAdmin && !IsEditing && SelectedComponent is { NeedsReview: true, RequiresEdit: false };
 
   // ── Cards ─────────────────────────────────────────────────────────────────
 
@@ -597,6 +611,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
       };
 
     var subtitle = $"Семейство: {entity.Family.Name}";
+    var requiredEdits = await NormalRegimeDataCheck.FindAsync(db, [entity.Id], ct);
     var familyNotes = await db.FamilyNotes.AsNoTracking()
       .Where(n => n.FamilyId == entity.FamilyId)
       .OrderBy(n => n.FormParameter.RowNumber)
@@ -623,6 +638,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
         Title = entity.FullName,
         Subtitle = subtitle,
         NeedsReview = entity.NeedsAdminReview,
+        RequiredEditReasons = requiredEdits.GetValueOrDefault(entity.Id) ?? [],
         ParametersHeader = "",
         EmptyMessage = "Собственная форма для компонента не задана.",
         Notes = allNotes,
@@ -652,6 +668,7 @@ public sealed partial class CatalogViewModel : ScreenViewModelBase, INavigatedTo
       Title = entity.FullName,
       Subtitle = $"{subtitle} · форма {entity.OwnForm.Number}",
       NeedsReview = entity.NeedsAdminReview,
+      RequiredEditReasons = requiredEdits.GetValueOrDefault(entity.Id) ?? [],
       ParametersHeader = $"ФОРМА {entity.OwnForm.Number} — ПО НТД",
       Parameters = formParams
           // An optional second row (e.g. second supply voltage) exists only

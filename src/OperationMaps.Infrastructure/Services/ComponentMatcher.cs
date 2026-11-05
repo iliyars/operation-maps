@@ -27,7 +27,7 @@ public sealed class ComponentMatcher : IComponentMatcher
     return result.Matched.Concat(result.Unresolved).Single().MatchResult;
   }
 
-  // ── Batch match — 3 queries total regardless of input size ────────────────
+  // ── Batch match — catalog queries and regime checks, never a query per input row ──
   public async Task<ProjectMatchResult> MatchAllAsync(
     IReadOnlyList<ImportedComponent> components,
     CancellationToken ct = default)
@@ -79,6 +79,7 @@ public sealed class ComponentMatcher : IComponentMatcher
         .AsNoTracking()
         .ToListAsync(ct);
     var componentsByName = catalogComponents.ToDictionary(c => c.FullName);
+    var requiredEdits = await NormalRegimeDataCheck.FindAsync(context, catalogComponents.Select(c => c.Id).ToArray(), ct);
     var normalizedComponents = catalogComponents.ToLookup(c => ComponentNameKey.Create(c.FullName));
     var normalizedFamilies = familiesByTypeAndName.ToLookup(f => (f.ComponentTypeId, ComponentNameKey.Create(f.Name)));
 
@@ -105,7 +106,7 @@ public sealed class ComponentMatcher : IComponentMatcher
         matched.Add(new ComponentMatchEntry
         {
           Imported = imported,
-          MatchResult = BuildResult(p, exact.Family.ComponentType, exact.Family, exact)
+          MatchResult = BuildResult(p, exact.Family.ComponentType, exact.Family, exact, requiredEdits.GetValueOrDefault(exact.Id))
         });
         continue;
       }
@@ -117,7 +118,7 @@ public sealed class ComponentMatcher : IComponentMatcher
         matched.Add(new ComponentMatchEntry
         {
           Imported = imported,
-          MatchResult = BuildResult(p, candidate.Family.ComponentType, candidate.Family, candidate)
+          MatchResult = BuildResult(p, candidate.Family.ComponentType, candidate.Family, candidate, requiredEdits.GetValueOrDefault(candidate.Id))
         });
         continue;
       }
@@ -161,6 +162,17 @@ public sealed class ComponentMatcher : IComponentMatcher
       {
         var candidateFamilies = normalizedFamilies[(type.Id, ComponentNameKey.Create(p.Family))].ToArray();
         if (candidateFamilies.Length == 1) family = candidateFamilies[0];
+        else if (candidateFamilies.Length > 1)
+        {
+          var warning = $"Неоднозначное семейство для «{imported.RawName}»: {string.Join("; ", candidateFamilies.Select(f => f.Name))}. Уточните обозначение или запись каталога.";
+          unresolved.Add(new ComponentMatchEntry
+          {
+            Imported = imported,
+            MatchResult = new MatchResult { IsMatched = false, MatchedType = type, Warning = warning },
+          });
+          warnings.Add(warning);
+          continue;
+        }
       }
       componentsByName.TryGetValue(imported.RawName, out var component);
 
@@ -193,7 +205,8 @@ public sealed class ComponentMatcher : IComponentMatcher
       ParsedComponentName parsed,
       ComponentType type,
       Family? family,
-      Component? component)
+      Component? component,
+      IReadOnlyList<string>? requiredEditReasons = null)
   {
     var requiredForms = new List<Form>();
 
@@ -211,6 +224,7 @@ public sealed class ComponentMatcher : IComponentMatcher
       MatchedFamily = family,
       MatchedComponent = component,
       RequiredForms = requiredForms,
+      RequiredEditReasons = requiredEditReasons ?? [],
       Warning = component is null ? $"Компонент не найден: {parsed.Name}" : null,
     };
   }

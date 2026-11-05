@@ -37,6 +37,7 @@ namespace OperationMaps.Infrastructure.Word
       // before we read bytes from the stream.
       using (var doc = WordprocessingDocument.Open(ms, isEditable: true))
       {
+        WordTemplateValidator.ThrowIfInvalid(map, doc);
         int componentCount = data.Components.Count;
         int totalPages = componentCount == 0
             ? 1

@@ -1,4 +1,5 @@
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using OperationMaps.Application.Importing;
 
@@ -25,11 +26,22 @@ public sealed class Pe3XmlImporter : IComponentListImporter
     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
     XDocument doc;
-    using (var reader = new StreamReader(stream, Encoding.GetEncoding(1251),
-                                        detectEncodingFromByteOrderMarks: false,
-                                        leaveOpen: true))
+    using (var reader = XmlReader.Create(stream, new XmlReaderSettings
     {
-      doc = await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
+      Async = true,
+      CloseInput = false,
+      DtdProcessing = DtdProcessing.Prohibit,
+      XmlResolver = null,
+    }))
+    {
+      try
+      {
+        doc = await XDocument.LoadAsync(reader, LoadOptions.None, cancellationToken);
+      }
+      catch (XmlException ex)
+      {
+        throw new InvalidDataException($"Не удалось прочитать XML: проверьте структуру файла и объявленную кодировку. {ex.Message}", ex);
+      }
     }
 
     var components = new List<ImportedComponent>();
@@ -49,18 +61,18 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       approvedBy = (string?)passportData.Attribute("field_18");
     }
 
-    var recordsData = doc.Descendants("RecordsData").FirstOrDefault();
-    if (recordsData is null)
-    {
-      warnings.Add("Не найден узел <RecordsData> — файл не похож на перечень ПЭ3.");
-      return BuildResult(components, warnings,
-                           docTitle, docNumber, developedBy, checkedBy, approvedBy);
-    }
+    var sections = doc.Descendants("RecordsData").ToList();
+    if (sections.Count != 1)
+      throw new InvalidDataException("Ожидается один узел <RecordsData> — структура файла не соответствует перечню ПЭ3.");
+    var recordsData = sections[0];
 
     int importIndex = 0;
+    int recordNumber = 0;
+    var seenPositions = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
     foreach (var rec in recordsData.Elements("Record"))
     {
       cancellationToken.ThrowIfCancellationRequested();
+      recordNumber++;
 
       var typeRec = (string?)rec.Attribute("type_rec");
 
@@ -71,7 +83,10 @@ public sealed class Pe3XmlImporter : IComponentListImporter
       var rawName = ((string?)rec.Attribute(NameField))?.Trim() ?? "";
 
       if (string.IsNullOrEmpty(rawName))
+      {
+        warnings.Add($"Строка {recordNumber}: пустое наименование; строка пропущена (позиции: {(string?)rec.Attribute(PositionField) ?? "не указаны"}).");
         continue;
+      }
 
       var firstWord = rawName.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)[0];
       var isBoard = string.Equals(firstWord, "Плата", StringComparison.OrdinalIgnoreCase);
@@ -102,29 +117,36 @@ public sealed class Pe3XmlImporter : IComponentListImporter
         else
           parsed = _nameParser.Parse(rawName);
       }
-      catch (Exception ex)
+      catch (Exception ex) when (ex is not OperationCanceledException)
       {
-        warnings.Add($"Ошибка парсинга: «{rawName}» - {ex.Message}.");
-        continue;
+        warnings.Add($"Строка {recordNumber}: ошибка разбора «{rawName}» — {ex.Message}. Исходное наименование сохранено.");
+        parsed = new ParsedComponentName { Raw = rawName, Name = rawName, Type = "", Family = "" };
       }
 
-      // Если тип не определён — пропускаем
+      // Unknown types still belong to the project and can be resolved manually.
       if (string.IsNullOrEmpty(parsed.Type))
       {
-        warnings.Add($"Не удалось определить тип: «{rawName}».");
-        continue;
+        warnings.Add($"Строка {recordNumber}: не удалось определить тип «{rawName}». Компонент сохранён для сопоставления.");
       }
 
       var rawPos = ((string?)rec.Attribute(PositionField))?.Trim() ?? "";
       var positions = PositionExpander.Expand(rawPos);
 
       if (positions.Count == 0)
-        warnings.Add($"Нет позиционных обозначений: «{rawName}».");
+        warnings.Add($"Строка {recordNumber}: нет позиционных обозначений у «{rawName}».");
+
+      foreach (var position in positions)
+      {
+        if (seenPositions.TryGetValue(position, out var firstRecord))
+          warnings.Add($"Строка {recordNumber}: позиция «{position}» повторяется (первое вхождение — строка {firstRecord}). Проверьте перечень.");
+        else
+          seenPositions.Add(position, recordNumber);
+      }
 
       components.Add(new ImportedComponent
       {
         ImportIndex = importIndex++,
-        RawName = parsed.Name,
+        RawName = string.IsNullOrWhiteSpace(parsed.Type) ? rawName : parsed.Name,
         DetectedCategory = parsed.Type,
         Positions = positions,
         RawPositions = rawPos

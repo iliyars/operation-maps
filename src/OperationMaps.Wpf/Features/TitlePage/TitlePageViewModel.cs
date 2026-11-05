@@ -25,7 +25,7 @@ public static class TitlePageFile
   public static TitlePageData DataOf(ProjectStore store) => new(
       store.DocumentNumber ?? "", store.DocumentTitle ?? "", store.HeadName ?? "", store.HeadOccupation ?? "");
 
-  /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
+  /// <summary>Returns the written path; preserves the previous file when replacement fails.</summary>
   public static async Task<string> WriteAsync(ProjectStore store, ITitlePageService service, CancellationToken ct = default)
   {
     var folder = store.FormsFolder ?? throw new InvalidOperationException("Проект не открыт.");
@@ -34,7 +34,7 @@ public static class TitlePageFile
     var bytes = await service.BuildAsync(DataOf(store), ct);
 
     var path = Path.Combine(folder, FileName);
-    await File.WriteAllBytesAsync(path, bytes, ct);
+    await AtomicFileWriter.WriteAsync(path, bytes, ct);
     return path;
   }
 }
@@ -47,7 +47,7 @@ public static class RegistrationSheetFile
   public static RegistrationSheetData DataOf(ProjectStore store, ContentsPlan plan) => new(
       store.DocumentNumber ?? "", store.DocumentTitle ?? "", plan.RegistrationSheet, plan.TotalSheets);
 
-  /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
+  /// <summary>Returns the written path; preserves the previous file when replacement fails.</summary>
   public static async Task<string> WriteAsync(
       ProjectStore store, IRegistrationSheetService service, ContentsPlan plan, CancellationToken ct = default)
   {
@@ -57,7 +57,7 @@ public static class RegistrationSheetFile
     var bytes = await service.BuildAsync(DataOf(store, plan), ct);
 
     var path = Path.Combine(folder, FileName);
-    await File.WriteAllBytesAsync(path, bytes, ct);
+    await AtomicFileWriter.WriteAsync(path, bytes, ct);
     return path;
   }
 }
@@ -79,7 +79,7 @@ public static class ContentsPageFile
       NormControl: store.NormControl ?? "",
       TotalSheets: plan.TotalSheets);
 
-  /// <summary>Returns the written path. Throws IOException when the file is open in Word.</summary>
+  /// <summary>Returns the written path; preserves the previous file when replacement fails.</summary>
   public static async Task<string> WriteAsync(
       ProjectStore store, IContentsPageService service, ContentsPlan plan, CancellationToken ct = default)
   {
@@ -89,7 +89,7 @@ public static class ContentsPageFile
     var bytes = await service.BuildAsync(DataOf(store, plan), ct);
 
     var path = Path.Combine(folder, FileName);
-    await File.WriteAllBytesAsync(path, bytes, ct);
+    await AtomicFileWriter.WriteAsync(path, bytes, ct);
     return path;
   }
 }
@@ -171,8 +171,10 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
   [RelayCommand(CanExecute = nameof(CanSaveContents))]
   private async Task SaveContentsAsync()
   {
+    using var operation = _shell.Operation.Begin("Экспорт содержания…");
     try
     {
+      await operation.ReportAsync("Экспорт содержания…");
       Contents = await _shell.PlanContentsAsync();
       var path = await ContentsPageFile.WriteAsync(_store, _contentsPage, Contents);
       _dialogs.ShowInfo($"Содержание сохранено:\n{path}", "Содержание");
@@ -181,7 +183,7 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
     {
       _dialogs.ShowError($"{ex.Message}\n{ex.FileName}", "Содержание");
     }
-    catch (IOException ex)
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
     {
       _dialogs.ShowWarning(
           $"Не удалось сохранить содержание — возможно, файл открыт в Word.\n\n{ex.Message}", "Содержание");
@@ -243,8 +245,10 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
   [RelayCommand(CanExecute = nameof(IsComplete))]
   private async Task SaveWordAsync()
   {
+    using var operation = _shell.Operation.Begin("Экспорт титульного листа…");
     try
     {
+      await operation.ReportAsync("Экспорт титульного листа…");
       var path = await TitlePageFile.WriteAsync(_store, _titlePage);
       _dialogs.ShowInfo($"Титульный лист сохранён:\n{path}", "Титульный лист");
     }
@@ -252,7 +256,7 @@ public sealed partial class TitlePageViewModel : ScreenViewModelBase, INavigated
     {
       _dialogs.ShowError($"{ex.Message}\n{ex.FileName}", "Титульный лист");
     }
-    catch (IOException ex)
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
     {
       _dialogs.ShowWarning(
           $"Не удалось сохранить титульный лист — возможно, файл открыт в Word.\n\n{ex.Message}",

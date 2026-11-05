@@ -10,6 +10,46 @@ public class WordServiceTests
       Path.Combine(AppContext.BaseDirectory, "Word", "Resources");
 
   [Fact]
+  public async Task Parallel_exports_with_shared_map_loader_keep_documents_independent()
+  {
+    var loader = new WordFormMapLoader(ResourcesDir);
+    var service = new WordService(loader);
+    var documents = await Task.WhenAll(Enumerable.Range(0, 4).Select(async index =>
+    {
+      var name = $"Параллельный компонент {index}";
+      var bytes = await service.ExportAsync(new WordFormData
+      {
+        FormNumber = "4",
+        Components = [new WordComponentData { Name = name, Note = $"Примечание {index}" }],
+      }, loader.GetTemplatePath("4"));
+      var path = Path.Combine(Path.GetTempPath(), $"parallel-word-{Guid.NewGuid():N}.docx");
+      try
+      {
+        await File.WriteAllBytesAsync(path, bytes);
+        var imported = await service.ImportAsync("4", path);
+        var component = Assert.Single(imported.Components);
+        Assert.Equal(name, component.Name);
+        Assert.Equal($"Примечание {index}", component.Note);
+        return component.Name;
+      }
+      finally { File.Delete(path); }
+    }));
+    Assert.Equal(4, documents.Distinct().Count());
+  }
+
+  [Fact]
+  public async Task Already_cancelled_operations_do_not_open_templates_or_documents()
+  {
+    var service = new WordService(new WordFormMapLoader(ResourcesDir));
+    using var cancelled = new CancellationTokenSource();
+    cancelled.Cancel();
+    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ExportAsync(
+        new WordFormData { FormNumber = "missing" }, "missing.docx", cancelled.Token));
+    await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.ImportAsync(
+        "missing", "missing.docx", cancelled.Token));
+  }
+
+  [Fact]
   public async Task Export_then_import_round_trips_form4_data()
   {
     var mapLoader = new WordFormMapLoader(ResourcesDir);

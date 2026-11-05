@@ -38,12 +38,13 @@ public sealed partial class WordImportRowVm : ObservableObject
   public bool ShowTypeEditor => Model.ComponentTypeId is null;
   public bool IsTypeResolved => !ShowTypeEditor;
   public bool CanToggleSelection => !IsResolvingType && !_typeResolutionFailed
+      && Model.ImportErrors.Count == 0
       && !string.IsNullOrWhiteSpace(Model.ComponentTypeName);
-  public IReadOnlyList<string> Warnings => Model.Warnings;
+  public IReadOnlyList<string> Warnings => Model.Warnings.Concat(Model.ImportErrors).Distinct().ToArray();
   public string NotesDisplay => string.Join("\n\n", new[]
   {
-    !WordNoteParser.HasContent(Model.Form4NoteText) || Model.Form4NotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы 4:\n{Model.Form4NoteText}",
-    !WordNoteParser.HasContent(Model.OwnFormNoteText) || Model.OwnFormNotesByRow.Count > 0 ? "" : $"Непривязанные примечания формы {Model.OwnFormNumber}:\n{Model.OwnFormNoteText}"
+    !WordNoteParser.HasContent(Model.Form4NoteText) || Model.ImportErrors.Count == 0 && Model.Form4NotesByRow.Count > 0 ? "" : $"Примечания формы 4 для проверки:\n{Model.Form4NoteText}",
+    !WordNoteParser.HasContent(Model.OwnFormNoteText) || Model.ImportErrors.Count == 0 && Model.OwnFormNotesByRow.Count > 0 ? "" : $"Примечания формы {Model.OwnFormNumber} для проверки:\n{Model.OwnFormNoteText}"
   }.Where(t => t.Length > 0));
   public bool HasNotes => NotesDisplay.Length > 0;
   public bool HasConditionalValues => Model.Form4NotesByRow.Count > 0 || Model.OwnFormNotesByRow.Count > 0
@@ -153,7 +154,7 @@ public sealed partial class WordImportRowVm : ObservableObject
   private void RefreshDisplay()
   {
     FamilyDisplay = Model.FamilyName ?? "—";
-    StatusText = Model.AlreadyInCatalog
+    StatusText = Model.ImportErrors.Count > 0 ? "Исправьте ошибки в Word" : Model.AlreadyInCatalog
         ? "Уже есть в каталоге"
         : string.IsNullOrWhiteSpace(Model.ComponentTypeName)
             ? "Нужен тип компонента"

@@ -313,6 +313,10 @@
                                                Foreground="{DynamicResource TextPrimaryBrush}"
                                                TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Name}"/>
+                                    <TextBlock Text="Необходимо редактирование: нет значения для нормального режима"
+                                               TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"
+                                               Foreground="{DynamicResource StatusErrorBrush}" ToolTip="{Binding RequiredEditSummary}"
+                                               Visibility="{Binding RequiresEdit, Converter={StaticResource BoolToVis}}"/>
                                     <TextBlock FontSize="12"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                TextTrimming="CharacterEllipsis"

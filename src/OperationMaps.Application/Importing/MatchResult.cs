@@ -12,4 +12,5 @@ public sealed class MatchResult
 
   public IReadOnlyList<Form> RequiredForms { get; init; } = [];
   public string? Warning { get; init; }
+  public IReadOnlyList<string> RequiredEditReasons { get; init; } = [];
 }

@@ -31,6 +31,23 @@ public sealed class ComponentEntryService : IComponentEntryService
     if (await db.Components.AnyAsync(c => c.FullName == fullName, ct))
       throw new InvalidOperationException($"Компонент «{fullName}» уже есть в справочнике.");
 
+    var componentTypeId = input.ComponentTypeId;
+    if (input.NewComponentTypeName is { } typeName)
+    {
+      typeName = typeName.Trim();
+      if (typeName.Length == 0)
+        throw new InvalidOperationException("Введите тип компонента.");
+
+      var type = await db.ComponentTypes.FirstOrDefaultAsync(t => t.Name == typeName, ct);
+      if (type is null)
+      {
+        type = new ComponentType { Name = typeName };
+        db.ComponentTypes.Add(type);
+        await db.SaveChangesAsync(ct);
+      }
+      componentTypeId = type.Id;
+    }
+
     // ── 1. Resolve or create the Family ─────────────────────────────────────
     if (input.LoadFactorParameterId is { } baseId && !await db.FormParameters.AnyAsync(
       p => p.Id == baseId && p.FormId == input.OwnFormId && !p.IsLoadFactorResult && !p.IsOptional, ct))
@@ -43,6 +60,8 @@ public sealed class ComponentEntryService : IComponentEntryService
           .Include(f => f.NtdValues)
           .FirstOrDefaultAsync(f => f.Id == familyId, ct)
           ?? throw new InvalidOperationException($"Family {familyId} not found.");
+      if (family.ComponentTypeId != componentTypeId)
+        throw new InvalidOperationException("Семейство не принадлежит выбранному типу компонента.");
     }
     else
     {
@@ -52,7 +71,7 @@ public sealed class ComponentEntryService : IComponentEntryService
       family = new Family
       {
         Name = input.NewFamilyName.Trim(),
-        ComponentTypeId = input.ComponentTypeId,
+        ComponentTypeId = componentTypeId,
       };
       db.Families.Add(family);
       await db.SaveChangesAsync(ct); // need family.Id before adding NtdValues
@@ -155,6 +174,9 @@ public sealed class ComponentEntryService : IComponentEntryService
   public async Task MarkVerifiedAsync(int componentId, CancellationToken ct = default)
   {
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
+    var issues = await NormalRegimeDataCheck.FindAsync(db, [componentId], ct);
+    if (issues.GetValueOrDefault(componentId) is { Count: > 0 } missing)
+      throw new InvalidOperationException("Необходимо редактирование: заполните значения для нормального режима.\n" + string.Join("\n", missing));
     var component = await db.Components.FirstOrDefaultAsync(c => c.Id == componentId, ct)
         ?? throw new InvalidOperationException("Компонент не найден — возможно, он удалён.");
 

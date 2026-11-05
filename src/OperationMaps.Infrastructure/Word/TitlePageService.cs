@@ -16,7 +16,10 @@ public sealed class TitlePageService : ITitlePageService
     _templatePath = templatePath ?? throw new ArgumentNullException(nameof(templatePath));
   }
 
-  public async Task<byte[]> BuildAsync(TitlePageData data, CancellationToken ct = default)
+  public Task<byte[]> BuildAsync(TitlePageData data, CancellationToken ct = default)
+      => Task.Run(() => BuildCoreAsync(data, ct), ct);
+
+  private async Task<byte[]> BuildCoreAsync(TitlePageData data, CancellationToken ct)
   {
     if (!File.Exists(_templatePath))
       throw new FileNotFoundException("Шаблон титульного листа не найден.", _templatePath);
@@ -40,6 +43,7 @@ public sealed class TitlePageService : ITitlePageService
       WordPageNumbering.StartAt(doc, 1); // sheet 1 of the set
     }
 
+    ct.ThrowIfCancellationRequested();
     return ms.ToArray();
   }
 }

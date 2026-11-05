@@ -38,12 +38,20 @@ namespace OperationMaps.Wpf.Main
                 vm.Shell.IsSidebarCollapsed = !isWide;
         }
 
+        private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            // Window-level shortcuts still run when the workspace is disabled.
+            if (DataContext is MainViewModel vm && vm.Shell.Operation.IsBusy)
+                e.Handled = true;
+        }
+
         private async void Window_Closing(object? sender, CancelEventArgs e)
         {
             if (_closeConfirmed || DataContext is not MainViewModel vm) return;
 
             // Closing can't await — cancel now, ask, then close again if allowed.
             e.Cancel = true;
+            if (vm.Shell.Operation.IsBusy) return;
             if (_isClosing) return;
             _isClosing = true;
             try

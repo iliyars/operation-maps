@@ -553,6 +553,149 @@ public sealed class WordCatalogImportServiceTests : IDisposable
   }
 
   [Fact]
+  public async Task Imported_word_component_appears_in_review_queue_and_requires_admin_confirmation()
+  {
+    var path = await BuildCombinedDocumentAsync();
+    var scan = await _service.ScanAsync(path);
+    var created = await _service.ImportAsync(scan.Components.Single(c => c.FullName == NewTypeFullName));
+    var factory = TestCatalogDbContextFactory.From(_db);
+    var session = new OperationMaps.Wpf.Stores.SessionStore();
+    var catalog = new OperationMaps.Wpf.Features.Catalog.CatalogViewModel(factory, session,
+        new ComponentEntryService(factory), new ComponentNameParser(), new CatalogEditService(factory),
+        new Moq.Mock<IDialogService>().Object);
+    try
+    {
+      await catalog.OnNavigatedToAsync();
+      catalog.OnlyUnverified = true;
+      Assert.Equal(1, catalog.UnverifiedCount);
+      await catalog.SelectFamilyCommand.ExecuteAsync(catalog.Types.SelectMany(t => t.Families).Single());
+      var pending = Assert.Single(catalog.VisibleComponents);
+      Assert.Equal(created.Id, pending.Id);
+      await catalog.SelectComponentCommand.ExecuteAsync(pending);
+      Assert.True(catalog.Card!.NeedsReview);
+      Assert.False(catalog.VerifyCommand.CanExecute(null));
+      session.SignIn(new AdminAccount(1, "admin", "Администратор"));
+      await catalog.VerifyCommand.ExecuteAsync(null);
+      Assert.False(catalog.Card!.NeedsReview);
+      Assert.Equal(0, catalog.UnverifiedCount);
+      Assert.False((await _db.Components.AsNoTracking().SingleAsync(c => c.Id == created.Id)).NeedsAdminReview);
+    }
+    finally { await catalog.OnNavigatedFromAsync(); }
+  }
+
+  [Fact]
+  public async Task Unresolved_word_markers_are_visible_and_block_import_without_creating_a_type()
+  {
+    var bytes = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [new WordComponentData
+      {
+        Name = NewTypeFullName, NtdValues = new Dictionary<int, string> { [1] = "150000 **" },
+        Note = "* Используется в облегчённом режиме",
+      }],
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"bad-markers-{Guid.NewGuid():N}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, bytes);
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    Assert.NotEmpty(item.ImportErrors);
+    Assert.Equal("150000 **", item.OwnFormNtdValuesByRow[1]);
+    var row = new OperationMaps.Wpf.Features.Components.WordImport.WordImportRowVm(item, _service);
+    row.TypeText = NewTypeName;
+    await row.TypeResolutionTask;
+    Assert.False(row.CanToggleSelection);
+    Assert.False(row.IsSelected);
+    Assert.Contains("Исправьте ошибки", row.StatusText);
+    Assert.Contains(row.Warnings, w => w.Contains("Форма 67") && w.Contains("**"));
+    Assert.True(row.HasNotes);
+    var error = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ImportAsync(item));
+    Assert.Contains("Word", error.Message);
+    Assert.False(await _db.ComponentTypes.AnyAsync(t => t.Name == NewTypeName));
+    Assert.False(await _db.Components.AnyAsync(c => c.FullName == NewTypeFullName));
+    var corrected = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components = [new WordComponentData
+      {
+        Name = NewTypeFullName, NtdValues = new Dictionary<int, string> { [1] = "150000 **" },
+        Note = "** Используется в облегчённом режиме",
+      }],
+    }, _mapLoader.GetTemplatePath("67"));
+    await File.WriteAllBytesAsync(path, corrected);
+    var fixedItem = Assert.Single((await _service.ScanAsync(path)).Components);
+    Assert.Empty(fixedItem.ImportErrors);
+    fixedItem.ComponentTypeName = NewTypeName;
+    var saved = await _service.ImportAsync(fixedItem);
+    Assert.Equal("150000", (await _db.ComponentRegimeValues.AsNoTracking()
+        .SingleAsync(v => v.ComponentRegime.ComponentId == saved.Id)).Value);
+    var missingNormal = await NormalRegimeDataCheck.FindAsync(_db, [saved.Id]);
+    Assert.NotEmpty(missingNormal[saved.Id]);
+  }
+
+  [Fact]
+  public async Task Same_component_in_different_own_forms_is_reported_instead_of_silently_dropping_a_form()
+  {
+    _db.Forms.Add(new Form { Number = "68", Title = "Резисторы" });
+    await _db.SaveChangesAsync();
+    var service = new WordService(_mapLoader);
+    var parts = new List<byte[]>();
+    foreach (var number in new[] { "67", "68" })
+      parts.Add(await service.ExportAsync(new WordFormData
+      {
+        FormNumber = number, Components = [new WordComponentData { Name = OwnFormFullName }],
+      }, _mapLoader.GetTemplatePath(number)));
+    var path = Path.Combine(Path.GetTempPath(), $"conflicting-forms-{Guid.NewGuid():N}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, WordDocumentMerger.Merge(parts));
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    Assert.Contains(item.ImportErrors, error => error.Contains("разные собственные формы"));
+    item.ComponentTypeName = CapacitorType;
+    await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ImportAsync(item));
+    Assert.False(await _db.Components.AnyAsync(c => c.FullName == OwnFormFullName));
+  }
+
+  [Fact]
+  public async Task Invalid_marker_on_repeated_slot_cannot_be_hidden_by_an_earlier_valid_slot()
+  {
+    var bytes = await new WordService(_mapLoader).ExportAsync(new WordFormData
+    {
+      FormNumber = "67", Components =
+      [
+        new WordComponentData { Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "10" } },
+        new WordComponentData { Name = OwnFormFullName, NtdValues = new Dictionary<int, string> { [1] = "6 **" }, Note = "* Облегчённый режим" },
+      ],
+    }, _mapLoader.GetTemplatePath("67"));
+    var path = Path.Combine(Path.GetTempPath(), $"bad-repeated-slot-{Guid.NewGuid():N}.docx");
+    _tempFiles.Add(path);
+    await File.WriteAllBytesAsync(path, bytes);
+    var item = Assert.Single((await _service.ScanAsync(path)).Components);
+    item.ComponentTypeName = CapacitorType;
+    Assert.NotEmpty(item.ImportErrors);
+    Assert.Equal("6 **", Assert.Single(item.AdditionalVariants).OwnValues[1]);
+    await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ImportAsync(item));
+    Assert.False(await _db.Components.AnyAsync(c => c.FullName == OwnFormFullName));
+  }
+
+  [Fact]
+  public async Task ImportAsync_requires_admin_review_until_explicitly_verified()
+  {
+    var path = await BuildCombinedDocumentAsync();
+    var result = await _service.ScanAsync(path);
+    var item = result.Components.Single(c => c.FullName == OwnFormFullName);
+
+    var component = await _service.ImportAsync(item);
+
+    Assert.True(component.NeedsAdminReview);
+    Assert.True(await _db.Components.AsNoTracking()
+        .Where(c => c.Id == component.Id).Select(c => c.NeedsAdminReview).SingleAsync());
+
+    var entryService = new ComponentEntryService(TestCatalogDbContextFactory.From(_db));
+    await entryService.MarkVerifiedAsync(component.Id);
+
+    Assert.False(await _db.Components.AsNoTracking()
+        .Where(c => c.Id == component.Id).Select(c => c.NeedsAdminReview).SingleAsync());
+  }
+
+  [Fact]
   public async Task ResolveComponentTypeAsync_lets_the_review_ui_fix_an_unmatched_component()
   {
     var path = await BuildCombinedDocumentAsync();
@@ -583,6 +726,35 @@ public sealed class WordCatalogImportServiceTests : IDisposable
     Assert.Null(item.ComponentTypeId); // not in the catalog yet
     Assert.True(item.IsNewComponentType);
     Assert.Contains(item.Warnings, w => w.Contains(NewTypeName));
+  }
+
+  [Fact]
+  public async Task ImportAsync_validation_failure_does_not_leave_a_new_type_and_allows_retry()
+  {
+    var item = new WordImportedComponent
+    {
+      FullName = NewTypeFullName,
+      ComponentTypeName = NewTypeName,
+      OwnFormId = int.MaxValue,
+      OwnFormNumber = "67",
+      OwnFormTitle = "Конденсаторы",
+    };
+
+    await Assert.ThrowsAsync<InvalidOperationException>(() => _service.ImportAsync(item));
+    Assert.False(await _db.ComponentTypes.AnyAsync(t => t.Name == NewTypeName));
+    Assert.False(await _db.Components.AnyAsync(c => c.FullName == NewTypeFullName));
+
+    var retry = new WordImportedComponent
+    {
+      FullName = NewTypeFullName,
+      ComponentTypeName = NewTypeName,
+      OwnFormId = _form67Id,
+      OwnFormNumber = "67",
+      OwnFormTitle = "Конденсаторы",
+    };
+    var component = await _service.ImportAsync(retry);
+    Assert.Equal(NewTypeFullName, component.FullName);
+    Assert.Single(await _db.ComponentTypes.Where(t => t.Name == NewTypeName).ToListAsync());
   }
 
   [Fact]

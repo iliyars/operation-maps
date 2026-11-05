@@ -52,6 +52,31 @@ public sealed class BackgroundXmlImportTests
     fixture.Dialogs.Verify(d => d.ShowError(It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
   }
 
+  [Fact]
+  public async Task Import_warnings_are_shown_after_successful_import()
+  {
+    using var fixture = new Fixture(null, ["Строка 2: повторяется позиция VD1"]);
+    await fixture.Vm.OpenXmlCommand.ExecuteAsync(null);
+    fixture.Dialogs.Verify(d => d.ShowWarning(
+        It.Is<string>(message => message.Contains("Предупреждений: 1") && message.Contains("VD1")),
+        "Результат импорта XML"), Times.Once);
+    fixture.Dialogs.Verify(d => d.ShowError(It.IsAny<string>(), It.IsAny<string?>()), Times.Never);
+    Assert.NotEqual("Original", fixture.Store.ProjectName);
+  }
+
+  [Fact]
+  public async Task Invalid_xml_keeps_current_project_and_reports_error()
+  {
+    using var fixture = new Fixture(null, importError: new InvalidDataException("Не найден RecordsData"));
+    await fixture.Vm.OpenXmlCommand.ExecuteAsync(null);
+    Assert.Equal("Original", fixture.Store.ProjectName);
+    Assert.False(fixture.Vm.IsBusy);
+    fixture.Dialogs.Verify(d => d.ShowError(It.Is<string>(message => message.Contains("RecordsData")),
+        It.IsAny<string?>()), Times.Once);
+    fixture.Navigation.Verify(n => n.NavigateAsync<ProjectOverviewViewModel>(It.IsAny<object?>(),
+        It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
+  }
+
   private sealed class Fixture : IDisposable
   {
     public string Path { get; } = System.IO.Path.GetTempFileName();
@@ -63,7 +88,7 @@ public sealed class BackgroundXmlImportTests
     public WelcomeViewModel Vm { get; }
     private readonly ServiceProvider _provider;
 
-    public Fixture(bool? blockMatching)
+    public Fixture(bool? blockMatching, IReadOnlyList<string>? warnings = null, Exception? importError = null)
     {
       var picker = new Mock<IFilePicker>();
       picker.Setup(p => p.PickAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(Path);
@@ -73,7 +98,8 @@ public sealed class BackgroundXmlImportTests
         .Returns((Stream _, CancellationToken ct) =>
         {
           if (blockMatching == false) Block(ct);
-          return Task.FromResult(new ImportResult { Components = [], Warnings = [] });
+          if (importError is not null) throw importError;
+          return Task.FromResult(new ImportResult { Components = [], Warnings = warnings ?? [] });
         });
       var matcher = new Mock<IComponentMatcher>();
       matcher.Setup(m => m.MatchAllAsync(It.IsAny<IReadOnlyList<ImportedComponent>>(), It.IsAny<CancellationToken>()))

@@ -295,6 +295,7 @@
                                             Command="{Binding DataContext.SelectComponentCommand,
                                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                             CommandParameter="{Binding}">
+                                        <StackPanel>
                                         <DockPanel>
                                             <Border DockPanel.Dock="Right"
                                                     Style="{StaticResource ReviewBadge}"
@@ -318,6 +319,12 @@
                                                        TextTrimming="CharacterEllipsis"
                                                        ToolTip="{Binding FullName}"/>
                                         </DockPanel>
+                                            <TextBlock Text="Необходимо редактирование" TextWrapping="Wrap"
+                                                       Margin="0,4,0,0" FontSize="12"
+                                                       Foreground="{DynamicResource StatusErrorBrush}"
+                                                       ToolTip="{Binding RequiredEditSummary}"
+                                                       Visibility="{Binding RequiresEdit, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
                                     </Button>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -440,6 +447,15 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Background="{DynamicResource StatusWarningBgBrush}" Padding="10" Margin="0,0,0,12"
+                                Visibility="{Binding RequiresEdit, Converter={StaticResource BoolToVis}}">
+                            <StackPanel>
+                                <TextBlock Text="НЕОБХОДИМО РЕДАКТИРОВАНИЕ" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource StatusErrorBrush}"/>
+                                <TextBlock Text="{Binding RequiredEditSummary}" TextWrapping="Wrap" Margin="0,6,0,0"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Border>
                         <TextBlock Text="{Binding EmptyMessage}"
                                    Style="{StaticResource MutedText}"
                                    TextWrapping="Wrap"

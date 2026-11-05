@@ -88,6 +88,12 @@ namespace OperationMaps.Wpf.Features.Components
     public bool IsMatched => IsBoard || MatchStatus == ComponentMatchStatus.Matched;
 
     public bool HasFamily => !IsBoard && MatchStatus != ComponentMatchStatus.Unresolved;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RequiresEdit))]
+    [NotifyPropertyChangedFor(nameof(RequiredEditSummary))]
+    private IReadOnlyList<string> _requiredEditReasons = [];
+    public bool RequiresEdit => RequiredEditReasons.Count > 0;
+    public string RequiredEditSummary => string.Join("\n", RequiredEditReasons);
 
     // ── UI state ──────────────────────────────────────────────────────────────
 
@@ -117,6 +123,7 @@ namespace OperationMaps.Wpf.Features.Components
     public ProjectComponentVm(ComponentMatchEntry entry)
     {
       Entry = entry ?? throw new ArgumentNullException(nameof(entry));
+      RequiredEditReasons = entry.MatchResult.RequiredEditReasons;
     }
 
     // ── NTD loading ───────────────────────────────────────────────────────────
@@ -294,6 +301,7 @@ namespace OperationMaps.Wpf.Features.Components
       OnPropertyChanged(nameof(Name));
       OnPropertyChanged(nameof(FamilyName));
       OnPropertyChanged(nameof(MatchStatus));
+      RequiredEditReasons = Entry.MatchResult.RequiredEditReasons;
       OnPropertyChanged(nameof(IsMatched));
       OnPropertyChanged(nameof(Classification));
       OnPropertyChanged(nameof(HasFamily));

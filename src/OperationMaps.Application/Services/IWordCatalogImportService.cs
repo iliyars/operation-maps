@@ -55,6 +55,8 @@ public sealed class WordImportedComponent
   public bool Form4DataFound { get; init; }
 
   public IReadOnlyList<string> Warnings { get; init; } = [];
+  /// <summary>Source ambiguities that must be fixed in Word before this component can be imported.</summary>
+  public List<string> ImportErrors { get; } = [];
 
   // ── Payload for ImportAsync — keyed by FormParameter.RowNumber. Not
   //    meant for display as-is (no parameter name/unit attached), but

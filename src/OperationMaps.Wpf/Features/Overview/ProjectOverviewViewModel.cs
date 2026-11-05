@@ -65,7 +65,11 @@ public sealed partial class ProjectOverviewViewModel(
       if (store.Generation != generation) return;
       var requiredForms = store.Components.SelectMany(c => c.Entry.MatchResult.RequiredForms)
           .Where(f => f.Number != "4").DistinctBy(f => f.Id)
-          .OrderBy(f => int.TryParse(f.Number, out var n) ? n : int.MaxValue).ThenBy(f => f.Number);
+          .OrderBy(f => int.TryParse(f.Number, out var n) ? n : int.MaxValue).ThenBy(f => f.Number).ToList();
+      var validation = await Task.WhenAll(requiredForms.Select(async form =>
+          (form.Id, Available: await checks.CheckTemplateAsync(form.Number, ct) is null)));
+      if (store.Generation != generation) return;
+      var templates = validation.ToDictionary(v => v.Id, v => v.Available);
       Forms = requiredForms.Select(form =>
       {
         store.OwnForms.TryGetValue(form.Id, out var state);
@@ -74,7 +78,7 @@ public sealed partial class ProjectOverviewViewModel(
         return new OverviewForm(form.Id, form.Number, form.Title,
             columns.Count(c => c.GetFillStatus(parameters) == FillStatus.Complete), columns.Count,
             columns.Sum(c => c.GetFilledCount(parameters)), columns.Sum(c => c.GetTotalCount(parameters)),
-            checks.CheckTemplate(form.Number) is null);
+            templates[form.Id]);
       }).ToList();
       Tasks = issues.GroupBy(i => (i.Target, i.FormId)).Select(group => new OverviewTask(
           group.Key.Target switch

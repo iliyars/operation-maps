@@ -1,11 +1,13 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
+using OperationMaps.Application.Importing;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Domain.Entities.Forms;
 using OperationMaps.Infrastructure.Persistence;
 using OperationMaps.Infrastructure.Services;
 using OperationMaps.Wpf.Features.Catalog;
+using OperationMaps.Wpf.Features.Components;
 using OperationMaps.Wpf.Features.Components.AddComponent;
 using OperationMaps.Wpf.Stores;
 using Xunit;
@@ -91,6 +93,87 @@ public sealed class CatalogAddComponentTests : IDisposable
     Assert.True(wizard.IsCompleted, wizard.ErrorMessage);
     var family = await _db.Families.AsNoTracking().Include(f => f.ComponentType).SingleAsync(f => f.Name == "1564ЛА3");
     Assert.Equal("Микросхема", family.ComponentType.Name);
+    Assert.False((await _db.Components.AsNoTracking().SingleAsync(c => c.FullName == "1564ЛА3")).NeedsAdminReview);
+  }
+
+  [Theory]
+  [InlineData("")]
+  [InlineData("Неизвестный тип")]
+  public async Task Unknown_project_type_can_be_chosen_and_created_component_requires_review(string importedType)
+  {
+    var projectComponent = new ProjectComponentVm(new ComponentMatchEntry
+    {
+      Imported = new ImportedComponent { RawName = "UNKNOWN123", DetectedCategory = importedType, Positions = ["A1"] },
+      MatchResult = new MatchResult { IsMatched = false },
+    });
+    var wizard = Wizard(AddComponentTarget.FromProject(projectComponent));
+    await wizard.InitializeAsync();
+    Assert.Null(wizard.ErrorMessage);
+    Assert.True(wizard.ShowTypePicker);
+    Assert.False(wizard.GoNextCommand.CanExecute(null));
+    wizard.SelectedType = wizard.TypeOptions.Single(t => t.Name == "Конденсатор");
+    Assert.True(wizard.GoNextCommand.CanExecute(null));
+    wizard.GoNextCommand.Execute(null);
+    await ChooseForm67Async(wizard);
+    wizard.OwnFormRows[0].Value = "25";
+    await wizard.SaveCommand.ExecuteAsync(null);
+
+    Assert.True(wizard.IsCompleted, wizard.ErrorMessage);
+    Assert.True(wizard.CreatedComponent!.NeedsAdminReview);
+    Assert.True(wizard.CreatedMatch!.IsMatched);
+    Assert.Equal("Конденсатор", wizard.CreatedMatch.MatchedType!.Name);
+    Assert.Equal("UNKNOWN123", wizard.CreatedComponent.FullName);
+    var saved = await _db.Components.AsNoTracking().Include(c => c.Family).ThenInclude(f => f.ComponentType)
+        .SingleAsync(c => c.Id == wizard.CreatedComponent.Id);
+    Assert.True(saved.NeedsAdminReview);
+    Assert.Equal("Конденсатор", saved.Family.ComponentType.Name);
+    await VerifyThroughCatalogAsync(saved.Id);
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Project_wizard_requires_review_for_new_and_existing_families(bool existingFamily)
+  {
+    var name = existingFamily ? "К10-79-25В-1мкФ" : "К10-84-25В-1мкФ";
+    var component = new ProjectComponentVm(new ComponentMatchEntry
+    {
+      Imported = new ImportedComponent { RawName = name, DetectedCategory = "Конденсатор", Positions = ["C1"] },
+      MatchResult = new MatchResult { IsMatched = false, MatchedFamily = existingFamily ? _family : null },
+    });
+    var wizard = Wizard(AddComponentTarget.FromProject(component));
+    await wizard.InitializeAsync();
+    Assert.False(wizard.ShowTypePicker);
+    if (wizard.IsStep1) wizard.GoNextCommand.Execute(null);
+    await ChooseForm67Async(wizard);
+    await wizard.SaveCommand.ExecuteAsync(null);
+    Assert.True(wizard.IsCompleted, wizard.ErrorMessage);
+    Assert.True((await _db.Components.AsNoTracking().SingleAsync(c => c.FullName == name)).NeedsAdminReview);
+    await VerifyThroughCatalogAsync(wizard.CreatedComponent!.Id);
+  }
+
+  private async Task VerifyThroughCatalogAsync(int componentId)
+  {
+    var factory = TestCatalogDbContextFactory.From(_db);
+    var session = new SessionStore();
+    var catalog = new CatalogViewModel(factory, session, new ComponentEntryService(factory),
+        new ComponentNameParser(), new CatalogEditService(factory), new Moq.Mock<IDialogService>().Object);
+    try
+    {
+      await catalog.OnNavigatedToAsync();
+      Assert.Equal(1, catalog.UnverifiedCount);
+      var saved = await _db.Components.AsNoTracking().SingleAsync(c => c.Id == componentId);
+      await catalog.SelectFamilyCommand.ExecuteAsync(catalog.Types.SelectMany(t => t.AllFamilies).Single(f => f.Id == saved.FamilyId));
+      await catalog.SelectComponentCommand.ExecuteAsync(catalog.VisibleComponents.Single(c => c.Id == componentId));
+      Assert.True(catalog.Card!.NeedsReview);
+      Assert.False(catalog.VerifyCommand.CanExecute(null));
+      session.SignIn(new AdminAccount(1, "admin", "Администратор"));
+      await catalog.VerifyCommand.ExecuteAsync(null);
+      Assert.False(catalog.Card!.NeedsReview);
+      Assert.Equal(0, catalog.UnverifiedCount);
+      Assert.False((await _db.Components.AsNoTracking().SingleAsync(c => c.Id == componentId)).NeedsAdminReview);
+    }
+    finally { await catalog.OnNavigatedFromAsync(); }
   }
 
   [Fact]

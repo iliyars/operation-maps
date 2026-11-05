@@ -23,11 +23,14 @@ namespace OperationMaps.Infrastructure.Word
         string templatePath,
         CancellationToken ct = default)
     {
-      ct.ThrowIfCancellationRequested();
-
-      var map = _mapLoader.Load(data.FormNumber);
-      var bytes = WordFormWriter.Fill(data, map, templatePath);
-      return Task.FromResult(bytes);
+      return Task.Run(() =>
+      {
+        ct.ThrowIfCancellationRequested();
+        var map = _mapLoader.Load(data.FormNumber);
+        var bytes = WordFormWriter.Fill(data, map, templatePath);
+        ct.ThrowIfCancellationRequested();
+        return bytes;
+      }, ct);
     }
 
     public Task<WordFormData> ImportAsync(
@@ -35,15 +38,16 @@ namespace OperationMaps.Infrastructure.Word
         string documentPath,
         CancellationToken ct = default)
     {
-      ct.ThrowIfCancellationRequested();
-
-      if (!File.Exists(documentPath))
-        throw new FileNotFoundException(
-            $"Word document not found: {documentPath}");
-
-      var map = _mapLoader.Load(formNumber);
-      var data = WordFormReader.Read(formNumber, documentPath, map);
-      return Task.FromResult(data);
+      return Task.Run(() =>
+      {
+        ct.ThrowIfCancellationRequested();
+        if (!File.Exists(documentPath))
+          throw new FileNotFoundException($"Word document not found: {documentPath}");
+        var map = _mapLoader.Load(formNumber);
+        var data = WordFormReader.Read(formNumber, documentPath, map);
+        ct.ThrowIfCancellationRequested();
+        return data;
+      }, ct);
     }
   }
 }

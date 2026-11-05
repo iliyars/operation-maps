@@ -157,7 +157,7 @@
                           Visibility="{Binding IsStep1, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
 
-                    <!-- Catalog mode, new family: the admin picks the type -->
+                    <!-- New catalog family or an unknown type imported into the project. -->
                     <StackPanel Visibility="{Binding ShowTypePicker, Converter={StaticResource BoolToVis}}">
                         <TextBlock Text="Тип компонента"
                                 Style="{StaticResource SectionLabel}"

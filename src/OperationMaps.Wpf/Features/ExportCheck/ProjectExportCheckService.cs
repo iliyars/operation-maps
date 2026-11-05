@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Services;
 using OperationMaps.Application.Word;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Infrastructure.Services;
 using OperationMaps.Infrastructure.Word;
 using OperationMaps.Wpf.Features.OwnForm;
 using OperationMaps.Wpf.Features.TitlePage;
@@ -52,13 +53,13 @@ public sealed class ProjectExportCheckService(
 
     var forms = store.Components.SelectMany(c => c.Entry.MatchResult.RequiredForms)
         .Where(f => f.Number is not ("3" or "4")).DistinctBy(f => f.Id).OrderBy(f => f.Number).ToList();
-    if (store.Components.Any(c => Form3DataBuilder.IsBoard(c.Entry.Imported)) && CheckTemplate("3") is { } form3Issue)
+    if (store.Components.Any(c => Form3DataBuilder.IsBoard(c.Entry.Imported)) && await CheckTemplateAsync("3", ct) is { } form3Issue)
       issues.Add(form3Issue);
-    if (CheckTemplate("4") is { } form4Issue) issues.Add(form4Issue);
+    if (await CheckTemplateAsync("4", ct) is { } form4Issue) issues.Add(form4Issue);
     foreach (var form in forms)
     {
       ct.ThrowIfCancellationRequested();
-      if (CheckTemplate(form.Number) is { } templateIssue) issues.Add(templateIssue);
+      if (await CheckTemplateAsync(form.Number, ct) is { } templateIssue) issues.Add(templateIssue);
       var state = await ownForms.GetAsync(form.Id, ct);
       if (state is null)
       {
@@ -69,6 +70,15 @@ public sealed class ProjectExportCheckService(
     }
 
     await using var db = await dbFactory.CreateDbContextAsync(ct);
+    var ids = store.Components.Where(c => c.Entry.MatchResult.MatchedComponent is not null)
+        .Select(c => c.Entry.MatchResult.MatchedComponent!.Id).Distinct().ToArray();
+    var requiredEdits = await NormalRegimeDataCheck.FindAsync(db, ids, ct);
+    foreach (var component in store.Components.Where(c => c.Entry.MatchResult.MatchedComponent is not null))
+    {
+      component.RequiredEditReasons = requiredEdits.GetValueOrDefault(component.Entry.MatchResult.MatchedComponent!.Id) ?? [];
+      foreach (var reason in component.RequiredEditReasons)
+        issues.Add(new($"{component.Positions} — {component.Name}: необходимо редактирование. {reason}", ExportIssueTarget.Components));
+    }
     var requiredForm4Rows = await db.FormParameters.AsNoTracking()
         .Where(p => p.Form.Number == "4" && p.IsRequired)
         .Select(p => p.RowNumber).ToListAsync(ct);
@@ -106,18 +116,19 @@ public sealed class ProjectExportCheckService(
     return issues;
   }
 
+  public Task<ExportIssue?> CheckTemplateAsync(string number, CancellationToken ct = default)
+      => Task.Run(() => CheckTemplate(number), ct);
+
   public ExportIssue? CheckTemplate(string number)
   {
     try
     {
-      maps.GetTemplatePath(number);
-      if (maps.Load(number).ComponentsPerPage < 1)
-        throw new InvalidDataException("Неверное число компонентов на странице.");
+      maps.ValidateTemplate(number);
       return null;
     }
     catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException or JsonException or InvalidOperationException or FormatException)
     {
-      return new($"Форма {number}: отсутствует шаблон Word либо недоступна / повреждена карта заполнения. Проверьте установку приложения.");
+      return new($"Форма {number}: отсутствует шаблон Word либо недоступна / повреждена карта заполнения. Проверьте установку приложения.\n{ex.Message}");
     }
   }
 

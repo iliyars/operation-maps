@@ -68,6 +68,7 @@ namespace OperationMaps.Wpf.Shell
     public IEnumerable<NavItemViewModel> SystemNavItems => NavItems.Where(i =>
         i.ScreenType == typeof(CatalogViewModel) || i.ScreenType == typeof(AdminsViewModel));
     public bool HasProject => _store.HasProject;
+    public OperationStatus Operation { get; } = new();
     public string ProjectCaption => _store.ProjectName ?? "Проект не открыт";
     public string ProjectSummary => $"Компонентов: {_store.Components.Count} · Не сопоставлено: {_store.Components.Count(c => !c.IsMatched)}";
     public string SaveStatus => _store.IsDirty ? "Есть несохранённые изменения" : _store.ProjectFilePath is null ? "Проект ещё не сохранён" : "Все изменения сохранены";
@@ -341,8 +342,10 @@ namespace OperationMaps.Wpf.Shell
       }
 
       IsExportingReport = true;
+      using var operation = Operation.Begin("Проверка проекта перед экспортом…");
       try
       {
+        await operation.ReportAsync("Проверка проекта перед экспортом…", ct);
         var issues = await _services.GetRequiredService<ProjectExportCheckService>().CheckAsync(ct);
         if (issues.Count > 0)
         {
@@ -354,6 +357,7 @@ namespace OperationMaps.Wpf.Shell
               "Проверка перед экспортом") != true) return;
         }
 
+        await operation.ReportAsync("Подготовка содержания и нумерации листов…", ct);
         var plan = await PlanContentsAsync(ct);
         var parts = new List<byte[]>();
         var missing = new List<string>();
@@ -374,6 +378,7 @@ namespace OperationMaps.Wpf.Shell
         var formCount = 0;
         foreach (var (formNumber, buildData) in _formBuilders)
         {
+          await operation.ReportAsync($"Экспорт формы {formNumber}…", ct);
           string templatePath;
           try
           {
@@ -406,15 +411,28 @@ namespace OperationMaps.Wpf.Shell
         else
           missing.Add($"лист регистрации изменений — нет шаблона {_registrationSheet.TemplatePath}");
 
-        var bytes = WordDocumentMerger.Merge(parts);
+        await operation.ReportAsync("Объединение частей итогового документа…", ct);
+        var bytes = await Task.Run(() => WordDocumentMerger.Merge(parts), ct);
 
         Directory.CreateDirectory(formsFolder);
-        await File.WriteAllBytesAsync(outputPath, bytes, ct);
+        await AtomicFileWriter.WriteAsync(outputPath, bytes, ct);
 
         var message = $"Итоговый документ сохранён ({plan.TotalSheets} лист.):\n{outputPath}";
         if (missing.Count > 0)
           message += "\n\nНе вошло в документ:\n• " + string.Join("\n• ", missing);
-        _dialogService.ShowInfo(message, "Итоговый документ");
+        if (_dialogService.AskYesNoCancel(message + "\n\nОткрыть документ в Word?", "Итоговый документ") == true)
+        {
+          try
+          {
+            _services.GetRequiredService<IDocumentLauncher>().Open(outputPath);
+          }
+          catch (Exception ex)
+          {
+            _dialogService.ShowWarning(
+                $"Документ сохранён:\n{outputPath}\n\nНе удалось открыть его автоматически.\n{ex.Message}\n\nОткройте файл вручную или проверьте приложение для файлов .docx.",
+                "Открытие документа");
+          }
+        }
       }
       catch (OperationCanceledException)
       {
@@ -709,12 +727,10 @@ namespace OperationMaps.Wpf.Shell
     private void ShowAbout()
     {
       var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-      MessageBox.Show(
+      _dialogService.ShowInfo(
           $"OperationMaps{Environment.NewLine}Версия {version}{Environment.NewLine}{Environment.NewLine}" +
           "Подготовка карт эксплуатации ЭРИ по ГОСТ.",
-          "О программе",
-          MessageBoxButton.OK,
-          MessageBoxImage.Information);
+          "О программе");
     }
 
     [RelayCommand]

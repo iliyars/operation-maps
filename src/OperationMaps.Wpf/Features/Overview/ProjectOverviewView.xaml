@@ -24,8 +24,6 @@
                     <TextBlock Text="{Binding ProductTitle}" Style="{StaticResource SubtitleText}" TextWrapping="Wrap"/>
                     <TextBlock Text="{Binding Designation}" Style="{StaticResource SubtitleText}"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="{Binding ContinueLabel}" Command="{Binding ContinueCommand}"
-                        Style="{StaticResource PrimaryButton}" Padding="16,8" VerticalAlignment="Center"/>
             </Grid>
             <UniformGrid Columns="3" Margin="0,0,0,20">
                 <Border Style="{StaticResource OverviewCard}">

@@ -185,7 +185,8 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
   [NotifyCanExecuteChangedFor(nameof(GoNextCommand))]
   private ComponentTypeOption? _selectedType;
 
-  public bool ShowTypePicker => IsCatalogMode && !FamilyAlreadyKnown;
+  private bool _requiresTypeSelection;
+  public bool ShowTypePicker => !FamilyAlreadyKnown && (IsCatalogMode || _requiresTypeSelection);
 
   partial void OnSelectedTypeChanged(ComponentTypeOption? value)
   {
@@ -250,26 +251,17 @@ public sealed partial class AddComponentDialogViewModel : ObservableObject
         _componentTypeId = existingFamily.ComponentTypeId;
         ComponentTypeName = existingFamily.ComponentType.Name;
       }
-      else if (IsCatalogMode)
+      else
       {
-        // New family from the catalog: the admin picks the type.
+        // An unknown XML type must remain resolvable in the project wizard.
         TypeOptions.Clear();
         foreach (var t in await db.ComponentTypes.OrderBy(t => t.Name).ToListAsync(ct))
           TypeOptions.Add(new ComponentTypeOption(t.Id, t.Name));
         SelectedType = TypeOptions.FirstOrDefault(t => t.Name == _target.TypeName);
-      }
-      else
-      {
-        var typeName = _target.TypeName;
-        var type = await db.ComponentTypes
-            .FirstOrDefaultAsync(t => t.Name == typeName, ct);
-
-        if (type is null)
-        {
-          ErrorMessage = $"Тип компонента «{typeName}» не найден в справочнике.";
-          return;
-        }
-        _componentTypeId = type.Id;
+        _requiresTypeSelection = SelectedType is null;
+        OnPropertyChanged(nameof(ShowTypePicker));
+        if (TypeOptions.Count == 0)
+          ErrorMessage = "В справочнике нет типов компонентов. Обратитесь к администратору.";
       }
 
       if (existingFamily is not null)

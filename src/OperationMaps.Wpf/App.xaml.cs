@@ -107,8 +107,8 @@ public partial class App : System.Windows.Application
       catch (Exception ex)
       {
         Log.Warning(ex, "Could not offer project recovery");
-        MessageBox.Show("Не удалось проверить аварийные копии.\n\n" + ex.Message,
-            "Автовосстановление", MessageBoxButton.OK, MessageBoxImage.Warning);
+        _host.Services.GetRequiredService<OperationMaps.Application.Services.IDialogService>()
+            .ShowWarning("Не удалось проверить аварийные копии.\n\n" + ex.Message, "Автовосстановление");
       }
       _recoveryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
       _recoveryTimer.Tick += async (_, _) => await recovery.TickAsync();
@@ -125,6 +125,7 @@ public partial class App : System.Windows.Application
       // No window yet (or a half-initialized one): without this the process
       // would just vanish, with no hint why.
       Log.Fatal(ex, "Startup failed");
+      // Native fallback: startup may have failed while loading WPF resources.
       MessageBox.Show(
           "Не удалось запустить программу.\n\n" +
           $"{ex.Message}\n\n" +
@@ -172,7 +173,8 @@ public partial class App : System.Windows.Application
     if (message is null) return true;
 
     Log.Warning("Catalog startup check failed: {Status} ({Path})", status, initializer.DatabasePath);
-    MessageBox.Show(message, "OperationMaps", MessageBoxButton.OK, MessageBoxImage.Warning);
+    _host.Services.GetRequiredService<OperationMaps.Application.Services.IDialogService>()
+        .ShowWarning(message, "OperationMaps");
     return false;
   }
 
@@ -190,6 +192,7 @@ public partial class App : System.Windows.Application
     _isShowingError = true;
     try
     {
+      // The failed action may be the themed dialog itself; avoid recursion.
       MessageBox.Show(
           "Произошла непредвиденная ошибка — последнее действие не выполнено.\n" +
           "Программа продолжит работу; на всякий случай сохраните проект.\n\n" +

@@ -16,6 +16,7 @@
         FontFamily="Segoe UI Variable Text, Segoe UI"
         FontSize="13"
         SizeChanged="Window_SizeChanged"
+        PreviewKeyDown="Window_PreviewKeyDown"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}"
@@ -50,6 +51,7 @@
 
             <!-- ══════════════════ Menu bar ══════════════════ -->
             <Menu Grid.Row="1"
+                  IsEnabled="{Binding Operation.IsIdle}"
                   DataContext="{Binding Shell}">
                 <MenuItem Header="Файл">
                     <MenuItem Header="Начало работы"
@@ -106,6 +108,7 @@
                   so we bind it explicitly here.
             -->
             <ContentControl Grid.Row="2"
+                            IsEnabled="{Binding Shell.Operation.IsIdle}"
                             Content="{Binding Shell}">
                 <ContentControl.Resources>
                     <DataTemplate DataType="{x:Type shell:ShellViewModel}">

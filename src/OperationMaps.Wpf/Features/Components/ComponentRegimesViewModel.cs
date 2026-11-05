@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using OperationMaps.Application.Models;
 using OperationMaps.Domain.Entities.Catalog;
 using OperationMaps.Infrastructure.Persistence;
+using OperationMaps.Infrastructure.Services;
 
 namespace OperationMaps.Wpf.Features.Components;
 
@@ -45,6 +46,7 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
   [ObservableProperty] private bool _isBusy;
   [ObservableProperty] private bool _canEdit = true;
   public bool IsCatalogPreview { get; init; }
+  public event Func<Task>? Saved;
   public string ResetLabel => IsCatalogPreview ? "Показать основной режим" : "Вернуться к основному режиму";
   public string SaveLabel => IsCatalogPreview ? "Сохранить режим" : "Сохранить и применить режим";
   partial void OnCanEditChanged(bool value)
@@ -77,6 +79,7 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
       await using var db = await factory.CreateDbContextAsync(ct);
       var regimes = await db.ComponentRegimes.Include(r => r.Values).ThenInclude(v => v.FormParameter).ThenInclude(p => p.Form)
         .Where(r => r.ComponentId == catalogComponent.Id).OrderBy(r => r.Name).ToListAsync(ct);
+      var requiredEdits = await NormalRegimeDataCheck.FindAsync(db, [catalogComponent.Id], ct);
       var parameters = await db.FormParameters.Include(p => p.Form)
         .Where(p => p.Form.Number == "4" || p.FormId == catalogComponent.OwnFormId).OrderBy(p => p.Form.Number).ThenBy(p => p.RowNumber).ToListAsync(ct);
       var familyValues = await db.FamilyNtdValues.Where(v => v.FamilyId == catalogComponent.FamilyId).ToDictionaryAsync(v => v.FormParameterId, v => v.Value, ct);
@@ -95,6 +98,7 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
         .ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(n => n.Text).Distinct().ToArray());
       ct.ThrowIfCancellationRequested();
       if (generation != _generation) return;
+      component.RequiredEditReasons = requiredEdits.GetValueOrDefault(catalogComponent.Id) ?? [];
       _loading = true;
       Choices.Add(new RegimeChoice(0, "Основной", null));
       foreach (var regime in regimes)
@@ -209,6 +213,7 @@ public sealed partial class ComponentRegimesViewModel(IDbContextFactory<CatalogD
         changed.Values.Select(v => new RegimeParameterValue(v.FormNumber, v.RowNumber, v.Value.Trim())).ToArray());
       target.SelectRegime(snapshot);
       if (_component == target) await LoadAsync(target);
+      if (Saved is { } saved) await saved();
     }
     catch (Exception ex) { Error = $"Не удалось сохранить режим: {ex.Message}"; }
     finally { IsBusy = false; }

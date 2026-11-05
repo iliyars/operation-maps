@@ -35,6 +35,7 @@ namespace OperationMaps.Wpf
       //services
       services.AddSingleton<IFilePicker, FilePicker>();
       services.AddSingleton<IDialogService, DialogService>();
+      services.AddSingleton<IDocumentLauncher, DocumentLauncher>();
       services.AddSingleton(_ => UserPreferences.Load());
 
       // Stores

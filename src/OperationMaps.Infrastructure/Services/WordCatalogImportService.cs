@@ -120,6 +120,7 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
         var item = await ResolveComponentAsync(slot, form, form4Data, typesByName, ct);
         if (seenFullNames.TryGetValue(item.FullName, out var previous))
         {
+          previous.ImportErrors.AddRange(item.ImportErrors);
           if (previous.OwnFormId == item.OwnFormId)
           {
             if (previous.LoadFactorBaseRow is { } previousRow && item.LoadFactorBaseRow is { } nextRow && previousRow != nextRow)
@@ -129,6 +130,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
               item.Form4NotesByRow, item.OwnFormNotesByRow));
             previous.AdditionalVariants.AddRange(item.AdditionalVariants);
           }
+          else
+            previous.ImportErrors.Add($"Для одного компонента указаны разные собственные формы: {previous.OwnFormNumber} и {item.OwnFormNumber}. Уточните документ.");
           continue;
         }
         seenFullNames.Add(item.FullName, item);
@@ -179,6 +182,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
   public async Task<Component> ImportAsync(WordImportedComponent item, CancellationToken ct = default)
   {
     ArgumentNullException.ThrowIfNull(item);
+    if (item.ImportErrors.Count > 0)
+      throw new InvalidOperationException("Исправьте ошибки в исходном Word-документе перед импортом:\n" + string.Join("\n", item.ImportErrors.Distinct()));
     await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
     if (string.IsNullOrWhiteSpace(item.ComponentTypeName))
@@ -188,22 +193,6 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
     // from Form4 and was never touched by the review UI" and "the type text
     // was edited without a live re-resolve in between".
     await ResolveComponentTypeAsync(item, item.ComponentTypeName, ct);
-
-    int componentTypeId;
-    if (item.ComponentTypeId is { } existingTypeId)
-    {
-      componentTypeId = existingTypeId;
-    }
-    else
-    {
-      var newType = new ComponentType { Name = item.ComponentTypeName!.Trim() };
-      db.ComponentTypes.Add(newType);
-      await db.SaveChangesAsync(ct);
-      componentTypeId = newType.Id;
-
-      // A brand-new type has no existing Family under it by definition.
-      item.ExistingFamilyId = null;
-    }
 
     if (item.ExistingFamilyId is null && string.IsNullOrWhiteSpace(item.FamilyName))
       throw new InvalidOperationException($"Не указано семейство для «{item.FullName}».");
@@ -290,7 +279,8 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
     }
     var input = new NewComponentInput
     {
-      ComponentTypeId = componentTypeId,
+      ComponentTypeId = item.ComponentTypeId ?? 0,
+      NewComponentTypeName = item.ComponentTypeId is null ? item.ComponentTypeName : null,
       ExistingFamilyId = item.ExistingFamilyId,
       NewFamilyName = item.ExistingFamilyId is null ? item.FamilyName : null,
       FullName = item.FullName,
@@ -378,8 +368,16 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
     var alreadyExists = await db.Components.AnyAsync(c => c.FullName == fullName, ct);
     var form4Values = form4Match is null ? new Dictionary<int, string>() : new Dictionary<int, string>(form4Match.NtdValues);
     var ownValues = new Dictionary<int, string>(slot.NtdValues);
-    var form4Notes = WordNoteParser.Extract(form4Match?.Note ?? "", form4Values);
-    var ownNotes = WordNoteParser.Extract(slot.Note, ownValues);
+    var noteErrors = new List<string>();
+    Dictionary<int, List<string>> ParseNotes(string number, string text, Dictionary<int, string> values)
+    {
+      var errors = new List<string>();
+      var notes = WordNoteParser.Extract(text, values, errors);
+      noteErrors.AddRange(errors.Select(e => $"Форма {number}: {e}"));
+      return notes;
+    }
+    var form4Notes = ParseNotes("4", form4Match?.Note ?? "", form4Values);
+    var ownNotes = ParseNotes(ownForm.Number, slot.Note, ownValues);
     int? loadFactorBaseRow = null;
     foreach (var parameter in ownForm.Parameters.Where(p => p.IsLoadFactorResult || p.Name == "Коэффициент нагрузки"))
       foreach (var values in new[] { ownValues, slot.SchemeValues })
@@ -428,9 +426,10 @@ public sealed class WordCatalogImportService : IWordCatalogImportService, IWordC
         StripKnownDesignationPrefix(NormalizeHomoglyphs(form4Match.ComponentTypeName.Trim()))))
       {
         var alternativeValues = new Dictionary<int, string>(alternative.NtdValues);
-        var alternativeNotes = WordNoteParser.Extract(alternative.Note, alternativeValues);
+        var alternativeNotes = ParseNotes("4", alternative.Note, alternativeValues);
         resolved.AdditionalVariants.Add(new(alternativeValues, [], alternativeNotes, []));
       }
+    resolved.ImportErrors.AddRange(noteErrors.Distinct());
     return resolved;
   }
 

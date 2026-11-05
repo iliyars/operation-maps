@@ -16,6 +16,12 @@ public sealed class NewComponentInput
   public required int ComponentTypeId { get; init; }
 
   /// <summary>
+  /// When the type is not yet known, resolve or create it by name in the
+  /// same transaction as the component. ComponentTypeId is ignored in this case.
+  /// </summary>
+  public string? NewComponentTypeName { get; init; }
+
+  /// <summary>
   /// Existing Family.Id to attach the new Component to, or null to create
   /// a new Family using <see cref="NewFamilyName"/>.
   /// </summary>

@@ -404,16 +404,15 @@
 
         <Grid Visibility="{Binding SelectedColumn, Converter={StaticResource NullToVis}}">
           <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
           </Grid.RowDefinitions>
 
-          <ScrollViewer Grid.Row="0"
-                        VerticalScrollBarVisibility="Auto"
-                        Padding="24,16,24,8">
-            <StackPanel DataContext="{Binding SelectedColumn}"
-                        shared:TextBoxNavigationHelper.Enable="True">
-
+          <Border Grid.Row="0" Padding="24,16,24,8"
+                  Background="{DynamicResource BgAppBrush}"
+                  BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1">
+            <StackPanel DataContext="{Binding SelectedColumn}">
               <TextBlock Text="{Binding Name}"
                          FontSize="16"
                          FontWeight="SemiBold"
@@ -421,10 +420,18 @@
                          TextWrapping="Wrap"/>
               <TextBlock Text="{Binding Positions}"
                          Style="{StaticResource PositionsText}"
-                         Margin="0,4,0,16"/>
-              <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8">
+                         Margin="0,4,0,12"/>
+              <TextBlock Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap">
                 <Run Text="Режим: "/><Run Text="{Binding Component.RegimeName, Mode=OneWay}"/>
               </TextBlock>
+            </StackPanel>
+          </Border>
+
+          <ScrollViewer Grid.Row="1"
+                        VerticalScrollBarVisibility="Auto"
+                        Padding="24,12,24,8">
+            <StackPanel DataContext="{Binding SelectedColumn}"
+                        shared:TextBoxNavigationHelper.Enable="True">
 
               <!-- Load-factor base parameter picker — only shown when there's a
                    choice (LoadFactorSetup: flagged candidates, or every parameter
@@ -463,12 +470,6 @@
                             SelectedValue="{Binding LoadFactorBaseParameterId}"
                             SelectedValuePath="FormParameterId"
                             DisplayMemberPath="Label"/>
-                  <TextBlock Text="{Binding DataContext.DefaultLoadFactorLabel,
-                                    RelativeSource={RelativeSource AncestorType=UserControl}}"
-                             FontSize="12"
-                             TextWrapping="Wrap"
-                             Foreground="{DynamicResource TextSecondaryBrush}"
-                             Margin="0,6,0,0"/>
                   <!-- Admin: once the right parameter for this form is known,
                        store it in the shared catalog for every component -->
                   <Button Content="Сделать по умолчанию для формы"
@@ -744,7 +745,7 @@
           </ScrollViewer>
 
           <!-- Save button -->
-          <Border Grid.Row="1"
+          <Border Grid.Row="2"
                   Background="{DynamicResource BgPanelBrush}"
                   BorderBrush="{DynamicResource BorderDefaultBrush}"
                   BorderThickness="0,1,0,0"

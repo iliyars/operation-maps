@@ -15,7 +15,10 @@ public sealed class RegistrationSheetService : IRegistrationSheetService
 
   public bool TemplateExists => File.Exists(TemplatePath);
 
-  public async Task<byte[]> BuildAsync(RegistrationSheetData data, CancellationToken ct = default)
+  public Task<byte[]> BuildAsync(RegistrationSheetData data, CancellationToken ct = default)
+      => Task.Run(() => BuildCoreAsync(data, ct), ct);
+
+  private async Task<byte[]> BuildCoreAsync(RegistrationSheetData data, CancellationToken ct)
   {
     if (!TemplateExists)
       throw new FileNotFoundException("Шаблон листа регистрации изменений не найден.", TemplatePath);
@@ -40,6 +43,7 @@ public sealed class RegistrationSheetService : IRegistrationSheetService
       WordPageNumbering.StartAt(doc, data.SheetNumber);
     }
 
+    ct.ThrowIfCancellationRequested();
     return ms.ToArray();
   }
 }

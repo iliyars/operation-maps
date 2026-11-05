@@ -47,6 +47,9 @@ public sealed partial class CatalogComponentItem : ObservableObject
   public required int Id { get; init; }
   public required string FullName { get; init; }
   [ObservableProperty] private bool _needsReview;
+  public IReadOnlyList<string> RequiredEditReasons { get; init; } = [];
+  public bool RequiresEdit => RequiredEditReasons.Count > 0;
+  public string RequiredEditSummary => string.Join("\n", RequiredEditReasons);
   public string? OwnFormNumber { get; init; }
 
   [ObservableProperty] private bool _isSelected;
@@ -70,6 +73,9 @@ public sealed class CatalogCard
   public required string Title { get; init; }
   public required string Subtitle { get; init; }
   public bool NeedsReview { get; init; }
+  public IReadOnlyList<string> RequiredEditReasons { get; init; } = [];
+  public bool RequiresEdit => RequiredEditReasons.Count > 0;
+  public string RequiredEditSummary => string.Join("\n", RequiredEditReasons);
 
   /// <summary>Shown instead of parameters when there's nothing to show (e.g. no own form).</summary>
   public string? EmptyMessage { get; init; }

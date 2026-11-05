@@ -28,7 +28,10 @@ public sealed class ContentsPageService : IContentsPageService
     _templatePath = templatePath ?? throw new ArgumentNullException(nameof(templatePath));
   }
 
-  public async Task<byte[]> BuildAsync(ContentsPageData data, CancellationToken ct = default)
+  public Task<byte[]> BuildAsync(ContentsPageData data, CancellationToken ct = default)
+      => Task.Run(() => BuildCoreAsync(data, ct), ct);
+
+  private async Task<byte[]> BuildCoreAsync(ContentsPageData data, CancellationToken ct)
   {
     if (!File.Exists(_templatePath))
       throw new FileNotFoundException("Шаблон содержания не найден.", _templatePath);
@@ -58,6 +61,7 @@ public sealed class ContentsPageService : IContentsPageService
       WordDocumentStructure.RequireDocument(doc).Save();
     }
 
+    ct.ThrowIfCancellationRequested();
     return ms.ToArray();
   }
 

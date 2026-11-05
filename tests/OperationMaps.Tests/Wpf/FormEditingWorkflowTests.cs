@@ -435,6 +435,37 @@ public sealed class FormEditingWorkflowTests : IDisposable
   }
 
   [Fact]
+  public async Task Load_factor_hint_distinguishes_component_choice_from_form_default_and_follows_selection()
+  {
+    await _vm.OnNavigatedToAsync(67);
+    _vm.LoadFactorOptions.Add(new LoadFactorOptionVm(1, 1, "Напряжение"));
+    _vm.SelectColumnCommand.Execute(_state.Columns[0]);
+    Assert.Contains("Выберите параметр для этого компонента", _vm.DefaultLoadFactorLabel);
+
+    var notifications = new List<string?>();
+    _vm.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
+    _state.Columns[0].LoadFactorBaseParameterId = 1;
+    Assert.Contains(nameof(OwnFormViewModel.DefaultLoadFactorLabel), notifications);
+    Assert.Contains("Для этого компонента параметр выбран", _vm.DefaultLoadFactorLabel);
+    Assert.DoesNotContain("не рассчитывается", _vm.DefaultLoadFactorLabel);
+
+    notifications.Clear();
+    _vm.SelectColumnCommand.Execute(_state.Columns[1]);
+    Assert.Contains(nameof(OwnFormViewModel.DefaultLoadFactorLabel), notifications);
+    Assert.Contains("Выберите параметр для этого компонента", _vm.DefaultLoadFactorLabel);
+  }
+
+  [Fact]
+  public async Task Load_factor_hint_shows_existing_form_default()
+  {
+    _state.SetDefaultLoadFactorParameter(1);
+    await _vm.OnNavigatedToAsync(67);
+    _vm.LoadFactorOptions.Add(new LoadFactorOptionVm(1, 1, "Напряжение"));
+    _vm.SelectColumnCommand.Execute(_state.Columns[0]);
+    Assert.Equal("По умолчанию для формы: Напряжение (стр. 1)", _vm.DefaultLoadFactorLabel);
+  }
+
+  [Fact]
   public void Group_without_applicable_fields_is_not_a_permanent_gap()
   {
     var item = new ColumnListItemVm(_state.Columns[0], [_state.Parameters[2]]);

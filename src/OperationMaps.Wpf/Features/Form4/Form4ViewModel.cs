@@ -1,4 +1,5 @@
 using System.IO;
+using OperationMaps.Wpf.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
@@ -165,22 +166,16 @@ public sealed partial class Form4ViewModel : ScreenViewModelBase, INavigatedTo, 
     var templatePath = _mapLoader.GetTemplatePath("4");
 
     IsExporting = true;
+    using var operation = _shell.Operation.Begin("Экспорт формы 4…");
     try
     {
+      await operation.ReportAsync("Экспорт формы 4…", ct);
       var data = BuildWordFormData();
       // "Лист" in the frame continues the set's numbering, as in the contents.
       data.FirstSheetNumber = await _shell.FirstSheetOfAsync("4", ct);
       var bytes = await _wordService.ExportAsync(data, templatePath, ct);
 
-      // Write to a temp file first, then replace — avoids IOException
-      // if the output file is currently open in Word.
-      var tmpPath = outputPath + ".tmp";
-      await File.WriteAllBytesAsync(tmpPath, bytes, ct);
-
-      if (File.Exists(outputPath))
-        File.Delete(outputPath);
-
-      File.Move(tmpPath, outputPath);
+      await AtomicFileWriter.WriteAsync(outputPath, bytes, ct);
     }
     finally
     {

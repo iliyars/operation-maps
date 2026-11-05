@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using DocumentFormat.OpenXml.Packaging;
 
 namespace OperationMaps.Infrastructure.Word
 {
@@ -45,6 +46,20 @@ namespace OperationMaps.Infrastructure.Word
             $"Word template not found for form {formNumber}: {path}");
 
       return path;
+    }
+
+    public void ValidateTemplate(string formNumber)
+    {
+      var map = Load(formNumber);
+      try
+      {
+        using var document = WordprocessingDocument.Open(GetTemplatePath(formNumber), false);
+        WordTemplateValidator.ThrowIfInvalid(map, document);
+      }
+      catch (OpenXmlPackageException ex)
+      {
+        throw new InvalidDataException($"Форма {formNumber}: повреждён шаблон Word.", ex);
+      }
     }
 
     // ── Parsing ───────────────────────────────────────────────────────────────

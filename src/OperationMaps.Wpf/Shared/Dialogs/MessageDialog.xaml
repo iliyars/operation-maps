@@ -1,0 +1,77 @@
+<Window x:Class="OperationMaps.Wpf.Shared.Dialogs.MessageDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:OperationMaps.Wpf.Shared.Dialogs"
+        xmlns:wshell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="{Binding Title}" Width="680" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" ResizeMode="NoResize"
+        FontFamily="Segoe UI Variable Text, Segoe UI" FontSize="13" WindowStyle="None"
+        wshell:WindowChrome.WindowChrome="{StaticResource AppWindowChrome}">
+    <Border Background="{DynamicResource BgAppBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Height="32" Background="{DynamicResource SidebarBgBrush}">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Title}" Margin="12,0" VerticalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource SidebarTextBrush}" TextTrimming="CharacterEllipsis"/>
+                <Button Grid.Column="1" Content="&#xE8BB;" ToolTip="Закрыть" Click="Close_Click"
+                        Style="{DynamicResource CaptionCloseButton}" wshell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+            </Grid>
+            <Grid Grid.Row="1" Margin="24,20">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding Symbol}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="26"
+                           Margin="0,2,16,0" AutomationProperties.Name="{Binding Title}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{DynamicResource StatusInfoBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:MessageDialogKind.Warning}">
+                                    <Setter Property="Foreground" Value="{DynamicResource StatusWarningBrush}"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Kind}" Value="{x:Static local:MessageDialogKind.Error}">
+                                    <Setter Property="Foreground" Value="{DynamicResource StatusErrorBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="17" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                  MaxHeight="{Binding BodyMaxHeight}" Padding="0,0,12,0" Focusable="True"
+                                  AutomationProperties.Name="Текст сообщения">
+                        <TextBlock Text="{Binding MessageBody}" TextWrapping="Wrap" LineHeight="20"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </ScrollViewer>
+                </StackPanel>
+            </Grid>
+            <Border Grid.Row="2" Background="{DynamicResource BgPanelBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,1,0,0" Padding="20,14">
+                <StackPanel>
+                    <TextBlock Text="{Binding QuestionPrompt}" TextWrapping="Wrap" FontWeight="SemiBold" Margin="0,0,0,12"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Visibility="{Binding HasQuestionPrompt, Converter={StaticResource BoolToVis}}"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Да" Click="Yes_Click" MinWidth="88" Padding="16,7" Margin="0,0,8,0"
+                            Style="{StaticResource PrimaryButton}"
+                            Visibility="{Binding IsQuestion, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Нет" Click="No_Click" MinWidth="88" Padding="16,7" Margin="0,0,8,0"
+                            Style="{StaticResource OutlineButton}"
+                            Visibility="{Binding IsQuestion, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="Отмена" IsCancel="True" IsDefault="{Binding IsQuestion}" MinWidth="88" Padding="16,7"
+                            Style="{StaticResource OutlineButton}"
+                            Visibility="{Binding IsQuestion, Converter={StaticResource BoolToVis}}"/>
+                    <Button Content="ОК" IsCancel="True" IsDefault="{Binding IsNotice}" MinWidth="88" Padding="16,7"
+                            Style="{StaticResource PrimaryButton}"
+                            Visibility="{Binding IsNotice, Converter={StaticResource BoolToVis}}"/>
+                </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

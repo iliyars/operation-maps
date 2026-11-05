@@ -112,12 +112,74 @@ public class ComponentMatcherTests : IDisposable
   public async Task Ambiguous_normalized_names_require_manual_choice_but_exact_match_wins()
   {
     var family = await _db.Families.SingleAsync();
-    _db.Components.Add(new Component { FamilyId = family.Id, FullName = KnownDesignation.Replace(" ", "") });
+    var original = await _db.Components.SingleAsync();
+    var variant = new Component { FamilyId = family.Id, FullName = KnownDesignation.Replace(" ", "") };
+    _db.Components.Add(variant);
     await _db.SaveChangesAsync();
-    Assert.True((await _matcher.MatchAsync(Imported(KnownDesignation, Category))).IsMatched);
+    Assert.Equal(original.Id, (await _matcher.MatchAsync(Imported(KnownDesignation, Category))).MatchedComponent?.Id);
+    Assert.Equal(variant.Id, (await _matcher.MatchAsync(Imported(variant.FullName, Category))).MatchedComponent?.Id);
     var result = await _matcher.MatchAllAsync([Imported(KnownDesignation.Replace("-", "–"), Category)]);
     Assert.Empty(result.Matched);
     Assert.Contains("Неоднозначное", Assert.Single(result.Unresolved).MatchResult.Warning);
+    Assert.Null(result.Unresolved[0].MatchResult.MatchedComponent);
+    Assert.Null(result.Unresolved[0].MatchResult.MatchedFamily);
+    Assert.Empty(result.Unresolved[0].MatchResult.RequiredForms);
+  }
+
+  [Theory]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Family_normalization_ambiguity_is_explicit_and_does_not_select_a_family(bool reverseOrder)
+  {
+    var family = await _db.Families.SingleAsync();
+    var firstName = reverseOrder ? "К10–79" : "K10-79";
+    var secondName = reverseOrder ? "K10-79" : "К10–79";
+    family.Name = firstName;
+    _db.Families.Add(new Family { Name = secondName, ComponentTypeId = family.ComponentTypeId });
+    await _db.SaveChangesAsync();
+
+    var imported = Imported(UnseededDesignationSameFamily, Category);
+    var batch = await _matcher.MatchAllAsync([imported]);
+    var result = Assert.Single(batch.Unresolved).MatchResult;
+    Assert.Empty(batch.Matched);
+    Assert.False(result.IsMatched);
+    Assert.NotNull(result.MatchedType);
+    Assert.Null(result.MatchedFamily);
+    Assert.Null(result.MatchedComponent);
+    Assert.Empty(result.RequiredForms);
+    Assert.Contains("Неоднозначное семейство", result.Warning);
+    Assert.Contains(firstName, result.Warning);
+    Assert.Contains(secondName, result.Warning);
+    Assert.Equal(result.Warning, Assert.Single(batch.Warnings));
+    Assert.Equal(UnseededDesignationSameFamily, imported.RawName);
+  }
+
+  [Fact]
+  public async Task Exact_family_wins_over_a_normalized_collision()
+  {
+    var family = await _db.Families.SingleAsync();
+    _db.Families.Add(new Family { Name = "K10-79", ComponentTypeId = family.ComponentTypeId });
+    await _db.SaveChangesAsync();
+
+    var result = await _matcher.MatchAsync(Imported(UnseededDesignationSameFamily, Category));
+    Assert.False(result.IsMatched); // family alone is not an exact component
+    Assert.Equal(family.Id, result.MatchedFamily?.Id);
+    Assert.Equal("67", Assert.Single(result.RequiredForms).Number);
+    Assert.DoesNotContain("Неоднозначное", result.Warning);
+  }
+
+  [Fact]
+  public async Task Single_normalized_family_keeps_required_forms_without_inventing_a_component()
+  {
+    var family = await _db.Families.SingleAsync();
+    family.Name = "K10-79";
+    await _db.SaveChangesAsync();
+
+    var result = await _matcher.MatchAsync(Imported(UnseededDesignationSameFamily, Category));
+    Assert.False(result.IsMatched);
+    Assert.Null(result.MatchedComponent);
+    Assert.Equal(family.Id, result.MatchedFamily?.Id);
+    Assert.Equal("67", Assert.Single(result.RequiredForms).Number);
   }
 
   [Theory]
@@ -126,6 +188,9 @@ public class ComponentMatcherTests : IDisposable
   [InlineData("Деталь-12", "Деталь-1-2")]
   [InlineData("ОСМ 1325ЕР1У", "1325ЕР1У")]
   [InlineData("ОСМ 1325ЕР1У", "ОС 1325ЕР1У")]
+  [InlineData("Деталь-10В+-1%", "Деталь-10В+-5%")]
+  [InlineData("Деталь-10В", "Деталь-100В")]
+  [InlineData("Деталь-10мА", "Деталь-10А")]
   public async Task Meaningful_differences_are_not_ignored(string catalog, string xml)
   {
     var family = await _db.Families.SingleAsync();
@@ -215,6 +280,22 @@ public class ComponentMatcherTests : IDisposable
     Assert.Equal("К10-79", result.MatchedFamily!.Name);
     Assert.Contains(result.RequiredForms, f => f.Number == "67");
     Assert.Null(result.Warning);
+  }
+
+  [Fact]
+  public async Task Unknown_xml_type_reaches_unresolved_components_without_losing_name_or_positions()
+  {
+    using var xml = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(
+        "<AVS><RecordsData><Record field_5=\"UNKNOWN123\" field_32=\"A1, A2\"/></RecordsData></AVS>"));
+    var imported = await new OperationMaps.Infrastructure.Importing.Pe3XmlImporter(new ComponentNameParser()).ImportAsync(xml);
+    var result = await _matcher.MatchAllAsync(imported.Components);
+
+    Assert.Empty(result.Matched);
+    var unresolved = Assert.Single(result.Unresolved);
+    Assert.Equal("UNKNOWN123", unresolved.Imported.RawName);
+    Assert.Equal(["A1", "A2"], unresolved.Imported.Positions);
+    Assert.Empty(unresolved.MatchResult.RequiredForms);
+    Assert.NotEmpty(imported.Warnings);
   }
 
   [Fact]

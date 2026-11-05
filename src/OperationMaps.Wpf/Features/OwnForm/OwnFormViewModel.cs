@@ -221,10 +221,19 @@ namespace OperationMaps.Wpf.Features.OwnForm
     /// needs a choice until an admin sets the default.
     /// </summary>
     public string DefaultLoadFactorLabel
-        => _state?.DefaultLoadFactorParameterId is { } id
-           && LoadFactorOptions.FirstOrDefault(o => o.FormParameterId == id) is { } option
-            ? $"По умолчанию для формы: {option.Label}"
-            : "По умолчанию для формы не задан — выберите параметр, иначе коэффициент нагрузки не рассчитывается.";
+    {
+      get
+      {
+        if (_state?.DefaultLoadFactorParameterId is { } id
+            && LoadFactorOptions.FirstOrDefault(o => o.FormParameterId == id) is { } option)
+          return $"По умолчанию для формы: {option.Label}";
+
+        if (LoadFactorOptions.Any(o => o.FormParameterId == SelectedColumn?.LoadFactorBaseParameterId))
+          return "Для этого компонента параметр выбран. Общий параметр по умолчанию для формы пока не задан.";
+
+        return "Выберите параметр для этого компонента, чтобы рассчитывать коэффициент нагрузки. Общий параметр по умолчанию для формы пока не задан.";
+      }
+    }
 
     /// <summary>Admin: make the selected component's choice the form's default for everyone.</summary>
     [RelayCommand(CanExecute = nameof(CanMakeDefaultLoadFactor))]
@@ -274,7 +283,10 @@ namespace OperationMaps.Wpf.Features.OwnForm
     private void OnWatchedColumnChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
       if (e.PropertyName == nameof(FormColumnVm.LoadFactorBaseParameterId))
+      {
         MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
+        OnPropertyChanged(nameof(DefaultLoadFactorLabel));
+      }
     }
 
     // ── Commands: Undo / Redo ─────────────────────────────────────────────────
@@ -465,18 +477,17 @@ namespace OperationMaps.Wpf.Features.OwnForm
       }
 
       IsExporting = true;
+      using var operation = _shell.Operation.Begin($"Экспорт формы {FormNumber}…");
       try
       {
+        await operation.ReportAsync($"Экспорт формы {FormNumber}…", ct);
         var templatePath = _mapLoader.GetTemplatePath(FormNumber);
         var data = BuildWordFormData();
         // "Лист" in the frame continues the set's numbering, as in the contents.
         data.FirstSheetNumber = await _shell.FirstSheetOfAsync(FormNumber, ct);
         var bytes = await _wordService.ExportAsync(data, templatePath, ct);
 
-        var tmpPath = outputPath + ".tmp";
-        await File.WriteAllBytesAsync(tmpPath, bytes, ct);
-        if (File.Exists(outputPath)) File.Delete(outputPath);
-        File.Move(tmpPath, outputPath);
+        await AtomicFileWriter.WriteAsync(outputPath, bytes, ct);
       }
       catch (Exception ex) when (ex is FileNotFoundException or InvalidDataException)
       {
@@ -534,6 +545,7 @@ namespace OperationMaps.Wpf.Features.OwnForm
       MergeCommand.NotifyCanExecuteChanged();
       WatchSelectedColumn(value);
       MakeDefaultLoadFactorCommand.NotifyCanExecuteChanged();
+      OnPropertyChanged(nameof(DefaultLoadFactorLabel));
     }
 
     // ── Private: table builder ────────────────────────────────────────────────
